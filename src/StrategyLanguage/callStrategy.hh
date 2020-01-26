@@ -47,9 +47,6 @@ public:
 private:
   RewriteStrategy* strategy;
   CachedDag callTerm;
-  bool callDagIsReduced;
-
-  static bool tailCall(DecompositionProcess* remainder);
 };
 
 inline Term*

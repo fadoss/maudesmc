@@ -47,6 +47,7 @@
 
 //	higher class definitions
 #include "searchState.hh"
+#include "strategyTransitionGraph.hh"
 
 //	strategy language class definitions
 #include "strategicSearch.hh"
@@ -57,8 +58,7 @@
 
 CallStrategy::CallStrategy(RewriteStrategy* strat, Term* term)
   : strategy(strat),
-    callTerm(term),
-    callDagIsReduced(false)
+    callTerm(term)
 {
   Assert(term != 0, "term cannot be null");
 
@@ -100,16 +100,20 @@ CallStrategy::process()
 }
 
 inline bool
-CallStrategy::tailCall(DecompositionProcess* remainder)
+tailCall(DecompositionProcess* remainder, StrategyTransitionGraph* transitionGraph)
 {
+  // Due to the optimized way the call task are managed in the usual
+  // strategies execution, we do not treat as tail call those whose
+  // caller is not inside a CallTask.
   return remainder->getPending() == StrategyStackManager::EMPTY_STACK
-	  && dynamic_cast<CallTask*>(remainder->getOwner()) != 0;
+    && (transitionGraph != 0 || dynamic_cast<CallTask*>(remainder->getOwner()) != 0);
 }
 
 StrategicExecution::Survival
 CallStrategy::decompose(StrategicSearch& searchObject, DecompositionProcess* remainder)
 {
   RewritingContext* context = searchObject.getContext();
+  StrategyTransitionGraph* transitionGraph = remainder->getOwner()->getTransitionGraph();
 
   if (strategy->getDefinitions().empty())
     {
@@ -133,26 +137,38 @@ CallStrategy::decompose(StrategicSearch& searchObject, DecompositionProcess* rem
 
       //
       // For tail calls, the strategy expression can even simply be pushed
-      // on top of the stack. Otherwise, it creates a call task to run the
-      // strategy code.
+      // on top of the stack (unless starting an opaque call). Otherwise, it
+      // creates a call task to run the strategy code.
       //
       // Both actions are correct no matter if the call is tail, but the
       // advantages of pushing the strategy on top of the stack are lost
       // when it is not.
       //
-      if (tailCall(remainder))
+      bool isOpaque = transitionGraph != 0 && transitionGraph->isOpaque(strategy->id());
+      bool isTail = tailCall(remainder, transitionGraph);
+      if (isTail && !isOpaque)
 	{
-	  remainder->pushStrategy(searchObject, strategy->getDefinitions()[0]->getRhs());
+	  remainder->pushStrategy(searchObject, definition->getRhs());
 	  return StrategicExecution::SURVIVE;
 	}
 
-      (void) new CallTask(searchObject,
+      StrategicTask* callTask = new CallTask(searchObject,
 			  remainder->getDagIndex(),
+			  strategy->id(),
 			  definition->getRhs(),
 			  remainder->getPending(),
 			  VariableBindingsManager::EMPTY_CONTEXT,
 			  remainder,
 			  remainder);
+
+      // Informs the model checker about the new tail call. Then, the new call
+      // task can share its seen map with other tail call tasks using the same
+      // variable context.
+      if (transitionGraph != 0 && isTail)
+	{
+	  transitionGraph->getContextGroup(remainder->getOwner());
+	  transitionGraph->onStrategyCall(callTask, VariableBindingsManager::EMPTY_CONTEXT);
+	}
 
       return StrategicExecution::DIE;
     }
@@ -165,26 +181,17 @@ CallStrategy::decompose(StrategicSearch& searchObject, DecompositionProcess* rem
 
   // Instantiates the call arguments with the current variable substitution and reduce them
   VariableBindingsManager::ContextId varBinds = remainder->getOwner()->getVarsContext();
-  RewritingContext* callContext = context->makeSubcontext(
-      callTerm.getTerm()->ground() ? callTerm.getDag() : searchObject.instantiate(varBinds, callTerm.getDag()));
+  DagNode* instantiatedCall = callTerm.getTerm()->ground() ? callTerm.getDag() :
+				searchObject.instantiate(varBinds, callTerm.getDag());
+  RewritingContext* callContext = context->makeSubcontext(instantiatedCall);
   callContext->reduce();
-  //
-  // Due to sharing, the reduction of the instantiated call term may have
-  // reduced some ground subdags of callTerm, which would have lost their
-  // ground flags. Hence, we have to recalculate these flags again, but only
-  // once, because the second time they are already reduced.
-  //
-  if (!callDagIsReduced)
-    {
-      callTerm.getDag()->computeBaseSortForGroundSubterms(false);
-      callDagIsReduced = true;
-    }
   searchObject.getContext()->transferCountFrom(*callContext);
 
   (void) new CallProcess(strategy,
 			 callContext,
 			 remainder->getDagIndex(),
 			 remainder->getPending(),
+			 tailCall(remainder, transitionGraph),
 			 remainder,
 			 remainder);
 

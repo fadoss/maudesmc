@@ -27,8 +27,6 @@
 #define _IO_Manager_hh_
 #include "autoWrapBuffer.hh"
 
-struct GetLine;  // to avoid sucking in the tecla header file
-
 class IO_Manager
 {
   NO_COPYING(IO_Manager);
@@ -43,6 +41,7 @@ public:
     };
 
   IO_Manager();
+  ~IO_Manager();
 
   void setAutoWrap(bool lineWrapping);
   void unsetAutoWrap();
@@ -82,7 +81,8 @@ private:
 
   ssize_t readFromStdin(char* buf, size_t maxSize);
 
-  GetLine* gl;
+  bool usingReadline;
+  char* rdline;
   const char* line;
   bool usePromptsAnyway;  // use prompts even if command line editing disabled
   bool contFlag;
@@ -137,7 +137,7 @@ IO_Manager::setStdinOwner(pid_t owner)
 inline bool
 IO_Manager::usingTecla()
 {
-  return gl != 0;
+  return usingReadline;
 }
 
 inline void

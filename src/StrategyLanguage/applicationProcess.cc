@@ -46,6 +46,7 @@
 //	higher class definitions
 #include "assignmentConditionFragment.hh"
 #include "rewriteConditionFragment.hh"
+#include "strategyTransitionGraph.hh"
 
 //	strategy language class definitions
 #include "strategicSearch.hh"
@@ -104,20 +105,6 @@ ApplicationProcess::ApplicationProcess(StrategicSearch& searchObject,
 	  context->transferCountFrom(*instanceContext);
 	  instedSubstitution[i] = new DagRoot(instanceContext->root());
 	  delete instanceContext;
-	}
-
-      //
-      // Due to sharing, the reduction of the instantiated substitution values
-      // may have reduced some ground subdags of the original values, which
-      // would have lost their ground flags. Hence, we have to recalculate
-      // these flags again, but only once, because the second time they are
-      // already reduced.
-      //
-      if (strategy->areSubsDagsReduced())
-	{
-	  for (int i = 0; i < nrValues; ++i)
-	    values[i].getDag()->computeBaseSortForGroundSubterms(false);
-	  strategy->setSubsDagsReduced();
 	}
 
       Vector<Term*> tmpVariables(strategy->getVariables());
@@ -187,7 +174,17 @@ ApplicationProcess::run(StrategicSearch& searchObject)
 				      rule);
 	  if (resultIndex != NONE)
 	    {
-	      (void) new DecompositionProcess(resultIndex, pending, this, this);
+	      StrategyTransitionGraph* graph = getOwner()->getTransitionGraph();
+
+	      if (graph == 0)
+	        (void) new DecompositionProcess(resultIndex, pending, this, this);
+
+	      else
+		// Announces to the model checker that a new state has been reached
+		graph->commitState(resultIndex, pending, this,
+				   StrategyTransitionGraph::RULE_APPLICATION,
+				   rule->getLabel().id());
+
 	      return SURVIVE;  // stick around to look for another rewrite
 	    }
 	}
@@ -383,7 +380,17 @@ ApplicationProcess::resolveRemainingConditionFragments(StrategicSearch& searchOb
   int resultIndex = doRewrite(searchObject, rewriteState, redexIndex, extensionInfo, substitutionSoFar, rule);
   if (resultIndex != NONE)
     {
-      (void) new DecompositionProcess(resultIndex, pending, taskSibling, other);
+      StrategyTransitionGraph* graph = taskSibling->getOwner()->getTransitionGraph();
+
+      if (graph == 0)
+	(void) new DecompositionProcess(resultIndex, pending, taskSibling, other);
+
+      else
+	// Announces to the model checker that a new state has been reached
+	graph->commitState(resultIndex, pending, taskSibling,
+			    StrategyTransitionGraph::RULE_APPLICATION,
+			    rule->getLabel().id());
+
       return SURVIVE;  // stick around to look for another rewrite
     }
   return DIE;  // only happens when we are aborting
