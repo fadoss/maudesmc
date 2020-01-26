@@ -74,4 +74,7 @@ class FilteredVariantUnifierSearch;
 
 class VariantMatchingProblem;
 
+class StrategyTransitionGraph;
+struct TaskInfo;
+
 #endif

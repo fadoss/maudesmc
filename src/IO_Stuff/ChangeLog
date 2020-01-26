@@ -190,6 +190,14 @@
 	bufferSize, buffer
 	(boundedGetLineFromStdin, getLineFromStdin): added
 
+2018-03-23  Rubén Rubio  <rubenrub@ucm.es>
+
+	* IO_Manager.cc (setCommandLineEditing, getInput, getLine): added support for GNU Readline instead of tecla
+	(~IO_Manager): added
+
+	* IO_Manager.hh: added data member rdline
+	(~IO_Manager): added
+
 2017-12-07  Steven Eker  <eker@install.csl.sri.com>
 
 	* IO_Manager.cc (getInput): don't generate continuation

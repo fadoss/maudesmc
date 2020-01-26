@@ -33,6 +33,9 @@
 #include "core.hh"
 #include "strategyLanguage.hh"
 
+//	higher class definitions
+#include "strategyTransitionGraph.hh"
+
 //	strategy language class definitions
 #include "callTask.hh"
 #include "decompositionProcess.hh"
@@ -40,6 +43,7 @@
 
 CallTask::CallTask(StrategicSearch& searchObject,
 		   int startIndex,
+		   int callee,
 		   StrategyExpression* strategy,
 		   StrategyStackManager::StackId pending,
 		   VariableBindingsManager::ContextId varBinds,
@@ -47,26 +51,41 @@ CallTask::CallTask(StrategicSearch& searchObject,
 		   StrategicProcess* insertionPoint)
   : StrategicTask(sibling, varBinds),
     searchObject(searchObject),
-    pending(pending)
+    callee(callee)
 {
   (void) new DecompositionProcess(startIndex,
 				  searchObject.push(StrategyStackManager::EMPTY_STACK, strategy),
 				  getDummyExecution(),
 				  insertionPoint);
-}
 
-CallTask::~CallTask()
-{
-  searchObject.closeContext(getVarsContext());
+  StrategicTask::pending = pending;
+
+  //
+  // When running an opaque strategy, model checking is disabled inside
+  //
+  StrategyTransitionGraph* transitionGraph = getTransitionGraph();
+  if (transitionGraph != 0 && callee != NONE && transitionGraph->isOpaque(callee))
+    setTransitionGraph(0);
+  // Otherwise, callee is set to NONE because the information is not needed and we
+  // can then use callee != NONE to detect if we are running an opaque strategy
+  else
+    this->callee = NONE;
 }
 
 StrategicExecution::Survival
 CallTask::executionSucceeded(int resultIndex, StrategicProcess* insertionPoint)
 {
-  (void) new DecompositionProcess(resultIndex,
-				  pending,		// Recovers the original strategy stack
-				  this,			// Will be slave of the parent task (closes context)
-  insertionPoint);
+  StrategyTransitionGraph* transitionGraph = getOwner()->getTransitionGraph();
+
+  // For opaque strategies, we inform that a new state has been reached
+  if (callee != NONE)
+    {
+      transitionGraph->commitState(resultIndex, pending, this,
+				   StrategyTransitionGraph::OPAQUE_STRATEGY, callee);
+    }
+  // Otherwise, we recover the execution just after the strategy call
+  else
+   resumeOwner(resultIndex, pending, insertionPoint);
 
   return SURVIVE;
 }
@@ -74,5 +93,6 @@ CallTask::executionSucceeded(int resultIndex, StrategicProcess* insertionPoint)
 StrategicExecution::Survival
 CallTask::executionsExhausted(StrategicProcess*)
 {
+  searchObject.closeContext(getVarsContext());
   return DIE;
 }

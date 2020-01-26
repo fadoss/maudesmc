@@ -34,13 +34,12 @@ class CallTask : public StrategicTask
 public:
   CallTask(StrategicSearch& searchObject,
 	   int startIndex,
+	   int callee,
 	   StrategyExpression* strategy,
 	   StrategyStackManager::StackId pending,
 	   VariableBindingsManager::ContextId varBinds,
 	   StrategicExecution* sibling,
 	   StrategicProcess* insertionPoint);
-
-  ~CallTask();
 
   //
   //	Call-backs for interesting events.
@@ -50,7 +49,7 @@ public:
 
 private:
   StrategicSearch& searchObject;
-  StrategyStackManager::StackId pending;
+  int callee;
 };
 
 #endif
