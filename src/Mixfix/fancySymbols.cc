@@ -127,6 +127,8 @@ MixfixModule::newFancySymbol(Token prefixName,
       return new MetaLevelOpSymbol(name, nrArgs, strategy);
     case SymbolType::MODEL_CHECKER_SYMBOL:
       return new ModelCheckerSymbol(name);
+    case SymbolType::STRATEGY_MODEL_CHECKER_SYMBOL:
+      return new StrategyModelCheckerSymbol(name);
     case SymbolType::SAT_SOLVER_SYMBOL:
       return new SatSolverSymbol(name);
     case SymbolType::SUCC_SYMBOL:

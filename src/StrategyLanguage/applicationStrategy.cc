@@ -50,8 +50,7 @@ ApplicationStrategy::ApplicationStrategy(int label,
     label(label),
     variables(variables),
     valueDags(values.size()),
-    strategies(strategies),
-    subsDagsAreReduced(false)
+    strategies(strategies)
 {
   Assert(label != NONE || (variables.empty() && strategies.empty()),
 	 "substitutions and condition strategies aren't allowed without a label");

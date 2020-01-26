@@ -52,9 +52,6 @@ public:
   bool check(VariableInfo& indices, const TermSet& boundVars);
   void process();
 
-  bool areSubsDagsReduced() const;
-  void setSubsDagsReduced();
-
   StrategicExecution::Survival decompose(StrategicSearch& searchObject, DecompositionProcess* remainder);
 
 private:
@@ -64,7 +61,6 @@ private:
   Vector<CachedDag> valueDags;
   Vector<StrategyExpression*> strategies;	// strategies for searches in conditions
   VariableInfo varInfo;				// variable information for the substitution values
-  bool subsDagsAreReduced;
 };
 
 inline void
@@ -107,18 +103,6 @@ inline const Vector<StrategyExpression*>&
 ApplicationStrategy::getStrategies() const
 {
   return strategies;
-}
-
-inline bool
-ApplicationStrategy::areSubsDagsReduced() const
-{
-  return subsDagsAreReduced;
-}
-
-inline void
-ApplicationStrategy::setSubsDagsReduced()
-{
-  subsDagsAreReduced = true;
 }
 
 #endif

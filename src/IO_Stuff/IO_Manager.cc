@@ -34,11 +34,12 @@
 #include "rope.hh"
 
 //	line editing stuff
-#ifdef USE_TECLA
+#ifdef USE_READLINE
 #if HAVE_SYS_TERMIOS_H
 #include <sys/termios.h>
 #endif
-#include "libtecla.h"
+#include <readline/readline.h>
+#include <readline/history.h>
 #endif
 
 //	IO Stuff class definitions
@@ -47,8 +48,9 @@
 
 IO_Manager::IO_Manager()
 {
-  gl = 0;
-  line = 0;
+  usingReadline = false;
+  rdline = 0;	// full line (must be stored to free it)
+  line = 0;	// remaining line fragment (because of maxSize)
   usePromptsAnyway = false;
   contFlag = false;
   wrapOut = 0;
@@ -62,12 +64,29 @@ IO_Manager::IO_Manager()
 
 }
 
-void
-IO_Manager::setCommandLineEditing(size_t lineLength, size_t historyLength)
+IO_Manager::~IO_Manager()
 {
-#ifdef USE_TECLA
-  gl = new_GetLine(lineLength, historyLength);
-  gl_trap_signal(gl, SIGINT, 0, GLS_ABORT, EINTR);
+#ifdef USE_READLINE
+  if (usingReadline)
+    write_history(".maude_history");
+
+  if (rdline != 0)
+  {
+    free(rdline);
+    rdline = 0;
+  }
+#endif
+}
+
+void
+IO_Manager::setCommandLineEditing(size_t /* lineLength */, size_t historyLength)
+{
+#ifdef USE_READLINE
+  usingReadline = true;
+
+  using_history();
+  read_history(".maude_history");
+  stifle_history(historyLength);
 #endif
 }
 
@@ -131,32 +150,44 @@ IO_Manager::getInput(char* buf, size_t maxSize, FILE* stream)
       return read(fileno(stream), buf, maxSize);
     }
 
-#ifdef USE_TECLA
-  if (gl != 0)
+#ifdef USE_READLINE
+  if (usingReadline)
     {
       if (line == 0)
 	{
-	  
-	  line = gl_get_line(gl,
-			     contFlag ? contPrompt.c_str() : prompt.c_str(),
-			     NULL,
-			     -1);
-	  GlTerminalSize ts = gl_terminal_size(gl, DEFAULT_COLUMNS, DEFAULT_LINES);
-	  if (wrapOut != 0)
-	    wrapOut->setLineWidth(ts.ncolumn);
-	  if (wrapErr != 0)
-	    wrapErr->setLineWidth(ts.ncolumn);
+	  rdline = readline(contFlag ? contPrompt.c_str() : prompt.c_str());
+
+	  // Update the word wrapping buffers size just in case
+	  // the terminal width has changed
+	  winsize ts;
+	  if (wrapOut != 0 && ioctl(STDOUT_FILENO, TIOCGWINSZ , &ts) && ts.ws_col > 0)
+	    wrapOut->setLineWidth(ts.ws_col);
+	  if (wrapErr != 0 && ioctl(STDERR_FILENO, TIOCGWINSZ , &ts) && ts.ws_col > 0)
+	    wrapErr->setLineWidth(ts.ws_col);
 	  contFlag = true;
-	  if (line == 0)
+
+	  if (rdline == 0)
 	    return 0;
+	  else if (*rdline)
+	    add_history(rdline);
+
+	  // Appends a newline character (readline removes it)
+	  int lineLen = strlen(rdline);
+	  rdline = (char *) realloc(rdline, lineLen + 2);
+	  rdline[lineLen] = '\n';
+	  rdline[lineLen+1] = '\0';
+
+	  line = rdline;
 	}
-      
+
       size_t n;
       for (n = 0;; n++)
 	{
 	  char c = *line;
 	  if (c == '\0')
 	    {
+	      free(rdline);
+	      rdline = 0;
 	      line = 0;
 	      break;
 	    }
@@ -249,16 +280,26 @@ IO_Manager::getLineFromStdin(const Rope& prompt)
   //
   //	Get a line as a Rope, possibly using Tecla.
   //
-#ifdef USE_TECLA
-  if (gl != 0 && isatty(STDIN_FILENO))
+#ifdef USE_READLINE
+  if (usingReadline && isatty(STDIN_FILENO))
     {
       char* promptString = prompt.makeZeroTerminatedString();
-      line = gl_get_line(gl, promptString, NULL, -1);  //  ignore any partial line left in line
+      //  ignore any partial line left in line
+      if (rdline != 0)
+	{
+	  free(rdline);
+	  rdline = 0;
+	  line = 0;
+	}
+      rdline = readline(promptString);
       delete [] promptString;
-      if (line == 0)
+      if (rdline == 0)
 	return Rope();  // return empty rope on error or eof
-      Rope result(line);
-      line = 0;
+      else if (*rdline)
+	add_history(rdline);
+      Rope result(rdline);
+      free(rdline);
+      rdline = 0;
       return result;
     }
 #endif
