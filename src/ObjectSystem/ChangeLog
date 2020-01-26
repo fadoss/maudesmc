@@ -1,0 +1,928 @@
+2019-12-04  Steven Eker  <eker@mu>
+
+	* fileActions.cc (getOpenFile): use DebugSave() to avoid unused variable
+	warning when Assert() is compiled out
+
+2019-12-03  Steven Eker  <eker@mu>
+
+	* configSymbol.cc (ruleRewrite): use safeCastNonNull<>() (4 places)
+	(retrieveObject): use safeCastNonNull<>()
+
+===================================Maude127===========================================
+
+2019-11-27  Rubén Rubio  <rubenrub@ucm.es>
+
+	* fileActions.cc (write): fixed memory leak (textArray)
+
+2019-07-25  Steven Eker  <eker@mu>
+
+	* configSymbol.cc (compileRules): added comments
+	(checkArgs): add comments including explanation of why this isn't
+	a bug despite static analyzer finding.
+
+===================================Maude123===========================================
+
+2018-10-09  Steven Eker  <eker@install.csl.sri.com>
+
+	* configSymbol.cc (ruleRewrite): pass subject = 0 to
+	tracePreRuleRewrite() in fake rewrite cases.
+
+
+2018-07-30  Steven Eker  <eker@install.csl.sri.com>
+
+	* objectSystemRewritingContext.cc (externalRewrite): support
+	EXT_BIAS as a temporary hack
+
+	* socketManagerSymbol.hh (PseudoThread): increased READ_BUFFER_SIZE
+	to 208K
+
+===================================Maude118===========================================
+
+2018-07-06  Steven Eker  <eker@install.csl.sri.com>
+
+	* streamManagerSymbol.cc (getLine): use getLineFromStdin()
+
+2018-05-31  Steven Eker  <eker@install.csl.sri.com>
+
+	* configSymbol.cc (compileRules): call resetRules() for safety
+
+	* objectSystemRewritingContext.cc (offerMessageExternally): turned
+	commented out print statement into DebugAdvisory()
+
+	* socketManagerSymbol.cc (handleManagerMessage, handleMessage): turned
+	commented out print statement into DebugAdvisory()
+
+	* configSymbol.cc (ruleRewrite): turned commented out print statement
+	into DebugAdvisory()
+
+2018-05-29  Steven Eker  <eker@install.csl.sri.com>
+
+	* objectSystemRewritingContext.hh (RewritingContext): added decl
+	for externalRewrite()
+
+	* objectSystemRewritingContext.cc (externalRewrite): added
+
+2018-05-24  Steven Eker  <eker@install.csl.sri.com>
+
+	* pseudoThread.hh (P): added NOTHING_HAPPENED to enum ReturnStatus
+	(P): updated decl for eventLoop()
+
+	* pseudoThread.cc (processFds): support wait = 0 for non-blocking
+	poll of active file descriptors
+	(eventLoop): take block argument
+
+===================================Maude117===========================================
+
+2017-08-18  Steven Eker  <eker@install.csl.sri.com>
+
+	* configSymbol.cc (ruleRewrite): added comments to explain
+	the tricky tracing code
+	(ruleRewrite): fake rewrites when tracing in the single subterm
+	case and in the ConfigSymbol went away/not leftOver rules
+	case
+
+2017-08-17  Steven Eker  <eker@install.csl.sri.com>
+
+	* configSymbol.cc (ruleRewrite): do tracePostRuleRewrite()
+	after successful objMsgRewrite()
+	(objMsgRewrite): don't do tracePostRuleRewrite() here
+	since we don't have a context with the new dag
+
+===================================Maude115===========================================
+
+2017-08-02  Steven Eker  <eker@install.csl.sri.com>
+
+	* fileManagerSymbol.hh (ExternalObjectManagerSymbol): updated
+	decl for getOpenFile()
+
+	* fileActions.cc (write, flush, getLine, getChars, getPosition)
+	(setPosition, closeFile): deleted no open file object advisory
+	since this should be able to happen
+	(getOpenFile): added a CantHappen()
+	(getOpenFile): rewritten to use Asserts()
+	(write, flush, getLine, getChars, getPosition, setPosition)
+	(closeFile, cleanUp): use new getOpenFile() convention
+
+2017-08-01  Steven Eker  <eker@install.csl.sri.com>
+
+	* fileSignature.cc: deleted stdinSymbol, stdoutSymbol,
+	stderrSymbol
+
+	* fileActions.cc (getLine): added comment about EOF case
+	(getLine): don't handle STDIN_FILENO
+	(openFile): don't handle stdin/stdout/stderr
+	(write): don't handle STDOUT_FILENO/STDERR_FILENO
+	(flush): don't handle STDOUT_FILENO/STDERR_FILENO
+	(getPosition): don't check STD_STREAM()
+	(setPosition): don't check STD_STREAM()
+	(closeFile): don't check STD_STREAM()
+	(cleanUp): don't check STD_STREAM()
+
+2017-07-31  Steven Eker  <eker@install.csl.sri.com>
+
+	* streamManagerSymbol.cc (write): flush cout
+	(getLine): implemented
+	(gotLineReply): added
+
+2017-07-28  Steven Eker  <eker@install.csl.sri.com>
+
+	* streamManagerSymbol.cc: created
+
+	* streamSignature.cc: created
+
+	* fileSignature.cc: deleted unboundedSymbol
+
+	* streamManagerSymbol.hh: created
+
+2017-07-27  Steven Eker  <eker@install.csl.sri.com>
+
+	* fileActions.cc (openFile): handle stdin
+	(getLine): handle stdin
+
+2017-07-26  Steven Eker  <eker@install.csl.sri.com>
+
+	* fileActions.cc (cleanUp): don't close standard streams
+	(closeFile): don't close standard streams
+	(setPosition): don't fseek() in standard streams
+	(getPosition): don't ftell() in standard streams
+	(flush): handle stdout, stderr
+
+	* fileSignature.cc: added stdin, stdout, stderr
+
+	* fileActions.cc (write): handle stdout, stderr
+	(openFile): handle stdout, stderr
+
+	* fileManagerSymbol.hh (ExternalObjectManagerSymbol): deleted
+	decls for  wroteMsgReply(), flushedReply(), closedFileReply()
+
+	* fileOutcomes.cc (flushedReply, closedFileReply, wroteMsgReply): deleted
+
+	* fileActions.cc (write): use trivialReply() instead of
+	wroteMsgReply()
+	(flush): use trivialReply() instead of flushedReply()
+	(closeFile): use trivialReply() instead of closedFileReply()
+
+2017-07-25  Steven Eker  <eker@install.csl.sri.com>
+
+	* fileActions.cc (getLine): do seek if lastOpWasWrite
+	(getChars): do seek if lastOpWasWrite
+	(setPosition): clear lastOpWasWrite
+
+	* fileManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decl for checkModeExt()
+
+	* fileActions.cc (checkModeExt): added
+	(getMode): use checkModeExt()
+
+	* fileManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decl for getMode()
+
+	* fileActions.cc (setPosition): use
+	MinusSymbol::getSignedInt64()
+	(getChars): no need to check for -ve nr chars to read
+	(getMode): added
+	(openFile): use getMode
+
+	* fileSignature.cc: added minusSymbol
+
+	* fileManagerSymbol.cc (handleMessage): handle
+	setPositionMsg
+
+	* fileManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decls for getBase(), setPosition()
+
+	* externalObjectManagerSymbol.cc (trivialReply): added
+
+	* externalObjectManagerSymbol.hh (FreeSymbol): added decl
+	for trivialReply
+
+	* fileActions.cc (getBase, setPosition): added
+
+	* fileSignature.cc: added startSymbol, currentSymbol,
+	endSymbol
+
+2017-07-24  Steven Eker  <eker@install.csl.sri.com>
+
+	* fileManagerSymbol.cc (handleMessage): handle
+	getPositionMsg
+
+	* fileManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decls for getPosition(), positionGotReply()
+
+	* fileOutcomes.cc (positionGotReply): added
+
+	* fileActions.cc (getPosition): added
+
+2017-07-21  Steven Eker  <eker@install.csl.sri.com>
+
+	* fileManagerSymbol.cc (handleMessage): handle getChars
+	message
+
+	* fileManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decls for getChars(), gotCharsReply()
+
+	* fileActions.cc (getChars): added
+
+	* fileOutcomes.cc (gotCharsReply): added
+
+	* fileActions.cc (closeFile): call deleteExternalObject()
+
+	* fileStuff.cc: becomes fileActions.cc
+
+	* fileManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decls for getLine(), gotLineReply()
+
+	* fileOutcomes.cc (gotLineReply): added
+
+	* fileStuff.cc (getLine): added
+
+	* fileManagerSymbol.cc (handleMessage): handle getLineMsg
+
+2017-07-20  Steven Eker  <eker@install.csl.sri.com>
+
+	* fileManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decls for flush(), flushedReply()
+
+	* fileOutcomes.cc (flushedReply): added
+
+	* fileStuff.cc (cleanUp): implemented
+	(flush): added
+
+	* fileManagerSymbol.cc (handleMessage): handle flushMsg
+
+	* fileStuff.cc (closeFile): added
+
+	* fileOutcomes.cc (closeFileReply): added
+
+	* fileManagerSymbol.cc (handleMessage): handle writeMsg,
+	closeFileMsg
+
+	* socketStuff.cc (getActiveSocket): remove duplicate call
+	to find()
+
+	* fileManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decls for getOpenFile(), getText(), write(), wroteMsgReply()
+
+	* fileOutcomes.cc (wroteMsgReply): added
+
+	* fileStuff.cc (getOpenFile): added
+	(write): added
+	(getText): added
+
+	* fileManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	struct OpenFile, typedef FileMap, data member openFiles
+
+	* fileOutcomes.cc (openedFile): added
+
+	* fileManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decls for openFile(), errorReply()
+
+	* fileStuff.cc: created
+
+	* fileOutcomes.cc: created
+
+2017-07-19  Steven Eker  <eker@install.csl.sri.com>
+
+	* fileSignature.cc: added flushMsg, flushedMsg
+
+2017-07-18  Steven Eker  <eker@install.csl.sri.com>
+
+	* fileManagerSymbol.cc: created
+
+	* socketManagerSymbol.cc: code cleaning
+
+	* fileManagerSymbol.hh: created
+
+	* fileSignature.cc: created
+
+===================================Maude115===========================================
+
+2015-12-24  Steven Eker  <eker@ape.csl.sri.com>
+
+	* objectMap.cc (dagNodeLt): made dagNodeLt::operator() const
+
+	* configSymbol.hh (ACU_Symbol): made symbolLt::operator() const
+
+	* objectSystemRewritingContext.hh (RewritingContext): made
+	dagNodeLt::operator() const
+
+2015-12-18  Steven Eker  <eker@ape.csl.sri.com>
+
+	* socketStuff.cc (createClientTcpSocket): use
+	makeZeroTerminatedString()
+	(send): use empty()
+	(send): use makeZeroTerminatedString() member function
+	(send): use length() rather than size()
+
+	* socketOutcomes.cc (receivedMsgReply): crope -> Rope
+
+	* socketStuff.cc: crope -> Rope
+
+	* socketManagerSymbol.hh: crope -> Rope
+
+===================================Maude108a===========================================
+
+2014-02-06  Steven Eker  <eker@ape.csl.sri.com>
+
+	* pseudoThread.cc (processCallBacks): added comment
+	(eventLoop): fix a bug where we were putting wait in a shadowing
+	variable
+
+===================================Maude100a===========================================
+
+2012-11-09  Steven Eker  <eker@ape.csl.sri.com>
+
+	* pseudoThread.cc (processFds): update idea of time after poll() call
+	(eventLoop): rewritten so we can never return 0; we loop until we
+	handle an event, get interrupted or there are no pending call backs
+
+	* pseudoThread.hh (P): added comments explaining the arguments to
+	public member functions; removed default argument value for
+	requestCallBack()
+	(CallBackRequest, <): moved out of class declaration
+
+2012-11-08  Steven Eker  <eker@ape.csl.sri.com>
+
+	* pseudoThread.cc (processFds): fix bugs where we were writing
+	wrong thing into info.flags in POLLIN and POLLOUT cases; code
+	cleaning
+
+2012-10-19  Steven Eker  <eker@ape.csl.sri.com>
+
+	* socketManagerSymbol.hh (PseudoThread): updated decl for
+	getActiveSocket()
+
+	* socketStuff.cc (getActiveSocket): pass back pointer to
+	ActiveSocket object
+	(acceptClient): use ActiveSocket pointer
+	(send): use ActiveSocket pointer
+	(receive): use ActiveSocket pointer
+	(closeSocket, cleanUp): pass extra argument to getActiveSocket
+
+	* socketOutcomes.cc (acceptedClientReply): don't set state here
+
+	* socketStuff.cc (acceptClient): set state on new accept socket here
+
+	* socketAsync.cc (doWrite): set state after call to createdSocketReply()
+	(doRead): set state on new accept socket here
+
+	* socketOutcomes.cc (createdSocketReply): don't set state here
+
+	* socketStuff.cc (createServerTcpSocket): changed comment on line
+	that sets state
+	(createClientTcpSocket): set state here rather than rely on
+	createdSocketReply()
+
+	* socketAsync.cc (doRead): commented out superfluous access of
+	activeSockets
+
+2012-10-16  Steven Eker  <eker@ape.csl.sri.com>
+
+	* socketManagerSymbol.cc (ActiveSocket): added in order to fix a
+	bug that we were implicitly deleting (via map) ActiveSockets with
+	an uninitialized textArray field
+
+	* socketManagerSymbol.hh (PseudoThread): added decl for explicit
+	ActiveSocket ctor
+
+===================================Maude96b===========================================
+
+2011-12-31  Steven Eker  <eker@rho>
+
+	* socketManagerSymbol.cc (ActiveSocket): added
+
+	* socketManagerSymbol.hh (class SocketManagerSymbol): replace text with textArray in struct
+	ActiveSocket
+
+	* socketStuff.cc (SocketManagerSymbol::send): fix bug where we were extracting a c_str() from
+	a rope that then went out of scope, potentially before we were finished with the const char*
+	from c_str()
+	(SocketManagerSymbol::send): check errno == EWOULDBLOCK for POSIX compliance
+
+===================================Maude95c===========================================
+
+2009-01-29  Steven Eker  <eker@goo.csl.sri.com>
+
+	* socketManagerSymbol.cc (attachData, attachSymbol, copyAttachments)
+	(getDataAttachments, getSymbolAttachments): call
+	ExternalObjectManagerSymbol functions rather the FreeSymbol
+	functions
+
+===================================Maude92===========================================
+
+2008-09-11  Steven Eker  <eker@goo.csl.sri.com>
+
+	* socketAsync.cc (doError, doWrite): added #ifdef NO_ASSERT to
+	avoid compiler warning
+
+	* socketStuff.cc (createClientTcpSocket): delete decl of unused
+	domain variable
+
+===================================Maude91a===========================================
+
+2005-04-29  Steven Eker  <eker@goo.csl.sri.com>
+
+	* socketStuff.cc (createClientTcpSocket, createServerTcpSocket)
+	(acceptClient, send, receive, closeSocket): most DebugAdvisory()s
+	turned into IssueAdvisory()s
+
+2005-04-15  Steven Eker  <eker@goo.csl.sri.com>
+
+	* socketStuff.cc (receive): added extra DebugAdvisory()
+
+===================================Maude86a===========================================
+
+2005-03-15  Steven Eker  <eker@goo.csl.sri.com>
+
+	* socketStuff.cc (createServerTcpSocket): set SO_REUSEADDR flag
+
+2005-03-14  Steven Eker  <eker@goo.csl.sri.com>
+
+	* socketStuff.cc (createServerTcpSocket): make DebugAdvisory()
+	more elaborate
+
+	* objectSystemRewritingContext.cc (ObjectSystemRewritingContext):
+	added DebugAdvisory() to check for server sockets not being closed
+	after ^C
+
+===================================Maude86===========================================
+
+2004-12-23  Steven Eker  <eker@goo.csl.sri.com>
+
+	* socketAsync.cc (doError): use getsockopt() for more accurate
+	error message
+
+	* socketStuff.cc (send): don't accept 0 length sends
+	(send): don't accept send unless socket is in a suitable state
+	(receive): don't accept receive unless socket is in a suitable
+	state
+
+2004-12-22  Steven Eker  <eker@goo.csl.sri.com>
+
+	* socketAsync.cc (doWrite): new closedSocketReply() convention
+	(doRead): new closedSocketReply() convention
+	(doError): new closedSocketReply() convention
+	(doHungUp): new closedSocketReply() convention
+
+	* socketStuff.cc (getDomain): deleted
+	(send): new closedSocketReply() convention
+	(receive): new closedSocketReply() convention
+
+	* socketManagerSymbol.hh (class SocketManagerSymbol): updated decl
+	for closedSocketReply()
+	(class SocketManagerSymbol): deleted decl for getDomain()
+
+	* socketOutcomes.cc (closedSocketReply): handle errorMessage arg
+
+	* socketStuff.cc (createClientTcpSocket): new message format
+	(createServerTcpSocket): new message format, check that backlog > 0
+
+	* socketSignature.cc: updated decls for createClientTcpSocketMsg,
+	createServer, TcpSocketMsg, receiveMsg, closedSocketMsg
+
+	* socketAsync.cc (doRead): handle accept case
+
+	* socketStuff.cc (createClientTcpSocket): use setonblockingFlag()
+	(createServerTcpSocket): use setNonblockingFlag()
+	(acceptClient): use setNonblockingFlag()
+
+	* socketManagerSymbol.hh (class SocketManagerSymbol): added decl
+	for setNonblockingFlag()
+
+	* socketStuff.cc (setNonblockingFlag): added
+
+	* socketManagerSymbol.hh (class SocketManagerSymbol): added decl
+	for acceptedClientReply()
+
+	* socketOutcomes.cc (acceptedClientReply): added
+
+2004-12-21  Steven Eker  <eker@goo.csl.sri.com>
+
+	* socketStuff.cc (acceptClient): implemented
+
+	* socketSignature.cc (MACRO): updated decls for
+	createServerTcpSocketMsg and acceptedClientMsg
+
+	* socketManagerSymbol.hh (class SocketManagerSymbol): added
+	LISTENING and WAITING_TO_ACCEPT to enum SocketState
+
+	* socketStuff.cc (createServerTcpSocket): implemented
+
+	* socketAsync.cc (doError): implemented
+	(doHungUp): implemented
+
+	* socketStuff.cc (cleanUp): call PseudoThread::clearFlags()
+
+2004-12-20  Steven Eker  <eker@goo.csl.sri.com>DebugAdvisory()
+
+	* socketStuff.cc (receive): handle async read
+	(send): hande async write
+	(createClientTcpSocket): allow nonblocking sockets
+
+	* socketAsync.cc (doWrite): handle async write
+
+	* socketManagerSymbol.hh (class SocketManagerSymbol): added decl
+	for sentMsgReply()
+
+	* socketOutcomes.cc (sentMsgReply): added
+
+	* socketManagerSymbol.hh (class SocketManagerSymbol): added text,
+	unsent and nrUnsent members to struct ActiveSocket
+
+	* socketAsync.cc (doRead): handle error and zero byte cases by
+	closing socket
+
+	* socketStuff.cc (receive): use strerror() in place of
+	sys_errlist[]
+	(createClientTcpSocket): DebugAdvisory() for unexpected connect()
+	error
+	(createClientTcpSocket): added DebugAdvisory() for declined
+	message
+	(closeSocket): added DebugAdvisory() for declined message
+	(receive): added DebugAdvisory() for declined message
+	(send): added DebugAdvisory() for declined message
+	(acceptClient, createServerTcpSocket): added DebugAdvisory() for
+	declined message
+	(createClientTcpSocket): added more DebugAdvisory()s
+
+2004-12-17  Steven Eker  <eker@goo.csl.sri.com>
+
+	* socketStuff.cc (receive): handle interrupts during read()
+	(receive): treat unrecognized error messages as a far end close
+
+	* socketAsync.cc (doRead): implemented
+
+	* socketStuff.cc (receive): use closedSocketReply()
+	(closeSocket): use closedSocketReply()
+
+	* socketOutcomes.cc (closedSocketReply): added
+
+	* socketManagerSymbol.hh (class SocketManagerSymbol): added enum Sizes
+
+	* socketStuff.cc (receive): use receivedMsgReply()
+
+	* socketManagerSymbol.hh (class SocketManagerSymbol): added decl
+	for receivedMsgReply()
+
+	* socketOutcomes.cc (receivedMsgReply): added
+
+	* socketManagerSymbol.hh (class SocketManagerSymbol): added
+	NOMINAL, WAITING_TO_READ, WAITING_TO_WRITE to enum SocketState,
+	removed READY_TO_SEND
+
+2004-12-16  Steven Eker  <eker@goo.csl.sri.com>
+
+	* socketAsync.cc (doWrite): handle async connects
+
+	* socketManagerSymbol.hh (class SocketManagerSymbol): added
+	WAITING_TO_CONNECT to enum SocketState
+
+	* socketAsync.cc (doRead, doWrite, doError, doHungUp): moved here
+
+	* socketStuff.cc (createClientTcpSocket): use createdSocketReply()
+	(createClientTcpSocket): don't accept badly formed messages
+
+	* socketManagerSymbol.hh (class SocketManagerSymbol): added decl
+	for createdSocketReply()
+
+	* socketOutcomes.cc (errorReply): moved here
+	(createdSocketReply): addded
+
+	* socketManagerSymbol.hh (class SocketManagerSymbol): added
+	lastMessage and context fields to struct ActiveSocket
+
+2004-12-06  Steven Eker  <eker@goo.csl.sri.com>
+
+	* socketStuff.cc: include netinet/in.h
+
+2004-10-08  Steven Eker  <eker@goo.csl.sri.com>
+
+	* pseudoThread.cc: added #include <errno.h>
+
+2004-08-03  Steven Eker  <eker@goo.csl.sri.com>
+
+	* configSymbol.cc (ruleRewrite): only do external stuff if mode is
+	external; put check for incoming external messages in second loop
+	rather than first
+
+	* socketManagerSymbol.hh (class SocketManagerSymbol): added decl
+	for 2nd closeSocket()
+
+	* socketStuff.cc (closeSocket): added 2nd version
+	(closeSocket): use other closeSocket()
+	(receive): handle far end closed
+
+2004-08-02  Steven Eker  <eker@goo.csl.sri.com>
+
+	* objectSystemRewritingContext.cc (~ObjectSystemRewritingContext):
+	added
+
+	* objectSystemRewritingContext.hh (class
+	ObjectSystemRewritingContext): adde decl for dtor
+
+	* socketManagerSymbol.hh (class SocketManagerSymbol): added decl
+	for cleanUp()
+
+	* socketStuff.cc (closeSocket): erase closed socket from
+	activeSockets
+
+	* externalObjectManagerSymbol.hh (class
+	ExternalObjectManagerSymbol): added decl for cleanUp()
+
+	* socketStuff.cc (closeSocket): fixed bug where we were sending
+	back sentMsg
+
+2004-07-30  Steven Eker  <eker@goo.csl.sri.com>
+
+	* objectSystemRewritingContext.cc (getExternalMessages): added
+	(offerMessageExternally): added
+
+	* objectSystemRewritingContext.hh (class
+	ObjectSystemRewritingContext): added decls for
+	getExternalMessages() and offerMessageExternally()
+
+	* configSymbol.cc (ruleRewrite): call getExternalMessages() and
+	offerMessageExternally()
+
+	* objectSystem.hh: added ExternalObjectManagerSymbol
+
+	* socketStuff.cc (closeSocket): use deleteExternalObject()
+	(createClientTcpSocket): use addExternalObject()
+
+	* objectSystemRewritingContext.hh (class
+	ObjectSystemRewritingContext): added decls for
+	addExternalObject(), deleteExternalObject()
+
+	* objectSystemRewritingContext.cc (markReachableNodes): rewritten
+	(addExternalObject): added
+	(deleteExternalObject): added
+
+	* objectSystemRewritingContext.hh (class
+	ObjectSystemRewritingContext): turned class MessageMap into a typedef
+	(class ObjectSystemRewritingContext): added typedef for ObjectSet
+	and data member externalObjects; added decl for
+	markReachableNodes(); messageMap becomes incomingMessages
+
+2004-07-29  Steven Eker  <eker@goo.csl.sri.com>
+
+	* objectSystemRewritingContext.cc (markReachableNodes): added
+
+	* objectSystemRewritingContext.hh (class
+	ObjectSystemRewritingContext): added class MessageMap and
+	dagNodeLt()
+
+	* objectSystemRewritingContext.cc: created
+
+	* externalObjectManagerSymbol.hh (class
+	ExternalObjectManagerSymbol): updated decls for use
+	ObjectSystemRewritingContext&
+
+	* socketStuff.cc (errorReply): implemented
+
+	* objectSystemRewritingContext.hh (class
+	ObjectSystemRewritingContext): added deck for bufferMessage()
+	(bufferMessage): added stub
+
+	* socketManagerSymbol.hh (class SocketManagerSymbol): updated many
+	declarations
+
+	* socketStuff.cc (createClientTcpSocket): take
+	ObjectSystemRewritingContext&
+	(createServerTcpSocket): take ObjectSystemRewritingContext&
+	(acceptClient): take ObjectSystemRewritingContext&
+	(send): take ObjectSystemRewritingContext&
+	(receive): take ObjectSystemRewritingContext&
+	(closeSocket): take ObjectSystemRewritingContext&
+
+	* socketManagerSymbol.cc (handleManagerMessage): take
+	ObjectSystemRewritingContext&
+	(handleMessage): take ObjectSystemRewritingContext&
+
+2004-07-28  Steven Eker  <eker@goo.csl.sri.com>
+
+	* socketManagerSymbol.hh (class SocketManagerSymbol): added decls
+	for getText() and getActiveSocket()
+
+	* socketStuff.cc (getActiveSocket): added
+	(getText): added
+
+2004-07-23  Steven Eker  <eker@goo.csl.sri.com>
+
+	* pseudoThread.cc (doCallBack): added
+
+	* socketManagerSymbol.hh (class SocketManagerSymbol): derive from
+	PseudoThread
+	(class SocketManagerSymbol): added enum SocketState, struct
+	ActiveSocket, typedef SocketMap, data member activeSockets
+
+	* socketStuff.cc (getDomain): added
+
+	* pseudoThread.cc (processCallBacks): rewritten
+
+	* pseudoThread.hh (class PseudoThread): updated decls for
+	processCallBacks() and processFds()
+
+	* pseudoThread.cc (eventLoop): rewritten
+	(processFds): rewritten
+
+	* pseudoThread.hh (class PseudoThread): added enum ReturnStatus;
+	updated decl for eventLoop()
+
+2004-07-21  Steven Eker  <eker@goo.csl.sri.com>
+
+	* pseudoThread.hh: created
+
+	* pseudoThread.cc: created
+
+2004-07-14  Steven Eker  <eker@goo.csl.sri.com>
+
+	* socketManagerSymbol.hh (class SocketManagerSymbol): added decls
+	for getProtocol(), getPort(), errorReply()
+
+	* socketManagerSymbol.cc (handleManagerMessage): added
+
+	* externalObjectManagerSymbol.hh (class
+	ExternalObjectManagerSymbol): added decl for handleManangerMessage()
+
+	* socketManagerSymbol.hh (class SocketManagerSymbol): added decls
+	for createClientTcpSocket(), createServerTcpSocket(),
+	acceptClient(), send(), receive(), closeSocket()
+
+	* socketStuff.cc: created
+
+	* socketManagerSymbol.cc (handleMessage): added
+
+	* socketManagerSymbol.hh (class SocketManagerSymbol): derive from
+	ExternalObjectManagerSymbol
+
+	* socketManagerSymbol.cc (SocketManagerSymbol): call
+	ExternalObjectManagerSymbol()
+
+	* externalObjectManagerSymbol.cc: created
+
+	* externalObjectManagerSymbol.hh: created
+
+2004-07-13  Steven Eker  <eker@goo.csl.sri.com>
+
+	* socketManagerSymbol.hh (class SocketManagerSymbol): added decls
+	for getDataAttachments() and getSymbolAttachments()
+
+	* socketManagerSymbol.cc (getDataAttachments): added
+	(getSymbolAttachments): added
+
+2004-07-12  Steven Eker  <eker@goo.csl.sri.com>
+
+	* socketManagerSymbol.cc (attachTerm): deleted
+	(copyAttachments): added
+
+	* socketManagerSymbol.hh (class SocketManagerSymbol): deleted decl
+	for attachTerm(); added decl for copyAttachments()
+
+	* socketManagerSymbol.cc (SocketManagerSymbol): use
+	socketSignature.cc
+	(attachSymbol): use socketSignature.cc
+	(attachData): use NULL_DATA()
+	(attachSymbol): use BIND_SYMBOL()
+
+	* socketManagerSymbol.hh (MACRO): use socketSignature.cc
+
+	* socketSignature.cc: created
+
+	* objectSystem.hh: deleted class ExternalObjectManager
+
+	* socketManager.cc: deleted
+
+	* socketManager.hh: deleted
+
+	* externalObjectManager.cc: deleted
+
+	* externalObjectManager.hh: deleted
+
+2004-07-09  Steven Eker  <eker@goo.csl.sri.com>
+
+	* socketManagerSymbol.cc: created
+
+	* socketManagerSymbol.hh: created
+
+2004-07-07  Steven Eker  <eker@goo.csl.sri.com>
+
+	* socketManager.cc: created
+
+	* socketManager.hh: created
+
+	* objectSystem.hh: added class ExternalObjectManager
+
+2004-06-30  Steven Eker  <eker@goo.csl.sri.com>
+
+	* externalObjectManager.cc: created
+
+	* externalObjectManager.hh: created
+	
+===================================Maude84d===========================================
+
+2003-05-23  Steven Eker  <eker@goo.csl.sri.com>
+
+	* configSymbol.cc (compileRules): use isNonexec(); no longer check
+	for unbound variables
+	(ruleRewrite): added a call to tracePreRuleRewrite()
+
+2003-05-21  Steven Eker  <eker@goo.csl.sri.com>
+
+	* configSymbol.cc (ruleRewrite): use leftOverRewrite()
+
+	* configSymbol.hh (class ConfigSymbol): added decl for
+	leftOverRewrite()
+
+	* configSymbol.cc (resetRules): added
+	(compileRules): fill out leftOver
+	(objMsgRewrite): attempt rule fairness
+	(compileRules): only put rule that have no unbound variables in
+	leftOver
+	(leftOverRewrite): added
+
+	* configSymbol.hh (class ConfigSymbol): added decl for resetRules()
+
+	* configSymbol.cc (checkArgs): chech that object and message
+	patterns are stable
+	(compileRules): fill out ruleMap
+	(objMsgRewrite): take messageSymbol arg
+	(ruleRewrite): use new objMsgRewrite() semantics
+
+	* configSymbol.hh (class ConfigSymbol): added struct symbolLt and
+	struct RuleSet, typedef RuleMap and data members ruleMap and
+	leftOvers; deleted data member objMsgRules
+
+	* configSymbol.cc (ConfigSymbol): don't init mode
+	(ruleRewrite): use ObjectSystemRewritingContext
+
+	* configSymbol.hh (class ConfigSymbol): delete enum Mode, data
+	memeber mode and decl for setMode();
+	(setMode): deleted
+	(class ConfigSymbol): deleted struct AutomatonPair
+
+	* objectSystem.hh: added class ObjectSystemRewritingContext
+
+	* objectSystemRewritingContext.hh (class
+	ObjectSystemRewritingContext): created
+
+2003-05-20  Steven Eker  <eker@goo.csl.sri.com>
+
+	* configSymbol.cc (objMsgRewrite): use objMsgRules
+	(compileRules): use objMsgRules
+	(ruleRewrite): handle mode
+	(ruleRewrite): rewrote obj-msg recognition loop; use Asserts()
+	that DagArgumentIterators are valid; handle duplicate object more
+	gracefully
+
+	* configSymbol.hh (class ConfigSymbol): dleted data member
+	automatonPairs; added data members mode and objMsgRules
+
+2003-05-19  Steven Eker  <eker@goo.csl.sri.com>
+
+	* configSymbol.cc (ruleRewrite): rewritten using objMsgRewrite()
+	and retrieveObject()
+
+	* configSymbol.hh (class ConfigSymbol): added decls for
+	objMsgRewrite() and retrieveObject()
+	(class ConfigSymbol): added enum Mode
+
+	* configSymbol.cc (objMsgRewrite): added
+	(retrieveObject): added
+
+	* remainder.cc: created
+
+	* configSymbol.cc (ConfigSymbol): pass useTree = false to
+	ACU_Symbol()
+
+	* objectMap.cc: moved ObjectMap decls here
+	(dump): added
+
+	* configSymbol.cc (markReachableNodes): use FOR_EACH_CONST()
+	(markReachableNodes): use FOR_EACH_CONST()
+
+===================================Maude80a===========================================
+
+2003-02-25  Steven Eker  <eker@goo.csl.sri.com>
+
+	* configSymbol.cc: removed #pragma
+	(checkArgs): updated Assert()
+
+	* configSymbol.hh: removed #pragma
+	
+===================================Maude79===========================================
+
+2001-04-20  Steven Eker  <eker@goo.csl.sri.com>
+
+	* configSymbol.hh (class ConfigSymbol): added struct MessageQueue,
+	struct dagNodeLt, class ObjectMap
+	(class ConfigSymbol): added struct AutomatonPair and data member
+	automatonPairs
+
+	* configSymbol.cc (checkArgs): added
+
+2001-04-17  Steven Eker  <eker@goo.csl.sri.com>
+
+	* configSymbol.hh: created
+
+	* objectSystem.hh: created
+

@@ -1,0 +1,207 @@
+2019-12-04  Steven Eker  <eker@mu>
+
+	* directoryManager.cc (popd): prevLength becomes indexOfDirectoryToPop
+	(popd): added comments to explain what is going on
+
+2019-12-03  Steven Eker  <eker@mu>
+
+	* directoryManager.cc (popd): check return value of chdir() call
+
+===================================Maude127===========================================
+
+2018-09-13  Steven Eker  <eker@install.csl.sri.com>
+
+	* directoryManager.hh (D): added typedef VisitedMap
+
+	* directoryManager.cc (alreadySeen): added
+
+	* directoryManager.hh (D): added data member visitedMap
+
+	* directoryManager.cc (visitFile): added
+
+===================================Maude116===========================================
+
+2018-07-06  Steven Eker  <eker@install.csl.sri.com>
+
+	* IO_Manager.hh (I): boundedGetLineFromStdin() -> readFromStdin();
+	deleted decls for getLine(), boundedGetLine(); make
+	readFromStdin() private
+
+	* IO_Manager.cc (getLineFromStdin): use BUFFER_SIZE
+	(boundedGetLine, getLine): deleted
+	(boundedGetLineFromStdin): becomes readFromStdin()
+	(getLineFromStdin, getInput): use readFromStdin()
+
+	* IO_Manager.hh (I): added decls for boundedGetLineFromStdin(),
+	getLineFromStdin()
+	(I): added enum Sizes
+
+	* IO_Manager.cc (getInput): use boundedGetLineFromStdin()
+
+	* IO_Manager.hh (I): added data members firstUnused, bufferEnd,
+	bufferSize, buffer
+
+	* IO_Manager.cc (IO_Manager): initialize firstUnused, bufferEnd,
+	bufferSize, buffer
+	(boundedGetLineFromStdin, getLineFromStdin): added
+
+2017-12-07  Steven Eker  <eker@install.csl.sri.com>
+
+	* IO_Manager.cc (getInput): don't generate continuation
+	prompts in the usePromptsAnyway case
+
+===================================Maude116===========================================
+
+2017-08-01  Steven Eker  <eker@install.csl.sri.com>
+
+	* IO_Manager.cc (IO_Manager): clear usePromptsAynway flag
+	(getInput): repect usePromptsAnyway flag
+	(getInput): make n a size_t
+
+	* IO_Manager.hh (setUsePromptsAnyway): added
+
+	* IO_Manager.cc (getInput): support contPrompt in non-Tecla
+	case
+
+	* IO_Manager.hh (I): added decl for boundedGetLine()
+
+	* IO_Manager.cc (boundedGetLine): added
+	(getInput): use boundedGetLine()
+
+	* IO_Manager.hh (I): upated decl for getInput()
+
+	* IO_Manager.cc (getLine): check and free memory even in
+	the EOF/error case
+	(getInput): pass maxSize as size_t
+
+2017-07-31  Steven Eker  <eker@install.csl.sri.com>
+
+	* IO_Manager.hh (I): updated decl for getLine()
+
+	* IO_Manager.cc (getLine): take a prompt argument
+
+2017-07-27  Steven Eker  <eker@install.csl.sri.com>
+
+	* IO_Manager.hh (I): adde decl for getLine()
+
+	* IO_Manager.cc (getLine): added
+
+2017-07-18  Steven Eker  <eker@install.csl.sri.com>
+
+	* directoryManager.cc (checkAccess): removed hack since compare() for
+	substring vs C-string seems to work; added comment
+
+===================================Maude115===========================================
+
+2008-09-04  Steven Eker  <eker@goo.csl.sri.com>
+
+	* directoryManager.cc (initialize): fix char constness
+
+===================================Maude91a===========================================
+
+2006-10-10  Steven Eker  <eker@goo.csl.sri.com>
+
+	* IO_Manager.hh (class IO_Manager): removed extraneous
+	quantification to appease gcc 4.1
+
+===================================Maude88b===========================================
+
+2003-10-08  Steven Eker  <eker@goo.csl.sri.com>
+
+	* IO_Manager.cc (getInput): rewritten to allow building without
+	Tecla
+
+===================================Maude82===========================================
+
+2003-07-28  Steven Eker  <eker@goo.csl.sri.com>
+
+	* IO_Manager.cc: test HAVE_SYS_TERMIOS_H
+
+2003-07-23  Steven Eker  <eker@goo.csl.sri.com>
+
+	* autoWrapBuffer.cc (handleEscapeSequenceChar): use operator+=
+	rather than push_back() since it seems more portable
+	(handleChar): ditto
+
+2003-07-21  Steven Eker  <eker@goo.csl.sri.com>
+
+	* autoWrapBuffer.cc (sync): rewritten to test __GNUC__ in order to
+	determine which sync function to call
+
+===================================Maude81===========================================
+
+2003-02-26  Steven Eker  <eker@goo.csl.sri.com>
+
+	* directoryManager.cc: removed #pragma
+
+	* directoryManager.hh: removed #pragma
+
+	* autoWrapBuffer.cc: removed #pragma
+	(sync): updated Assert()
+	(overflow): updated Assert()
+
+	* autoWrapBuffer.hh: removed #pragma
+
+	* IO_Manager.cc: removed #pragma
+
+	* IO_Manager.hh: removed #pragma
+
+===================================Maude79===========================================
+
+2002-11-19  Steven Eker  <eker@goo.csl.sri.com>
+
+	* IO_Manager.cc (getInput): output a prompt if we are reading from
+	stdin but not using tecla
+
+2002-10-02  Steven Eker  <eker@goo.csl.sri.com>
+
+	* IO_Manager.hh (class IO_Manager): added DEFAULT_LINES to enum
+	Defaults
+
+	* IO_Manager.cc (getInput): use setLineWidth() to set wrapOut and
+	wrapErr line widths after each tecla input in case user resized
+	terminal
+
+	* autoWrapBuffer.hh: rewritten
+
+	* autoWrapBuffer.cc: rewritten
+
+2002-10-01  Steven Eker  <eker@goo.csl.sri.com>
+
+	* autoWrapBuffer.cc (AutoWrapBuffer): lineWidth now stores true
+	line width
+	(breakLine): now use true lineWidth - need to subtract
+	RIGHT_MARGIN
+	(sync): removed hack for flushing maude prompts now that the
+	command line prompts are handled by tecla and don't pass through
+	C++ streams
+	(breakLine): handle the case where the pending buffer will not fit
+	on a new line by not inserting a \n and instead calculating where
+	the cursor will end up after hard wrapping.
+	(overflow): don't call breakLine() in normal case; call
+	breakLine() in \n case
+	(overflow): only call saveBreakPoint() after we fail to breaLine()
+	in space case
+
+2002-09-27  Steven Eker  <eker@goo.csl.sri.com>
+
+	* directoryManager.cc: moved here from ../Mixfix
+
+	* autoWrapBuffer.cc: moved here from ../Mixfix
+
+	* timer.cc: moved here from ../Mixfix
+
+	* IO_Manager.hh (setPrompt): take ref
+	(setContPrompt): take ref
+
+	* IO_Manager.cc (getInput): set contFlag
+	(IO_Manager): clear contFlag
+	(setCommandLineEditing): pass 0 to gl_trap_signal() flag arg since
+	we won't be printing during interrupt
+
+2002-09-26  Steven Eker  <eker@goo.csl.sri.com>
+
+	* IO_Manager.cc: created
+
+	* IO_Manager.hh: created
+

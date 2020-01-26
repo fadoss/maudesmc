@@ -1,0 +1,4353 @@
+2019-12-04  Steven Eker  <eker@mu>
+
+	* metaVariant.cc (metaGetVariant2): initialize variant to avoid
+	spurious compiler warning
+
+	* legacyMetaVariantUnify.cc (legacyMetaVariantUnify2): initialize
+	unifier to avoid spurious compiler warning
+
+	* legacyMetaVariant.cc (legacyMetaGetVariant2): initialize variant to
+	avoid spurious compiler warning
+
+	* interpreterVariant.cc (getVariant): initialize variant to avoid
+	spurious compiler warning
+
+	* interpreterVariantUnify.cc (getVariantUnifier): initialize unifier to
+	avoid spurious compiler warning
+
+	* metaVariantUnify.cc (metaVariantUnify2): initialize unifier to avoid
+	spurious compiler warning
+
+2019-12-03  Steven Eker  <eker@mu>
+
+	* metaOpCache.hh (getCachedStateObject): use safeCastNonNull<>() (3 places)
+
+===================================Maude127===========================================
+
+2019-12-02  Rubén Rubio  <rubenrub@ucm.es>
+
+	* interpreterManagerSymbol.cc: included (fair/depthFirst)StrategicSearch.hh
+
+	* interpreterManagerSymbol.hh (makeStrategicSearch): added new Boolean
+	parameter depthFirst
+
+	* interpreterRewrite.cc (makeStrategicSearch): added new Boolean parameter
+	depthFirst
+	(srewriteTerm): depthFirst passed on to makeStrategicSearch and not used
+	when calling the findNextSolution method
+
+	* metaLevelOpSymbol.cc: included (fair/depthFirst)StrategicSearch.hh
+
+	* metaSrewrite.cc (metaSrewrite): depthFirst passed on to makeStrategicSearch
+	and not used when calling the findNextSolution method
+	(makeStrategicSearch): added new Boolean parameter depthFirst
+
+2019-11-14  Rubén Rubio  <rubenrub@ucm.es>
+
+	* descentFunctions.cc (metaSrewrite, makeStrategicSearch): moved to
+	metaSrewrite.cc
+	(metaParseStrategy): uses parser caching like metaParse
+	(metaPrettyPrintStrategy): now takes a variable set like
+	metaPrettyPrint
+
+	* descentSignature.cc: metaDsrewrite() removed. metaSrewrite() now
+	takes 5 arguments, and metaPrettyPrintStrategy() now takes 4.
+
+	* metaLevelOpSymbol.cc: metaSrewrite.cc included. Fixed bug (delete on
+	incomplete type) by including mixfixParser.hh
+
+	* metaSrewrite.cc: added
+
+2019-11-12  Rubén Rubio  <rubenrub@ucm.es>
+
+	* ascentFunctions.cc (metaUpStratDecls, metaUpSds): added
+
+	* descentFunctions.cc (metaSrewrite): renamed from metaSRewrite
+	(metaDsrewrite): renamed from metaDSRewrite
+	(metaParseStrategy): renamed from metaStratParse
+	(metaPrettyPrintStrategy): renamed from metaStratPrettyPrint
+
+	* descentSignature.cc: renaming for metaSrewrite, metaDsrewrite,
+	metaParseStrategy, and metaPrettyPrintStrategy. Added metaUpSds
+	and metaUpStratDecls.
+
+2019-11-11  Steven Eker  <eker@mu>
+
+	* interpreterManagerSymbol.hh (ExternalObjectManagerSymbol):
+	parseQidList() -> parseTerm()
+
+	* interpreterPrint.cc (parseQidList): becomes parseTerm()
+	(parseTerm): use parsedTermMsg
+
+	* interpreterSignature.cc: parseQidListMsg/parseQidListMsg ->
+	parseTermMsg/parsedTermMsg
+
+2019-11-08  Steven Eker  <eker@mu>
+
+	* interpreterPrint.cc (printTerm): handle variable aliases
+	(parseQidList): handle variable aliases and parser caching.
+
+	* interpreterSignature.cc: updated arg count for
+	printTermMsg & parseQidListMsg
+
+2019-11-07  Steven Eker  <eker@mu>
+
+	* metaDownSignature.cc (downSignature): fix type in comment
+
+	* interpreterManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decl for makeStrategicSearch()
+
+	* interpreterRewrite.cc (srewriteTerm): implemented
+	(makeStrategicSearch): added
+
+2019-11-06  Steven Eker  <eker@mu>
+
+	* metaLevel.hh (M): added decl for downSrewriteOption()
+
+	* metaDown.cc (downSrewriteOption): added
+
+	* metaLevelSignature.cc: added breadthFirstSymbol,
+	depthFirstSymbol
+
+2019-11-05  Steven Eker  <eker@mu>
+
+	* interpreterRewrite.cc (srewriteTerm): added stub
+
+	* interpreterManagerSymbol.cc (handleMessage): added srewriteTermMsg
+
+	* interpreterSignature.cc: added srewriteTermMsg/srewroteTermMsg
+
+2019-11-04  Steven Eker  <eker@mu>
+
+	* descentSignature.cc: metaPrettyPrint() now takes 4 arguments
+
+	* descentFunctions.cc (metaPrettyPrint): support variable
+	aliases
+
+2019-11-01  Steven Eker  <eker@mu>
+
+	* descentSignature.cc: metaParse() now takes 4 arguments
+
+	* metaLevelOpSymbol.cc (~AliasMapParserPair): added
+
+	* descentFunctions.cc (metaParse): rewritten to take
+	variable declaration set and cache AliasMap and Parser
+
+	* metaLevelOpSymbol.hh (AliasMapParserPair): added
+
+	* metaLevel.hh (M): updated decls for downToken() and downOpName()
+
+	* metaDown.cc (downToken, downOpName): make const
+
+	* metaLevel.hh (M): updated decls for downType2(), downQid()
+
+	* metaDown.cc (downType2, downQid): made const
+
+	* metaLevel.hh (M): added decls for downVariableDeclSet(),
+	downVariableDecl()
+
+	* metaDown.cc (downVariableDeclSet, downVariableDecl): added
+
+2019-10-29  Steven Eker  <eker@mu>
+
+	* metaLevelOpSymbol.hh (FreeSymbol): added struct AliasMapParserPair
+
+2019-10-28  Steven Eker  <eker@mu>
+
+	* metaOpCache.hh (M): updated decls for remove(), sameProblem()
+
+	* metaOpCache.cc (sameProblem): take nrArgumentsToIgnore argument
+	(remove): take nrArgumentsToIgnore argument
+
+	* metaOpCache.hh (M): added comments to explain why there
+	are two getCachedStateObject() templates
+
+2019-10-22  Steven Eker  <eker@mu>
+
+	* interpreterStratPrint.cc: created
+
+	* interpreterPrint.cc: added missing copyright comment
+
+	* metaVariantUnify.cc (metaVariantUnify2): delete dummy
+	variable
+
+	* metaVariant.cc (metaGetVariant2, metaGetVariant)
+	(metaGetIrredundantVariant): use variableFamily rather than
+	variableIndex
+
+2019-10-21  Steven Eker  <eker@mu>
+
+	* metaVariantUnify.cc: created with variableFamily based
+	versions
+
+	* legacyMetaVariantUnify.cc (legacyMetaVariantUnify2)
+	(legacyMetaVariantUnify, legacyMetaVariantDisjointUnify): moved
+	here
+
+2019-10-18  Steven Eker  <eker@mu>
+
+	* metaUp.cc (upUnificationPair): (both versions) swapped args
+	back
+
+	* metaUnify.cc (metaUnify2): rewritten to use variableFamilies
+	rather than variableIndexes
+	(metaUnify, metaDisjointUnify): updated signature in comment
+
+	* metaLevelOpSymbol.hh (FreeSymbol): added decls for
+	legacyMetaGetVariant2(), legacyMetaVariantUnify2()
+
+	* metaUp.cc (upUnificationPair): (both versions) use
+	matchPairSymbol instead of unificationPairSymbol now that
+	the operators coincide at the kind level
+
+	* metaLevelSignature.cc: delete unificationPairSymbol
+	since it is now subsort overloaded with matchPairSymbol
+
+2019-10-17  Steven Eker  <eker@mu>
+
+	* descentSignature.cc: added legacyMetaGetVariant,
+	legacyMetaGetIrredundantVariant, legacyMetaVariantUnify,
+	legacyMetaVariantDisjointUnify
+
+	* metaLevelOpSymbol.hh (FreeSymbol): added decls for
+	legacyMetaUnify2(), legacyMetaGetVariant2(),
+	legacyMetaVariantUnify2()
+
+	* legacyMetaVariant.cc: created
+
+	* descentSignature.cc: added metaLegacyUnify,
+	metaLegacyDisjointUnify
+
+	* legacyMetaUp.cc: renamed from metaLegacy.cc
+
+	* legacyMetaUnify.cc: created
+
+2019-10-16  Steven Eker  <eker@mu>
+
+	* metaUp.cc (upVariant): convert to variableFamilyName
+
+	* metaLegacy.cc (upVariant): added
+
+	* metaLevel.hh (M): added decls for new versions of
+	upUnificationPair() and upUnificationTriple()
+	(M): added decl for new version of upVariant()
+
+	* metaLegacy.cc (upUnificationTriple): added legacy versions
+	for regular and variant cases
+
+	* metaUp.cc (upUnificationTriple): (regular unification version):
+	converted to variableFamily
+	(upUnificationTriple): (variant unification version): converted to
+	variableFamily
+
+	* metaLegacy.cc (upUnificationPair): (both legacy versions) moved
+	here
+
+	* metaUp.cc (upUnificationPair): (regular unification version): use
+	legacyUnificationPairSymbol
+	(upUnificationPair): added variableFamily version for regular
+	unification
+	(upUnificationPair): (variant unification version): use
+	legacyUnificationPairSymbol
+	(upUnificationPair): added variableFamily version for variant
+	unification
+
+2019-10-15  Steven Eker  <eker@mu>
+
+	* metaLevelSignature.cc: added legacyUnificationPairSymbol,
+	legacyUnificationTripleSymbol, legacyVariantSymbol
+
+===================================Maude125===========================================
+
+2019-10-10  Rubén Rubio  <rubenrub@ucm.es>
+
+	* descentFunctions.cc (makeGetKinds): pass number of user kinds
+	(metaStratParse): added a new parameter with variable declarations
+
+	* descentSignature.cc: metaStratParse now takes 4 parameters
+
+	* interpreterSort.cc (getKinds): pass on number of user kinds
+
+	* metaDown.cc (downQidSet): added
+	(downModule): importLabels renamed to importRuleLabels
+
+	* metaDownSignature.cc (downSignature): importLabels renamed to
+	importRuleLabels
+
+	* metaModule.cc (registerRuleLabels): call to insertPotentialRuleLabels
+	and use of range-based loops
+
+	* metaLevel.hh (upKindSet): now receives the number of user kinds
+	(downType2): made public
+	(downQidSet): added
+
+	* metaLevelSignature.cc: added QidSet constructors
+
+	* metaUp.cc (upKindSet): now receives the number of user kinds
+
+	* metaUpModule.cc (upStratDecl): called RewriteStrategy::arity directly
+
+	* metaView.cc (getTargetExprModule): removed (not used)
+
+	* metaView.hh (getTargetExprModule): removed (not used)
+
+2019-09-19  Rubén Rubio  <rubenrub@ucm.es>
+
+	* descentFunctions.cc (makeStrategicSearch): call term2RewritingContext
+	and reduce the initial term
+
+	* metaDownStrats.cc (downStratExpr): error recovery when nested terms
+	or strategy expression are not valid metarepresentations
+	(downStratDef): insert metadata and print attributes and initialize
+	downStratCall output arguments to null
+	(downStratList): solved a bug by using the correct list constructor
+	symbols
+	(downStratCall): solved memory leak by destructing the input
+	arguments in case of failure
+
+2019-06-03  Rubén Rubio  <rubenrub@ucm.es>
+
+	* metaDown.cc (downModule): importLabels is called before
+
+	* metaDownSignature.cc (downSignature): call to importLabels
+
+	* metaUpModule.cc (upStratDecl): solved a bug that puts the types
+	of the auxiliary symbol (at the kind level) instead of the types
+	of the declaration
+
+	* metaUpView.cc (upStratMappings): call to the renamed getToModule
+	instead of getTargetExprModule
+
+	* metaView.cc (handleTermAndExpressionMapping): adapted
+	insertStratToExprMapping to the changes of alpha121
+
+2019-05-28  Steven Eker  <eker@mu.csl.sri.com>
+
+	* metaUpModule.cc (upArgument): fix bug in case that argument
+	is an instantation of a view
+
+2019-05-24  Steven Eker  <eker@mu.csl.sri.com>
+
+	* metaOpCache.hh: added #include "cacheableState.hh" because of
+	clang warning
+
+2019-05-17  Steven Eker  <eker@mu.csl.sri.com>
+
+	* metaLevel.hh (M): deleted decl for old downInstantiationArguments()
+
+	* metaDownRenamings.cc (downModuleExpression): reimplemented by
+	constructing a ModuleExpression first and using Interpreter code
+	to evaluated it rather than directly handing the metaModuleExpression
+	(downInstantiationArguments): deleted
+
+2019-05-25  Rubén Rubio  <rubenrub@ucm.es>
+
+	* metaDownStrats.cc (downStratDecl): handle metadata
+
+	* metaUpModule.cc (upStratDecl): handle metadata
+	(upSd): handle attributes
+
+2019-04-17  Steven Eker  <eker@mu.csl.sri.com>
+
+	* metaView.cc (handleOpTermMappings): don't pass toModule to
+	insertOpToTermMapping()
+	(handleOpTermMappings): don't pass line numbers to insertOpToTermMapping()
+	(handleOpTermMappings): take responsibility for deepSelfDestruct()ing
+	fromTerm and toTerm if insertOpToTermMapping() fails
+
+2019-04-12  Steven Eker  <eker@mu.csl.sri.com>
+
+	* metaDownRenamings.cc (downModuleExpression): use Argument*
+
+2019-03-29  Steven Eker  <eker@mu.csl.sri.com>
+
+	* metaDown.cc (downImport): use hasBoundParameters() in place
+	of parametersBound()
+	(downImport): use hasFreeParameters()
+
+2019-02-27  Steven Eker  <eker@mu.csl.sri.com>
+
+	* metaLevel.hh (M): added decls for MetaView* versions of
+	downParameterDeclList(), downParameterDecl()
+
+	* interpreterManagerSymbol.cc (insertView): added FIXME comment
+	(insertModule): added comment about creating flattened version
+	first before PreModule version
+
+	* metaDownView.cc (downParameterDeclList, downParameterDecl): added
+	MetaView* versions
+	(downView): handle parameters
+
+2019-02-26  Steven Eker  <eker@mu.csl.sri.com>
+
+	* metaLevel.hh (M): added decls for View* versions of
+	upHeader(), upParameterDecls(), upParameterDecl()
+
+	* metaUpView.cc (upHeader, upParameterDecls, upParameterDecl): added
+	View* versions
+	(upView): use upHeader()
+
+2019-02-21  Steven Eker  <eker@mu.csl.sri.com>
+
+	* metaUpModule.cc (upArgument): handle the case where the
+	argument is a view that itself takes arguments
+
+2019-02-15  Steven Eker  <eker@mu.csl.sri.com>
+
+	* deleted viewInstantiationSymbol
+
+	* metaDownView.cc (downModuleExpression): switched order of
+	downing module instantiation so we're not left with undeleted
+	view expressions in error case
+	(downViewExpression): use instantiationSymbol instead of
+	viewInstantiationSymbol
+
+	* metaLevel.hh (M): downInstantiationArgument() becomes
+	downViewExpression()
+
+	* metaDownView.cc (downInstantiationArgument): renamed to
+	downViewExpression()
+	(downViewExpression): handle instantiated views
+	(downInstantiationArguments): use new downViewExpression() semantics
+
+2019-02-14  Steven Eker  <eker@mu.csl.sri.com>
+
+	* metaLevelSignature.cc: fix bug where instantiationSymbol was given
+	arity 1
+	added viewInstantiationSymbol
+
+2019-02-13  Steven Eker  <eker@mu.csl.sri.com>
+
+	* metaLevel.hh (M): added decl for upArgument(); updated
+	decl for upArguments()
+
+	* metaUpModule.cc (upArgument): added
+	(upArguments): use upArgument()
+
+2019-02-13  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaLevel.hh (M): added decl for downInstantiationArgument(); updated
+	decl for downInstantiationArguments()
+
+	* metaDownView.cc (downInstantiationArgument): added
+	(downInstantiationArguments): use downInstantiationArgument()
+
+===================================Maude121===========================================
+
+2018-12-20  Rubén Rubio  <rubenrub@ucm.es>
+
+	* descentFunctions.cc (metaStratParse, metaStratPrettyPrint): added
+	(metaDSRewrite, metaStratRewrite): added from the code of metaSRewrite.
+	Changes to cache the state object.
+	(makeStrategicSearch): added
+
+	* descentSignature.cc: added metaDSRewrite, metaStratParse,
+	and metaStratPrettyPrint
+
+	* metaDown.cc (downModule): call to registerRuleLabels and importLabels
+
+	* metaDownSignature.cc (downSignature): call to registerRuleLabels
+
+	* metaDownStrats.cc (downStratExpr): handle all strategy
+
+	* metaLevel.hh: additional argument to upNoParse for the strategy case
+	(upStratExpr, upAmbiguity): added for strategy expressions
+	(upResultSet): removed
+
+	* metaLevelOpSymbol.hh (makeStrategicSearch, metaStratRewrite): added
+
+	* metaLevelSignature.cc: added allStratSymbol, noStratParseSymbol and
+	stratAmbiguitySymbol. Removed noResultSetSymbol and resultSetSymbol
+
+	* metaModule.cc (registerRuleLabels): added
+
+	* metaModule.hh (registerRuleLabels): added
+
+	* metaUp.cc (upNoParse): handle the strategy case
+	(upStratExpr): handle the 'all' strategy and an erratum was corrected
+	in NEW_STRATEGY. Added an overload that creates a QidMap
+	(upAmbiguity): added
+	(upResultSet): removed
+	(upCallStrat): used ArgumentIterator instead of RawArgumentIterator
+
+	* metaUpModule.cc (upCondition): solved a bug where empty conditions
+	were not treated properly
+
+	* bufferPrint.cc (bufferPrint): added for strategy expressions
+	(prettyPrint): added for strategy expressions, condition fragments,
+	and vectors of these.
+
+2018-12-07  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterApply.cc (makeRewriteSearchState): deepSelfDestruct()
+	values in successful case
+
+	* interpreterSort.cc (normalizeTerm): need to deepSelfDestruct()
+	term rather than delete it
+
+	* interpreterManagerSymbol.cc (handleMessage): dispatch
+	getNarrowingSearchResultMsg, getNarrowingSearchResultAndPathMsg
+
+	* interpreterNewNarrowSearch.cc (getNarrowingSearchResult): rewritten
+	because the two return messages have quite different semantics despite
+	similar arugments; added comments to explain this
+
+2018-12-06  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaLevel.hh (M): made NarrowingVariableInfo version of
+	upSubstitution() public
+
+	* interpreterManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decl for makeNarrowingSearchPath()
+
+	* interpreterNewNarrowSearch.cc (makeNarrowingSearchPath): added
+
+	* metaLevel.hh (M): added decl for upNarrowingSearchPath()
+
+	* metaUp.cc (upNarrowingSearchPath): added
+	(upNarrowingSearchPathResult): use upNarrowingSearchPath()
+
+2018-12-05  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decls for makeNarrowingSequenceSearch3(), getNarrowingSearchResult()
+
+	* interpreterNewNarrowSearch.cc: created
+
+	* metaLevelOpSymbol.hh (FreeSymbol): delted decl for
+	downFoldType()
+
+	* metaLevel.hh (downFoldType): added
+
+	* metaNewNarrow2.cc (makeNarrowingSequenceSearch3): use
+	MetaLevel::downFoldType()
+	(downFoldType): deleted
+
+	* metaLevel.hh (M): added decl for downFoldType()
+
+	* interpreterSignature.cc: added
+	getNarrowingSearchResultMsg/gotNarrowingSearchResultMsg,
+	getNarrowingSearchResultAndPathMsg/gotNarrowingSearchResultAndPathMsg
+
+2018-11-30  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterNewNarrow.cc (makeNarrowingSearchState2): leave rewrite
+	counts in subjectContext
+	(getOneStepNarrowing): don't transfer rewrite counts from state context
+	inside loop
+	(getOneStepNarrowing): tranfer rewrite counts from state context
+	and the end of a success
+	(getOneStepNarrowing): do incrementNarrowingCount() on stateContext
+	rather than external context
+	(getOneStepNarrowing): return completeness flag in no such result
+	reply
+
+2018-11-29  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterManagerSymbol.cc (handleMessage):
+	getOneStepNarrow() -> getOneStepNarrowing()
+
+	* interpreterManagerSymbol.hh (ExternalObjectManagerSymbol):
+	getOneStepNarrow() -> getOneStepNarrowing()
+
+	* interpreterNewNarrow.cc (getOneStepNarrow): becomes
+	getOneStepNarrowing()
+
+	* interpreterSignature.cc: getOneStepNarrowMsg/gotOneStepNarrowMsg ->
+	getOneStepNarrowingMsg/gotOneStepNarrowingMsg
+
+2018-11-28  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterManagerSymbol.cc (handleMessage): dispatch
+	getOneStepNarrowMsg
+
+	* metaLevel.hh (M): made upPartialSubstitution() public
+
+	* interpreterManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decls for makeNarrowingSearchState2() and getOneStepNarrow()
+
+	* interpreterNewNarrow.cc: created
+
+	* interpreterMatch.cc (makeMatchSearchState): subject -> message
+
+	* interpreterSignature.cc: narrowWithRuleMsg/narrowedWithRuleMsg
+	-> getOneStepNarrowMsg/gotOneStepNarrowMsg
+
+2018-11-27  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterSignature.cc: added narrowWithRuleMsg,
+	narrowedWithRuleMsg
+
+2018-11-09  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaApply.cc (metaApply): only call transferCountTo() when
+	we exit the loop; don't addInCount() initial rewrites since
+	these would get double counted
+	(metaXapply): symmetric changes
+
+	* interpreterApply.cc (makeRewriteSearchState): don't do
+	context.addInCount() here since it leads to double counting of
+	initial equational rewriting.
+	(applyRule): don't do transferCountTo() in solution loop
+	(applyRule): add reduction count to stateContext rather than
+	context
+	(applyRule): increment stateContext rather than context
+
+2018-11-08  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterRewrite.cc (reduceTerm, rewriteTerm, frewriteTerm)
+	(erewriteTerm): use term2RewritingContext()
+
+2018-11-06  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaLevelOpSymbol.hh (FreeSymbol): deleted decl for
+	term2Dag()
+
+	* metaLevelOpSymbol.cc (term2Dag): deleted
+
+	* descentFunctions.cc (term2RewritingContext, metaLeastSort)
+	(metaReduce, metaRewrite, metaFrewrite, metaDownTerm): use
+	term2DagEagerLazyAware()
+
+	* interpreterManagerSymbol.hh (term2RewritingContext): use
+	term2DagEagerLazyAware()
+
+	* interpreterRewrite.cc (reduceTerm, rewriteTerm, frewriteTerm)
+	(erewriteTerm): use term2DagEagerLazyAware()
+
+	* interpreterManagerSymbol.hh (ExternalObjectManagerSymbol): deleted
+	decl for term2Dag()
+
+	* interpreterManagerSymbol.cc (term2Dag): deleted
+
+	* metaDown.cc (dagifySubstitution): use term2DagEagerLazyAware()
+
+	* interpreterApply.cc (makeRewriteSearchState): use
+	MetaLevel::dagifySubstitution()
+
+	* metaLevelOpSymbol.hh (FreeSymbol): deleted decl for dagifySubstitution()
+
+	* metaLevel.hh (M): added decl for dagifySubstitution()
+
+	* metaApply.cc (metaXapply): use MetaLevel::dagifySubstitution()
+	(metaApply): use MetaLevel::dagifySubstitution()
+
+	* descentFunctions.cc (metaWellFormedSubstitution): use
+	MetaLevel::dagifySubstitution()
+
+	* metaDown.cc (dagifySubstitution): moved here from descentFunctions.cc
+
+	* interpreterApply.cc (makeRewriteSearchState): don't call
+	noDuplicates()
+
+	* metaLevelOpSymbol.hh (FreeSymbol): deleted decl for
+	noDuplicates()
+
+	* metaApply.cc (metaXapply): don't call noDuplicates()
+	(metaApply): don't call noDuplicates()
+
+	* descentFunctions.cc (noDuplicates): deleted
+	(metaWellFormedSubstitution): don't call noDuplicates()
+
+	* metaLevel.hh (M): added decl for duplicate()
+
+	* metaDown.cc (duplicate): added
+	(downAssignment): check for duplicate lhs variables
+
+	* interpreterManagerSymbol.cc (handleMessage): dispatch applyRuleMsg,
+	applyRule2Msg
+
+2018-11-05  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decls for makeRewriteSearchState(), applyRule()
+
+	* interpreterApply.cc: created
+
+2018-11-02  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterSignature.cc: added applyRuleMsg, appliedRuleMsg,
+	applyRule2Msg, appliedRule2Msg
+
+2018-11-01  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterSort.cc (normalizeTerm): fix memory leak by
+	deleting term when we're done with it
+
+===================================Maude120===========================================
+
+2018-10-22  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterManagerSymbol.cc (handleMessage): dispatch
+	parseQidListMsg
+
+	* interpreterManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decl for parseQidList()
+
+	* interpreterPrint.cc (parseQidList): added
+
+	* interpreterSignature.cc: added parseQidListMsg/parsedQidListMsg
+
+	* interpreterPrint.cc (printTerm): correct print options
+	argument number
+
+2018-10-19  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaVariant.cc (metaGetVariant2): fix memory leak were start
+	term is successfully down'd but blocker terms are not
+
+2018-10-16  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterManagerSymbol.cc (handleMessage): dispatch
+	printTermMsg
+
+	* interpreterManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decl for printTerm()
+
+	* interpreterPrint.cc: created
+
+	* interpreterSignature.cc: added printTermMsg/printedTermMsg
+
+2018-10-12  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterVariantUnify.cc (getVariantUnifier): use
+	gotDisjointVariantUnifierMsg, gotVariantUnifierMsg
+
+	* interpreterSignature.cc: added gotVariantUnifierMsg,
+	gotDisjointVariantUnifierMsg
+
+	* metaLevel.hh (M): made narrowing version of
+	upDisjointSubstitutions() public
+
+	* interpreterManagerSymbol.cc (handleMessage): dispatch
+	getVariantUnifierMsg, getDisjointVariantUnifierMsg
+
+	* interpreterManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decl for getVariantUnifier()
+
+	* interpreterVariantUnify.cc: created
+
+2018-10-11  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterSignature.cc: added getUnifierVariantMsg,
+	getDisjointVariantUnifierMsg
+
+	* metaMatch.cc (makeMatchSearchState): don't
+	add in count from subjectContext since that will
+	be accounted for when the solutions are extracted
+	(makeMatchSearchState2): fixed symmteric bug
+
+	* interpreterMatch.cc (makeMatchSearchState): don't
+	add in count from subjectContext since that will
+	be accounted for when the solutions are extracted
+	(makeMatchSearchState2): fixed symmteric bug
+
+2018-10-04  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterVariant.cc (getVariant): use addInCount()
+	in the fail case
+	(getVariant): only do transferCountFrom() once we've generated
+	the reply
+
+	* interpreterMatch.cc (getMatch, getXmatch): do addInCount()
+	rather than transferCountTo() in the fail case
+
+	* interpreterSearch.cc (getSearchResult): do addInCount() rather
+	than transferCountTo() in the fail case
+
+2018-10-03  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterRewrite.cc (erewriteTerm, frewriteTerm)
+	(rewriteTerm, reduceTerm): use upRewriteCount()
+
+	* interpreterVariant.cc (getVariant): fill out RewriteCount
+	for gotVariant()
+
+	* interpreterSignature.cc: gotVariantMsg now has
+	8 arguments
+
+2018-10-01  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterVariant.cc (getVariant): fix memory leak
+	when blocker terms bad
+
+2018-09-28  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaLevel.hh (upNoParent): added
+
+	* interpreterSignature.cc: added noSuchResult3Msg
+
+	* interpreterManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decl for getVariant()
+
+	* interpreterVariant.cc: created
+
+	* interpreterManagerSymbol.cc (handleMessage): dispatch
+	getVariantMsg
+
+	* interpreterSignature.cc: added getVariantMsg/gotVariantMsg
+
+	* metaVariant.cc (metaGetVariant2): pass dummy variableFamily
+	argument to getNextVariant()
+	(metaGetVariant2): pass dummy variableFamily argument to
+	getLastReturnedVariant()
+	(metaVariantUnify2): pass dummy variableFamily argument to
+	getLastReturnedUnifier()
+
+	* interpreterSearch.cc (getSearchResult): transferCount() ->
+	transferCountTo() (2 places)
+
+	* interpreterMatch.cc (getMatch): transferCount() ->
+	transferCountTo() (2 places)
+	(getXmatch): transferCount() -> transferCountTo() (2 places)
+
+	* metaVariant.cc (metaGetVariant2): transferCount() ->
+	transferCountFrom()
+	(metaVariantUnify2): transferCount() -> transferCountFrom()
+
+	* metaSearch.cc (metaSearchPath): transferCount() ->
+	transferCountTo()
+	(metaSearch): transferCount() -> transferCountTo()
+
+	* metaNewNarrow2.cc (metaNarrowingSearch): transferCount() ->
+	transferCountFrom()
+	(metaNarrowingSearchPath): transferCount() -> transferCountFrom()
+
+	* metaNewNarrow.cc (metaNarrowingApply): transferCount() ->
+	transferCountFrom()
+
+	* metaNarrow.cc (metaNarrow): transferCount() ->
+	transferCountFrom()
+	(metaNarrow2): transferCount() -> transferCountFrom()
+
+	* metaMatch.cc (metaMatch): transferCount() ->
+	transferCountTo()
+	(metaXmatch): transferCount() -> transferCountTo()
+
+	* metaApply.cc (metaApply): transferCount() ->
+	transferCountTo()
+	(metaXapply): transferCount() -> transferCountTo()
+
+2018-09-27  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterUnify.cc (getUnifier): use simpler
+	FreshVariableSource()
+
+2018-09-25  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaLevel.hh (M): made upQid() public
+	(M): made upDisjointSubstitutions(), upSubstitution() public
+
+	* interpreterManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decl for getUnifier()
+
+	* interpreterManagerSymbol.cc (handleMessage): dispatch
+	getUnifierMsg, getDisjointUnifierMsg
+
+	* interpreterSignature.cc: added getUnifierMsg/gotUnifierMsg,
+	getDisjointUnifierMsg/gotDisjointUnifierMsg, noSuchResult2Msg
+
+	* interpreterUnify.cc: created
+
+2018-09-24  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaLevelOpSymbol.hh (FreeSymbol): deleted decl for
+	getCachedUnificationProblem()
+
+	* metaUnify.cc (metaUnify2): use getCachedStateObject()
+	(getCachedUnificationProblem): deleted
+
+	* metaOpCache.hh (getCachedStateObject): added non-context
+	version
+
+2018-09-21  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaUp.cc (upDagNode): pass 0 as variable family to
+	getFreshVariableName()
+
+2018-09-17  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaLevel.hh (M): made upTerm() public
+
+	* interpreterSignature.cc: added normalizeTermMsg/normalizedTermMsg
+
+	* interpreterManagerSymbol.cc (handleMessage): dispatch
+	normalizeTermMsg
+
+	* interpreterSort.cc (normalizeTerm): added
+
+2018-09-14  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decl for getMaximalAritySet()
+
+	* interpreterSignature.cc: added
+	getMaximalAritySetMsg/gotMaximalAritySetMsg
+
+	* interpreterManagerSymbol.cc (handleMessage): dispatch
+	getMaximalAritySetMsg
+
+	* interpreterSort.cc (getMaximalAritySet): added
+
+===================================Maude119===========================================
+
+2018-08-17  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterManagerSymbol.cc (handleMessage): dispatch
+	getGlbTypesMsg
+
+	* interpreterSignature.cc: added getGlbTypesMsg/gotGlbTypesMsg
+
+	* interpreterManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decl for getGlbTypes()
+
+	* interpreterSort.cc (getGlbTypes): added
+
+	* metaLevel.hh (M): added decl for downTypeSet()
+
+	* metaDown.cc (downTypeSet): added
+
+	* interpreterManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decls for getKind()/getKinds()
+
+	* interpreterSort.cc (getKind, getKinds): added
+
+	* interpreterManagerSymbol.cc (handleMessage): dispatch
+	getKindMsg, gotKindMsg
+
+	* interpreterSignature.cc: added getKindMsg/gotKindMsg,
+	getKindsMsg/gotKindsMsg
+
+2018-08-16  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decl for compareTypes()
+
+	* interpreterSort.cc (compareTypes): added
+
+	* interpreterManagerSymbol.cc (handleMessage): dispatch
+	compareTypesMsg
+
+	* interpreterSignature.cc: deleted succSymbol
+
+	* interpreterManagerSymbol.cc (getInterpreter): use
+	MetaLevel::downSignedInt() rather than SuccSymbol::getSignedInt()
+	(deleteInterpreter): use MetaLevel::downSignedInt() rather than
+	SuccSymbol::getSignedInt()
+
+	* metaLevel.hh (downSignedInt): added
+
+	* interpreterManagerSymbol.cc (createInterpreter): use
+	MetaLevel::upNat() rather than SuccSymbol::makeNatDag()
+	(quit): socketName -> interpreterName
+
+	* interpreterSignature.cc: added compareTypesMsg/comparedTypesMsg
+
+2018-08-15  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decls for getLesserSorts(), getMaximalSorts(), getMinimalSorts()
+
+	* interpreterSort.cc: created
+
+	* interpreterManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decl for getInterpreterAndModule()
+
+	* interpreterManagerSymbol.cc (handleMessage): added dispatch
+	for getLesserSortsMsg, getMaximalSortsMsg, getMinimalSortsMsg
+	(getInterpreterAndModule): added
+
+2018-08-14  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterSignature.cc: added getLesserSortsMsg/gotLesserSortsMsg,
+	getMaximalSortsMsg/gotMaximalSortsMsg,
+	getMinimalSortsMsg/gotMinimalSortsMsg
+
+2018-08-10  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaLevelOpSymbol.hh (getCachedStateObject): deleted
+
+	* metaVariant.cc (metaGetVariant2, metaVariantUnify2): use
+	MetaOpCache::getCachedStateObject() rather than
+	MetaLevelOpSymbol::getCachedStateObject()
+
+	* metaNewNarrow2.cc (metaNarrowingSearch)
+	(metaNarrowingSearchPath): use
+	MetaOpCache::getCachedStateObject() rather than
+	MetaLevelOpSymbol::getCachedStateObject()
+
+	* metaNewNarrow.cc (metaNarrowingApply): use
+	MetaOpCache::getCachedStateObject() rather than
+	MetaLevelOpSymbol::getCachedStateObject()
+
+	* metaNarrow.cc (metaNarrow, metaNarrow2): use
+	MetaOpCache::getCachedStateObject() rather than
+	MetaLevelOpSymbol::getCachedStateObject()
+
+	* metaApply.cc (metaApply, metaXapply): use
+	MetaOpCache::getCachedStateObject() rather than
+	MetaLevelOpSymbol::getCachedStateObject()
+
+	* metaMatch.cc (metaMatch, metaXmatch): use
+	MetaOpCache::getCachedStateObject() rather than
+	MetaLevelOpSymbol::getCachedStateObject()
+
+	* metaSearch.cc (metaSmtSearch, metaSearch, metaSearchPath): use
+	MetaOpCache::getCachedStateObject() rather than
+	MetaLevelOpSymbol::getCachedStateObject()
+
+2018-08-09  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaMatch.cc (makeMatchSearchState2): deepSelfDestruct()
+	pattern and subject in error cases
+
+	* interpreterManagerSymbol.hh (ExternalObjectManagerSymbol): updated
+	decl for createInterpreter()
+
+	* interpreterManagerSymbol.cc (createInterpreter): check option
+	arg and return bool
+	(handleManagerMessage): pass createInterpreter() return value
+
+	* interpreterSignature.cc: added emptyInterpereterOptionSetSymbol;
+	changed createInterpreterMsg arity to 3
+
+2018-08-08  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterSearch.cc (getSearchResult): updated comments
+
+	* interpreterMatch.cc (makeMatchSearchState2): correct assumption
+	that pattern and subject are in the same kind
+
+2018-08-07  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decls for makeMatchSearchState2(), getXmatch()
+
+	* interpreterMatch.cc (getXmatch): added
+	(makeMatchSearchState2): adde
+
+	* metaMatch.cc (metaXmatch): RewriteSearchState::DagPair ->
+	PositionState::DagPair
+
+	* interpreterManagerSymbol.cc (handleMessage): dispatch getXmatch()
+
+	* interpreterSignature.cc: added getXmatchMsg/gotXmatchMsg
+
+2018-08-06  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterSignature.cc: added getMatchMsg/gotMatchMsg
+
+	* interpreterManagerSymbol.cc (handleMessage): dispatch getMatch()
+
+	* interpreterManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decls for makeMatchSearchState(), getMatch()
+
+	* interpreterMatch.cc: created
+
+2018-08-03  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterManagerSymbol.cc (MACRO): use BIND_SYMBOL2 to check
+	nrArgs
+
+	* interpreterSignature.cc: noSuchResultMsg() now takes
+	3 arguments
+
+	* interpreterSearch.cc (getSearchResult): use upRewriteCount()
+	(getSearchResult): noSuchResult now returns a RewriteCount()
+
+	* interpreterManagerSymbol.cc (upRewriteCount): added
+
+	* interpreterManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decl for upRewriteCount()
+
+2018-08-02  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterSignature.cc: added getSearchResultAndPathMsg,
+	gotSearchResultAndPathMsg
+
+	* interpreterManagerSymbol.cc (handleMessage): dispatch
+	getSearchResultAndPathMsg
+
+	* interpreterSearch.cc (makeRewriteSequenceSearch)
+	(getSearchResult): moved here
+	(getSearchResult): handle getSearchResultAndPath as well
+
+	* interpreterRewrite.cc (reduceTerm, rewriteTerm, frewriteTerm)
+	(erewriteTerm): moved here
+
+2018-08-01  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterManagerSymbol.cc (getSearchResult): support
+	state caching
+
+	* metaOpCache.hh (getCachedStateObject): added template
+
+2018-07-31  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterSignature.cc: updated decl for gotSearchResultMsg
+
+	* interpreterManagerSymbol.cc (getSearchResult): pass
+	rewrite count through gotSearchResultMsg
+
+2018-07-20  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterManagerSymbol.hh (term2RewritingContext): added
+
+	* metaLevel.hh (downSearchType): added
+
+	* interpreterSignature.cc: deleted continueMsg; added noSuchResultMsg
+
+	* interpreterManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decl for makeRewriteSequenceSearch()
+
+	* interpreterManagerSymbol.cc (getSearchResult): implemented
+	(makeRewriteSequenceSearch): added
+
+	* interpreterManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decl for getSearchResult()
+
+	* interpreterManagerSymbol.cc (handleMessage): handle
+	getSearchResultMsg
+	(getSearchResult): added stub
+
+	* interpreterSignature.cc: added getSearchResultMsg,
+	gotSearchResultMsg
+
+===================================Maude118===========================================
+
+2018-07-17  Rubén Rubio  <rubenrub@ucm.es>
+
+	* downView.cc (downView): call downStratMappingSet
+	(downStratMappingSet, downStratMapping): added
+	(downStratExprMappings, downStratExprMapping): added
+
+	* metaDownSignature.cc (downSignature): added strategy modules
+	and theories
+
+	* metaDownStrats (downStratExpr): return null when strategy call
+	refers to an unknown strategy
+
+	* metaView.cc (MetaView): added stratMappings as argument
+	(handleTermAndExprMappings): code to handle expression mappings
+
+	* metaView.hh: new data member stratMappings
+	(handleTermAndExprMappings): renamed from handleOpTermMappings
+
+2018-06-29  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaPreModule.hh (PreModule): updated decl for getAutoImports()
+
+	* metaUpModule.cc (upImports): use new getAutoImports convention
+
+	* metaPreModule.cc (getAutoImports): moved here; return
+	null pointer
+
+2018-06-25  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaPreModule.cc (MetaPreModule): set module type; this was
+	a UMR bug
+
+2018-06-20  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaLevel.hh (M): added decls for downParameterDeclList2(),
+	downParameterDecl2()
+	(M): made downHeader() public
+
+	* interpreterManagerSymbol.cc (insertModule): use
+	downParameterDeclList2()
+
+	* metaDownSignature.cc (downParameterDeclList2)
+	(downParameterDecl2): added
+
+	* interpreterManagerSymbol.cc (insertModule): call downImports2()
+
+	* metaUpModule.cc (upImports): deal with new getImportMode()
+	convention
+
+	* metaLevel.hh (M): added decls for downImports2(),
+	downImport2()
+
+	* metaDownSignature.cc (downImports2, downImport2): added
+
+	* metaPreModule.hh (PreModule): delete getNrParameters(),
+	getParameterName(), getParameter(), getNrImports(),
+	getImportMode(), getImport() stubs
+
+2018-06-19  Steven Eker  <eker@install.csl.sri.com>
+
+	* ascentFunctions.cc (getPreModule): added DebugAdvisory()s
+
+2018-06-18  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaLevelOpSymbol.cc: remove access to global variables
+
+	* metaLevelOpSymbol.hh (FreeSymbol): added decl for
+	getPreModule()
+
+	* ascentFunctions.cc (getPreModule): added
+	(metaUpView): determine owner rather than use global
+	interpreter variable
+	(metaUpModule, metaUpImports, metaUpSorts, metaUpSubsortDecls)
+	(metaUpOpDecls, metaUpEqs, metaUpMbs, metaUpRls): use
+	getPreModule()
+
+2018-06-15  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaLevel.cc: remove access to global variables
+
+	* metaDown.cc (downModule): call
+	owner->destructUnusedModules() rather than
+	interpreter.destructUnusedModules() (2 places)
+
+	* metaDownSignature.cc (downSignature): call
+	owner->destructUnusedModules() rather than
+	interpreter.destructUnusedModules()
+
+	* metaLevel.hh (M): updated decls for downModuleExpression(),
+	downParameterDeclList(), downParameterDecl()
+
+	* metaDown.cc (downParameterDecl, downParameterDeclList): take
+	MetaModule* rather than ImportModule*
+
+	* metaDownRenamings.cc (downModuleExpression): take MetaModule*
+	rather than ImportModule*
+
+	* metaLevel.hh (M): updated decl for downModule()
+
+	* metaDown.cc (downModule): don't take cacheMetaModule and
+	owner arguments
+	(downModule): rewritten to extract owner Interpreter via
+	the top symbol of meta-module
+
+2018-06-14  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaPreModule.cc (getFlatSignature): don't pass parent to
+	downSignature()
+
+	* metaDown.cc (downModule): don't pass parent to MetaModule()
+
+	* interpreterManagerSymbol.cc (insertModule): don't pass parent to
+	downSignature()
+
+	* metaLevel.hh (M): updated decl for downSignature()
+
+	* metaDownSignature.cc (downSignature): don't pass parent to
+	MetaModule()
+	(downSignature): don't take parent argument
+
+	* metaModule.cc (MetaModule): don't take or pass parent; pass owner;
+	don't initialize owner
+
+	* metaModule.hh (MetaOpCache): deleted data member owner
+	(getOwner): deleted
+	(MetaOpCache): ctor no longer takes parent
+
+2018-06-12  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaDown.cc (downModule): call addUser() here; pass null parent
+	to MetaModule()
+
+	* interpreterManagerSymbol.cc (insertModule): don't call addUser()
+	here
+
+	* metaPreModule.cc (regretToInform): more detailed DebugAdvisory()
+	(MetaPreModule): call addUser() here
+
+	* interpreterManagerSymbol.cc (insertModule): use downSignature()
+
+	* metaPreModule.hh (PreModule): deleted inline definition
+	for getFlatSignature()
+
+	* metaPreModule.cc (getFlatSignature): added
+	(getFlatModule): rewritten to use getFlatSignature()
+
+	* metaLevel.hh (M): added decl for downSignature()
+
+	* metaDownSignature.cc: created
+
+2018-06-05  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterManagerSymbol.cc (erewriteTerm): fix nasty bug where
+	safeCast() macro was duplicating makeSubcontext() call
+
+2018-05-31  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterManagerSymbol.cc (erewriteTerm): set mode to
+	ObjectSystemRewritingContext::EXTERNAL
+	(rewriteTerm, frewriteTerm, erewriteTerm): call resetRules()
+	before using module
+
+2018-05-30  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterManagerSymbol.hh (ExternalObjectManagerSymbol): added
+	decl for erewriteTerm()
+
+	* interpreterSignature.cc: added erewriteTermMsg, erewroteTermMsg
+
+	* interpreterManagerSymbol.cc (erewriteTerm): added
+	(handleMessage): support erewriteMsg
+
+2018-05-22  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaUpModule.cc (upModule): handle MetaPreModules correctly
+	in the unflattened case
+
+	* metaPreModule.hh (getMetaRepresentation): added
+
+2018-05-17  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaView.cc (handleOpTermMappings): implemented
+
+	* metaLevel.hh (M): added decls for downOpTermMappings(),
+	downOpTermMapping()
+
+	* metaDownView.cc (downOpTermMappings): added
+	(downOpTermMapping): added
+
+2018-05-16  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterManagerSymbol.cc (insertView): implemented
+
+	* metaDownView.cc (downView): make sure we have an actual
+	viewSymbol dag node before we downcast it
+
+	* metaLevel.hh (M): added decls for downSortMapping(),
+	downOpMapping()
+
+	* metaDownView.cc (downModuleExpression): use downToken()
+	(downInstantiationArguments): use downToken() (2 places)
+	(downSortMapping): added
+	(downSortMappingSet): implemented
+	(downOpMapping): added
+	(downOpMappingSet): implemented
+
+	* metaLevel.hh (M): added decl for downToken()
+
+	* metaDown.cc (downToken): added
+
+2018-05-15  Steven Eker  <eker@install.csl.sri.com>
+
+	* meta.hh: added class MetaView
+
+	* metaLevel.hh (M): added decls for downSortMappingSet(),
+	downOpMappingSet()
+
+	* metaDownView.cc (downSortMappingSet, downOpMappingSet): added stubs
+
+	* metaLevel.hh (M): added decls for view version of downModuleExpression()
+	and downInstantiationArguments(); added decl for downView()
+
+	* metaDownView.cc: created
+
+2018-05-04  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaView.hh: created
+
+	* metaView.cc: created
+
+2018-04-30  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaUpView.cc (upView): call View::evaluate()
+
+2018-04-29  Rubén Rubio  <rubenrub@ucm.es>
+
+	* metaDown.cc (downModule): using Module::isStrategic to be more succinct
+
+	* metaDownRenamings.cc (downRenaming): added strategy renamings
+
+	* metaDownStrats.cc (downStratExpr): fixed a bug where some cases are missing
+	(downStratDef): fixed an erratum
+	(downStratDecl): put META_LEVEL_CREATED as line number for strategy name token
+	(downStratCall): warning if no strategy declaration can be found
+
+	* metaLevel.hh (upStratMappings): added
+
+	* metaLevelSignature.cc: strategy renaming and mapping symbols
+
+	* metaUpModule.cc (upStratDeclarations): fixed an erratum
+	(upRenaming): added strategy renamings
+
+	* metaUpView.cc (upView): call upStratMappings
+	(upStratMappings): added
+
+2018-04-18  Steven Eker  <eker@install.csl.sri.com>
+
+	* interpreterManagerSymbol.cc (showView): implemented
+
+===================================Maude117===========================================
+
+2018-04-10  Rubén Rubio  <rubenrub@ucm.es>
+
+	* metaDownStrats.cc (downStratExpr): added 'one' strategy case
+
+	* metaLevelSignature.cc: added oneStratSymbol
+
+	* metaLevel.cc: added include for 'one' strategy
+
+	* metaUp.cc (upStratExpr): added 'one' strategy case
+
+2018-03-23  Rubén Rubio  <rubenrub@ucm.es>
+
+	* descentFunctions.cc (metaSRewrite): added
+
+	* descentSignature.cc: added metaSRewrite
+
+	* metaDown.cc (downModule): support for strategy modules
+
+	* metaDownStrats.cc: added
+
+	* metaLevel.hh: added strategy language includes and metaDownStrats.cc
+	(upResultSet, upStratDecls, upSds, downStratExpr, upStratDecl, upSd)
+	(upStratExpr, upCallExpr, downStratDecls, downStratDecl, downStratDefs)
+	(downStratDef, downStratCall, downStrategyList): added
+
+	* metaLevelOpSymbol.cc: added strategy language includes
+
+	* metaLevelSignature.cc: added metastrategy constructs
+
+	* metaUp.cc (upResultSet, upStratExpr, upCallStrat): added
+
+	* metaUpModule.cc (upModule): added support for strategy modules
+	(upPolymorphDecl): fixed an erratum.
+	(upStratDecls, upStratDecl, upSds, upSd): added
+
+2017-07-11  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaSearch.cc (makeSMT_RewriteSequenceSearch): check for
+	nonlinear variables in the target
+	(makeSMT_RewriteSequenceSearch): check for SMT operators
+	in the target
+
+2017-06-29  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaDown.cc (downTerm): canonicalize rational number
+
+2017-06-05  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaDownOps.cc (downAttr): set STRAT flag when strat
+	attribute seen
+	(downAttr): check for duplicated attributes
+
+2017-05-31  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaDownOps.cc (downAttr): check for duplicate argument
+	numbers in poly attribute
+	(downAttr): check for duplicate argument numbers in frozen
+	attribute
+	(downOpDecl): check that frozen and poly argument numbers
+	are in range
+	(downOpDecl): check gather lengths in both cases
+
+2017-05-30  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaUp.cc (upQidList): call upQid() in the singleton
+	case
+
+===================================Maude114===========================================
+
+2017-05-25  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaNewNarrow.cc (metaNarrowingApply): use
+	upNarrowingApplyResult() and upNarrowingApplyFailure()
+
+	* metaLevel.hh (M): upNarrowingFailure() ->
+	upNarrowingApplyFailure(); upNarrowingResult() ->
+	upNarrowingApplyResult()
+
+	* metaLevelSignature.cc: narrowingResultSymbol ->
+	narrowingApplyResultSymbol; narrowingFailureSymbol ->
+	narrowingApplyFailureSymbol; narrowingFailureIncompleteSymbol ->
+	narrowingApplyFailureIncompleteSymbol
+
+	* metaUp.cc (upNarrowingResult): becomes
+	upNarrowingApplyResult()
+	(upNarrowingFailure): becomes upNarrowingFailure()
+	(upNarrowingApplyResult): new scheme for returning values
+
+2017-05-24  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaNewNarrow2.cc (makeNarrowingSearchPathResult): get
+	unifierVariableInfo for each step from getHistory() and
+	passing it to upNarrowingStep()
+
+	* metaUp.cc (upNarrowingStep): use upCompoundSubstitution()
+
+	* metaLevel.hh (M): added decl for upCompoundSubstitution()
+
+	* metaUp.cc (upCompoundSubstitution): added
+
+	* metaNewNarrow2.cc (makeNarrowingSearchPathResult): pass rule
+	rather than label for upNarrowingStep()
+
+	* metaLevel.hh (M): updated decl for upNarrowingStep()
+
+	* metaUp.cc (upNarrowingStep): take rule rather than label;
+	generate rule part of substitution
+
+2017-05-23  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaUp.cc (upNarrowingSearchPathResult): handle singleton trace
+
+	* metaLevelOpSymbol.hh (FreeSymbol): added deld for
+	makeNarrowingSearchPathResult()
+
+	* metaNewNarrow2.cc (makeNarrowingSearchPathResult): added
+	(metaNarrowingSearchPath): use makeNarrowingSearchPathResult()
+
+	* metaUp.cc (upNarrowingStep): handle label == NONE
+
+2017-05-22  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaLevel.hh (M): added decl for upNarrowingStep()
+
+	* metaUp.cc (upNarrowingStep): added
+
+	* metaLevel.hh (M): added decl for upNarrowingSearchPathResult()
+
+	* metaUp.cc (upNarrowingSearchPathResult): added
+
+	* metaLevel.hh (M): added delc for upNarrowingSearchFailure()
+
+	* metaUp.cc (upNarrowingSearchPathFailure): added
+
+	* descentSignature.cc: added metaNarrowingSearchPath
+
+	* metaNewNarrow2.cc (metaNarrowingSearchPath): added stub
+
+	* metaLevelSignature.cc: added narrowingSearchPathFailureSymbol,
+	narrowingSearchPathFailureIncompleteSymbol, narrowingStepSymbol,
+	nilNarrowingTraceSymbol, narrowingTraceSymbol,
+	narrowingSearchPathResultSymbol
+
+2017-05-19  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaLevelOpSymbol.hh (FreeSymbol): delete decl for
+	makeNarrowingSequenceSearch2()
+
+	* metaNewNarrow.cc (makeNarrowingSequenceSearch2): deleted
+	(metaNarrowingSearch): deleted old version
+
+	* metaLevel.hh (M): added decl for upPartialSubstitution()
+
+	* metaUp.cc (upPartialSubstitution): renamed from upSubstitution()
+	(upNarrowingResult): use upPartialSubstitution()
+	(upSubstitution): added new version
+
+	* metaLevelSignature.cc: narrowingSearchResultSymbol now
+	has 6 arguments
+
+	* metaLevel.hh (M): updated decl for upNarrowingSearchResult()
+
+	* metaUp.cc (upNarrowingSearchResult): reimplemented
+
+	* descentSignature.cc: metaNarrowingSearch() now has 7 arguments
+
+	* metaLevelOpSymbol.hh (FreeSymbol): added decls for downFoldType()
+	and makeNarrowingSequenceSearch3()
+
+	* metaNewNarrow2.cc (metaNarrowingSearch): reimplemented here
+	(makeNarrowingSequenceSearch3): added
+	(downFoldType): added
+
+2017-05-02  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaNewNarrow.cc (makeNarrowingSearchState2)
+	(metaNarrowingApply): 1st Qid argument deleted
+
+	* descentSignature.cc: metaNarrowingApply now takes 5 arguments
+
+	* metaNewNarrow.cc (makeNarrowingSearchState2): don't pass label arg
+	to NarrowingSearchState2
+
+2017-04-26  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaUpModule.cc (upStatementAttributes): support narrowing
+
+	* metaLevel.hh (M): added NARROWING to enum Flags
+
+	* metaDown.cc (downRule): support narrowing
+	(downStatementAttr): support narrowing
+
+	* metaLevelSignature.cc: added narrowingSymbol
+
+===================================Maude113===========================================
+
+2017-03-16  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaLevelOpSymbol.hh (FreeSymbol): delete decl for
+	getCachedVariantSearch()
+
+	* metaVariant.cc (getCachedVariantSearch): deleted
+	(metaGetVariant2, metaVariantUnify2): use getCachedStateObject()
+
+	* metaLevelOpSymbol.hh (FreeSymbol): deleted decl for
+	getCachedNarrowingSequenceSearch()
+
+	* metaNarrow.cc (getCachedNarrowingSequenceSearch): deleted
+	(metaNarrow, metaNarrow2): use getCachedStateObject()
+
+	* metaSearch.cc (metaSmtSearch): deleted commented out code
+
+	* metaLevelOpSymbol.hh (FreeSymbol): deleted decl for
+	getCachedSMT_RewriteSequenceSearch()
+
+	* metaSearch.cc (getCachedSMT_RewriteSequenceSearch): deleted
+	(metaSmtSearch): use getCachedMatchSearchState()
+
+	* metaLevelOpSymbol.hh (FreeSymbol): deleted decl for
+	getCachedMatchSearchState()
+
+	* metaMatch.cc (getCachedMatchSearchState): deleted
+	(metaMatch): use getCachedStateObject()
+	(metaXmatch): use getCachedStateObject()
+
+	* metaLevelOpSymbol.hh (FreeSymbol): deleted decl for
+	getCachedRewriteSearchState()
+
+	* metaApply.cc (getCachedRewriteSearchState): deleted
+	(metaApply): use getCachedStateObject()
+	(metaXapply): use getCachedStateObject()
+
+	* metaLevelOpSymbol.hh (FreeSymbol): deleted decl for
+	getCachedRewriteSequenceSearch()
+
+	* metaSearch.cc (getCachedRewriteSequenceSearch): deleted
+	(metaSearch): use getCachedStateObject()
+	(metaSearchPath): use getCachedStateObject()
+
+	* metaLevelOpSymbol.hh (getCachedStateObject): added DebugAdvisory()
+
+===================================Maude112===========================================
+
+2017-03-14  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaNewNarrow.cc (metaNarrowingSearch): reverted use of
+	upNarrowingSearchResult()
+
+	* metaLevel.hh (M): reverted decl for upNarrowingSearchResult()
+
+	* metaUp.cc (upNarrowingSearchResult): reverted
+
+	* metaNewNarrow.cc (metaNarrowingSearch): use new upNarrowingSearchResult()
+	convention
+
+	* metaLevel.hh (M): updated decl for upNarrowingSearchResult()
+
+	* metaUp.cc (upNarrowingSearchResult): changed order of arguments
+
+	* metaDown.cc (downParameterDecl): check that parameter type is legal
+	and issue advisory otherwise
+
+2017-03-10  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaNarrow.cc (metaNarrow, metaNarrow2): transfer count
+
+2017-03-09  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaLevelOpSymbol.hh (FreeSymbol): deleted decls for
+	getCachedNarrowingSearchState2() and getCachedNarrowingSequenceSearch2()
+
+	* metaNewNarrow.cc (metaNarrowingSearch): use getCachedStateObject()
+	function template
+	(metaNarrowingApply): use use getCachedStateObject() function template
+	(getCachedNarrowingSearchState2): deleted
+	(getCachedNarrowingSequenceSearch2): deleted
+
+2017-03-08  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaLevelOpSymbol.hh (getCachedStateObject): added function
+	template
+
+	* metaLevelOpSymbol.hh (FreeSymbol): old makeNarrowingSequenceSearch2()
+	becomes makeNarrowingSequenceSearchAlt()
+
+	* metaNarrow.cc (makeNarrowingSequenceSearch2): changed to
+	makeNarrowingSequenceSearchAlt()
+	(metaNarrow2): use makeNarrowingSequenceSearchAlt()
+
+	* metaNewNarrow.cc (metaNarrowingSearch): implemented
+
+	* metaLevelOpSymbol.hh (FreeSymbol): added decl for makeNarrowingSearchState2()
+
+	* metaNewNarrow.cc (makeNarrowingSearchState2): added
+
+	* metaNarrow.cc (makeNarrowingSequenceSearch): fix out of date comments
+
+	* metaLevelOpSymbol.hh (FreeSymbol): added decl for
+	getCachedNarrowingSequenceSearch2()
+
+	* metaNewNarrow.cc (getCachedNarrowingSequenceSearch2): added
+
+2017-03-07  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaLevel.hh (M): updated decl for upNarrowingSearchResult()
+
+	* metaUp.cc (upNarrowingSearchResult): changed unifier argument
+	from Substitution& to Vector<DagNode*>&
+
+2017-02-06  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaLevel.hh (M): added decl for upNarrowingSearchResult()
+
+	* metaUp.cc (upNarrowingSearchResult): added
+
+	* metaLevel.hh (M): added decl for upNarrowingSearchFailure()
+
+	* metaUp.cc (upNarrowingSearchFailure): added
+
+	* metaLevelSignature.cc: delete failureIncomplete4Symbol; add
+	back narrowingSearchResultSymbol, narrowingSearchFailureSymbol,
+	narrowingSearchFailureIncompleteSymbol
+
+2017-02-03  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaLevelSignature.cc: added failureIncomplete4Symbol; deleted
+	narrowingSearchResultSymbol, narrowingSearchFailureSymbol,
+	narrowingSearchFailureIncompleteSymbol
+
+	* metaNewNarrow.cc (metaNarrowingSearch): added stub
+
+	* metaLevelSignature.cc: added narrowingSearchResultSymbol,
+	narrowingSearchFailureSymbol, narrowingSearchFailureIncompleteSymbol
+
+	* descentSignature.cc: added metaNarrowingSearch
+
+	* metaNewNarrow.cc (getCachedNarrowingSearchState2)
+	(makeNarrowingSearchState2, metaNarrowingApply): moved here
+
+===================================Maude111b===========================================
+
+2017-01-03  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaNarrow.cc (metaNarrowingApply): use new getNarrowedDag()
+	semantics
+
+===================================Maude111a===========================================
+
+2016-12-19  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaNarrow.cc (metaNarrowingApply): transfer counts from
+	state context to context
+	(metaNarrowingApply): call incrementNarrowingCount() if we
+	make an actual narrowing step
+
+2016-12-16  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaNarrow.cc (metaNarrowingApply): added trace and
+	abort support
+	(metaNarrowingApply): use getActiveContext()
+	(metaNarrowingApply): use getActiveVariableInfo()
+	(metaNarrowingApply): don't trace if we didn't actually
+	make a narrowing step (i.e. we got the result from cache)
+
+2016-12-15  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaNarrow.cc (makeNarrowingSearchState2): fail if the variable
+	family isn't recognized
+
+2016-12-13  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaNarrow.cc (metaNarrowingApply): fix bug where we weren't
+	deleting resutlContext
+
+2016-12-12  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaLevel.hh (M): updated decl fo upFailureTriple()
+
+	* metaUp.cc (upFailureTriple): handle incomplete argument
+
+	* metaNarrow.cc (metaNarrow): call isIncomplete(),
+	pass to upFailureTriple()
+
+	* metaLevelSignature.cc: added failureIncomplete3Symbol
+
+	* metaNarrow.cc (metaNarrowingApply): call isIncomplete()
+
+2016-12-09  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaNarrow.cc (metaNarrowingApply): updated comment to
+	reflect switched args
+
+	* metaUp.cc (upNarrowingResult): switched args
+
+	* metaLevel.hh (M): updated decl for upNarrowingResult()
+
+	* metaUp.cc (upNarrowingResult): new calling convention
+
+	* metaNarrow.cc (metaNarrowingApply): make metaContext first and
+	then reduce narrowedDag
+
+	* metaApply.cc (metaXapply): added comment about dagNodeMap
+
+	* metaNarrow.cc (makeNarrowingSearchState2): reduce subject
+	before passing it to NarrowingSearchState2()
+
+2016-12-08  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaNarrow.cc (makeNarrowingSearchState2): implemented
+
+2016-12-07  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaLevelOpSymbol.hh (FreeSymbol): added decl for
+	makeNarrowingSearchState2()
+
+	* metaNarrow.cc (makeNarrowingSearchState2): added stub
+
+	* metaUp.cc (upSubstitution): reverted old NarrowingVariableInfo
+	version
+	(upNarrowingResult): don't pass firstTargetSlot, nrTargetVariables
+	to upSubstitution()
+
+	* metaLevel.hh (M): added decl for new upSubstitution();
+	reverted decl for old upSubstitution()
+
+	* metaUp.cc (upSubstitution): added new version
+
+	* metaLevelOpSymbol.hh (FreeSymbol): added decl for
+	getCachedNarrowingSearchState2()
+
+	* metaNarrow.cc (getCachedNarrowingSearchState2): added
+
+2016-12-06  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaLevel.hh (M): added decls for upNarrowingResult() and
+	upNarrowingFailure()
+
+	* metaUp.cc (upNarrowingResult): added
+	(upNarrowingFailure): added
+
+	* metaLevel.hh (M): updated decl for upSubstitution()
+
+	* metaUp.cc (upSubstitution): added offset argument
+
+2016-11-23  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaNarrow.cc (metaNarrowingApply): added stub
+
+	* metaLevelSignature.cc: added narrowingResultSymbol, narrowingFailureSymbol,
+	narrowingFailureIncompleteSymbol
+
+2016-11-01  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaVariant.cc (metaVariantUnify2): pass dummy variableFamily to
+	getNextUnifier()
+
+===================================Maude111===========================================
+
+2016-05-17  Steven Eker  <eker@install.csl.sri.com>
+
+	* descentFunctions.cc (metaCheck): call normalize() and markEager()
+	before dagifying term
+	(metaCheck): don't bother with markEager()
+
+===================================Maude110===========================================
+
+2016-02-04  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaUp.cc (upVariant): fix arg vector size
+
+	* metaVariant.cc (metaGetVariant2): use new getNextVariant() interface
+
+2016-02-03  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaVariant.cc (metaGetVariant2): pass 2 dummy args to upVariant() for
+	the moment
+
+	* metaLevel.hh (M): updated decl for upVariant()
+
+	* metaUp.cc (upVariant): handle parentIndex and moreInLayer flag
+
+2016-01-29  Steven Eker  <eker@install.csl.sri.com>
+
+	* metaLevelSignature.cc: added noParentSymbol; updated
+	variantSymbol
+
+===================================Maude109===========================================
+
+2015-08-21  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaVariant.cc (metaGetVariant2): fix a bug where we were
+	passing the irredundant flag as the unificationMode argument with
+	resulting chaos in the metaGetIrredundantVariant() case
+	(metaVariantUnify2): don't rely on default value for last argument
+	of VariantSearch()
+
+2015-08-14  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaLevel.hh (M): updated decl for upNoVariant()
+
+	* metaUp.cc (upNoVariant): handle incomplete flag
+
+	* metaVariant.cc (metaVariantUnify2): pass incomplete flag to
+	upNoUnifierTriple() and upNoUnifierPair()
+	(metaGetVariant2): pass incomplete flag to upNoVariant()
+
+	* metaLevelSignature.cc: added noVariantIncompleteSymbol
+
+2015-07-23  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaUnify.cc (metaUnify2): pass incomplete flag to
+	upNoUnifierTriple() and upNoUnifierPair()
+
+	* metaUp.cc (upNoUnifierPair, upNoUnifierTriple): handle
+	incomplete flag
+
+	* metaLevel.hh (M): updated decls for upNoUnifierPair() and
+	upNoUnifierTriple()
+
+	* metaLevelSignature.cc: added noUnifierIncompletePairSymbol and
+	noUnifierIncompleteTripleSymbol
+
+===================================Maude108===========================================
+
+2015-02-23  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaVariant.cc (getCachedVariantSearch): revert, now that we
+	have a way of getting last returned variant/unifier
+	(metaGetVariant2): use getLastReturnedVariant()
+	(metaVariantUnify2): use getLastReturnedUnifier()
+
+2015-01-05  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaVariant.cc (getCachedVariantSearch): fix bug where we were
+	returning a cached state where lastSolutionNr < solutionNr even
+	though the code that uses the state doens't seem to be able to
+	handle this case
+
+===================================Maude106===========================================
+
+2014-11-18  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaUnify.cc (metaUnify2): use DebugAdvisory()
+
+	* metaVariant.cc (metaVariantUnify2, metaGetVariant2): use
+	DebugAdvisory()
+
+===================================Maude106===========================================
+
+2014-10-29  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaSearch.cc (makeSMT_RewriteSequenceSearch): check that search
+	type isn't =>!
+	(getCachedSMT_RewriteSequenceSearch): use getRootContext() to
+	patch potentially state parent pointer
+
+2014-10-28  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaLevelOpSymbol.hh (FreeSymbol):
+	getCachedSMT_RewriteSearchState() ->
+	getCachedSMT_RewriteSequenceSearch()
+	(FreeSymbol): makeSMT_RewriteSearchState() ->
+	makeSMT_RewriteSequenceSearch()
+
+	* metaSearch.cc (getCachedSMT_RewriteSearchState): becomes
+	getCachedSMT_RewriteSequenceSearch()
+	(metaSmtSearch): rewritten
+	(makeSMT_RewriteSearchState): becomes 
+
+2014-10-27  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaLevel.hh (M): added decl for upSmtSubstitution(); updated
+	decl for upSmtResult()
+
+	* metaUp.cc (upSmtResult): new 4 arg value
+	(upSmtSubstitution): created
+
+	* metaLevelSignature.cc: updated nr args for smtResultSymbol
+
+	* descentSignature.cc: updated metaSmtSearch nr args
+
+2014-09-29  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaSearch.cc (makeSMT_RewriteSearchState): pass
+	VariableGenerator object to SMT_RewriteSearchState by pointer
+	rather than reference
+
+===================================Maude105===========================================
+
+2014-09-26  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaSearch.cc (makeSMT_RewriteSearchState): new
+	SMT_RewriteSearchState ctor convention
+	(metaSmtSearch): use getMaxVariableNumber() instead of
+	getNextVariableNumber()
+	(metaSmtSearch): call validForSMT_Rewriting()
+
+2014-09-25  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaVariant.cc (metaVariantUnify2): check solutionNr >= 0
+	(getCachedVariantSearch): don't check solutionNr > 0
+
+	* metaNarrow.cc (getCachedNarrowingSequenceSearch): don't check
+	solutionNr > 0
+
+	* metaApply.cc (metaXapply, metaApply): check solutionNr >= 0
+	(getCachedRewriteSearchState): don't check solutionNr > 0; fix
+	comment about context adoption
+
+	* metaMatch.cc (metaMatch): check solutionNr >= 0
+	(getCachedMatchSearchState): don't check solutionNr > 0; fix
+	comment about context adoption
+
+	* metaUnify.cc (metaUnify2): check solutionNr >= 0
+	(getCachedUnificationProblem): don't check solutionNr > 0
+
+	* metaSearch.cc (getCachedRewriteSequenceSearch): allow retrieval
+	of solution number 0 and allow retrieval of solution number equal
+	to the wanted solution number
+	(getCachedRewriteSequenceSearch): don't test for solutionNr >= 0
+	since caller checks this
+	(getCachedSMT_RewriteSearchState): don't test for solutionNr >= 0;
+	use <= for lastSolutionNr check
+	(getCachedSMT_RewriteSearchState): adopt context from cachedState
+	to avoid stale parent pointer
+
+2014-09-24  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaSearch.cc (makeSMT_RewriteSearchState): pass extra args to
+	SMT_RewriteSearchState()
+	(makeSMT_RewriteSearchState, getCachedSMT_RewriteSearchState):
+	added DebugAdvisory()s
+
+2014-09-23  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaLevel.hh (M): added declarations for upSmtResult() and
+	upSmtFailure()
+
+	* metaUp.cc (upSmtFailure): added
+	(upSmtResult): added
+
+	* metaLevelOpSymbol.hh (FreeSymbol): added decls for
+	getCachedSMT_RewriteSearchStat() and
+	makeSMT_RewriteSearchState()
+
+	* metaSearch.cc (getCachedSMT_RewriteSearchState): added
+	(makeSMT_RewriteSearchState): added
+
+2014-09-22  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaSearch.cc (metaSmtSearch): added stub
+
+	* descentSignature.cc: added metaSmtSearch
+
+	* metaLevelSignature.cc: added smtResultSymbol and
+	smtFailureSymbol
+
+2014-09-10  Steven Eker  <eker@ape.csl.sri.com>
+
+	* descentFunctions.cc (metaDownTerm): rewritten using new
+	VariableGenerator semantics
+
+2014-08-11  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaDown.cc (downTerm): use SMT_Info rather SMT_Base
+
+	* descentFunctions.cc (metaCheck): use smtInfo rather than sortMap
+
+2014-07-30  Steven Eker  <eker@ape.csl.sri.com>
+
+	* descentFunctions.cc (metaCheck): rewritten using VariableGenerator
+
+2014-07-01  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaDown.cc (downPrintListItem): commented out IssueAdvisory()
+	since downType2() already does this
+	(downTerm): (2 places) commented out IssueAdvisory() since
+	downType2() already does this
+
+===================================Maude104===========================================
+
+2014-06-04  Steven Eker  <eker@ape.csl.sri.com>
+
+	* descentFunctions.cc (metaCheck): deleted commented out code
+	(metaCheck): use QUOTE() in advisories
+
+2014-06-03  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaUp.cc (upSMT_Number): use getRangeSort()
+
+	* descentFunctions.cc (metaCheck): use getRangeSort()
+
+2014-05-21  Steven Eker  <eker@ape.csl.sri.com>
+
+	* descentFunctions.cc (metaCheck): fix memory leak if we return
+	early
+
+2014-05-20  Steven Eker  <eker@ape.csl.sri.com>
+
+	* descentFunctions.cc (metaCheck): implemented
+	(metaCheck): added check for null Expr and advisories
+	(metaCheck): deepSelfDestruct() term
+
+	* descentSignature.cc: added metaCheck
+
+	* descentFunctions.cc (metaCheck): added stub
+
+2014-05-19  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaLevel.hh (M): added decl for upSMT_Number()
+
+	* metaUp.cc (upDagNode): added SMT_NUMBER_SYMBOL case
+	(upTerm): added SMT_NUMBER_SYMBOL case
+	(upSMT_Number): added
+
+2014-05-16  Steven Eker  <eker@ape.csl.sri.com>
+
+	* descentFunctions.cc (metaDownTerm): output advisory when term is
+	in the wrong kind
+
+2014-05-15  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaDown.cc (downTerm): added cases for SMT integers and reals
+	(downTerm): need to capture ZERO case as well
+
+===================================Maude103===========================================
+
+2014-03-03  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaLevelOpSymbol.hh (FreeSymbol): added decl for metaGetVariant2()
+
+	* metaVariant.cc (metaGetVariant2): renamed from metaGetVariant();
+	handle irredundant argument
+	(metaGetIrredundantVariant): added
+	(metaGetVariant): use metaGetVariant2()
+
+	* descentSignature.cc: added metaGetIrredundantVariant
+
+===================================Maude101===========================================
+
+2014-02-06  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaVariant.cc (metaGetVariant, metaVariantUnify2): added
+	Asserts() on solutionNr
+	(metaVariantUnify, metaVariantDisjointUnify): removed stub code
+	(metaVariantUnify2): removed commented out code
+
+	* metaMatch.cc (makeMatchSearchState2): return 0 rather than false
+	in fail case
+
+	* metaUpModule.cc (upGather): initialize s to avoid warning
+
+===================================Maude100a===========================================
+
+2012-07-31  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaVariant.cc (metaVariantUnify2): use upUnificationTriple(),
+	upUnificationPair()
+
+	* metaLevel.hh (M): added decls for 4 new narrow up functions
+
+	* metaUp.cc (upSubstitution): added narrowing version
+	(upUnificationPair): added narrowing version
+	(upVariant): use upSubstitution()
+	(upUnificationTriple): added narrowing version
+	(upDisjointSubstitutions): added narrowing version
+
+2012-07-30  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaLevelOpSymbol.hh (FreeSymbol): added decl for
+	metaVariantUnify2()
+
+	* metaVariant.cc (metaVariantUnify2): added
+
+	* descentSignature.cc: updated metaVariantUnify() and
+	metaVariantDisjointUnify()
+
+2012-07-23  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaVariant.cc (metaGetVariant): call normalize() on blocker
+	terms to set hash values
+
+2012-07-20  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaVariant.cc (metaGetVariant): convert blocker terms to
+	blocket dags
+
+	* metaUp.cc (upUnificationTriple): fix bug where we weren't
+	handling the singleton substitution case
+
+	* metaLevel.hh (M): make downTermList() public
+
+	* metaUp.cc (upUnificationTriple): switch term and substituion args
+
+	* metaDown.cc (downTerm): don't allow meta term syntax with empty
+	argument list
+	(downTermList): allow empty term lists
+
+	* metaLevelSignature.cc: added emptyTermListSymbol
+
+	* metaVariant.cc (metaGenerateVariant): becomes metaGetVariant()
+
+	* descentSignature.cc: replaced metaGenerateVariant() by
+	metaGetVariant()
+
+2012-07-18  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaVariant.cc (metaGenerateVariant): pass blocker dags to VariantSearch
+
+===================================Maude96a===========================================
+
+2012-05-22  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaVariant.cc (metaGenerateVariant): rewritten
+
+	* metaLevel.hh (M): updated decl for upVariant()
+	(M): added decl for DagNode* version of upAssignment()
+
+	* metaUp.cc (upAssignment): added DagNode* version
+	(upUnificationTriple): rewritten
+
+2012-05-21  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaVariant.cc (getCachedVariantSearch): added
+
+2012-05-03  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaUpModule.cc (upStatementAttributes): handle variant attribute
+
+	* metaDown.cc (downStatementAttr): handle variantAttrSymbol
+	(downEquation): handle variant flag
+
+	* metaLevel.hh (M): added VARIANT to enum Flags
+
+	* metaLevelSignature.cc: added variantSymbol
+
+2012-03-28  Steven Eker  <eker@ape.csl.sri.com>
+
+	* descentSignature.cc: metaGenerateVariant() only takes 4 arguments
+
+2012-03-09  Steven Eker  <eker@ape.csl.sri.com>
+
+	* metaVariant.cc: created with stub functions
+
+	* descentSignature.cc: added metaGenerateVariant,
+	metaVariantUnify, metaVariantDisjointUnify
+
+	* metaLevel.hh (M): added decls for upVariant() and upNoVariant()
+
+	* metaUp.cc (upVariant): added
+	(upNoVariant): added
+
+	* metaLevelSignature.cc: added variantSymbol and noVariantSymbol
+
+	* metaLevel.hh (M): deleted declarations for
+	upNoUnifierContextTriple() and upNoUnifierContext4Tuple()
+
+	* metaUp.cc (upNoUnifierContextTriple): deleted
+	(upNoUnifierContext4Tuple): deleted
+
+	* metaLevelSignature.cc: deleted noUnifierContextTripleSymbol,
+	noUnifierContext4TupleSymbol, unificationContextTripleSymbol, unificationContext4TupleSymbol
+
+	* metaLevel.hh (M): deleted declarations for
+	upUnificationContextTriple() and upUnificationContext4Tuple()
+
+	* metaUp.cc (upUnificationContextTriple): deleted - unification
+	with extension isn't going to fly
+	(upUnificationContext4Tuple): deleted
+
+===================================Maude96===========================================
+
+2010-10-20  Steven Eker  <eker@rho>
+
+	* metaModuleCache.hh (Entity::User): added enum Sizes
+
+	* metaModuleCache.cc (MetaModuleCache::MetaModuleCache): no longer
+	take arg
+	(MetaModuleCache::MetaModuleCache): don't take argument; use
+	getenv() to see if user set a custom maxSize
+
+	* metaModuleCache.hh (Entity::User): made maxSize static rather
+	than const
+	(Entity::User): ctor no longer takes arg
+
+===================================Maude95a===========================================
+
+2010-10-06  Steven Eker  <eker@rho>
+
+	* metaDownRenamings.cc (MetaLevel::downModuleExpression): new
+	makeSummation() convention for bad modules
+	(MetaLevel::downModuleExpression): new makeRenamedCopy()
+	convention for bad modules
+
+2010-10-05  Steven Eker  <eker@rho>
+
+	* metaDownRenamings.cc (MetaLevel::downModuleExpression): new
+	makeInstatiation() convention for bad modules
+
+2010-08-12  Steven Eker  <eker@rho>
+
+	* metaDownFixUps.cc (MetaLevel::downOpHook): use downOpName()
+	instead of downQid() for operator name
+
+	* metaDown.cc (MetaLevel::downTerm): use downOpName() instead of
+	downQid() for operator name
+
+	* descentFunctions.cc (MetaLevelOpSymbol::metaMaximalAritySet):
+	use downOpName() instead of downQid()
+
+	* metaLevel.hh (class MetaLevel): added decl for downOpName()
+
+	* metaDown.cc (MetaLevel::downQid): use
+	Token::unBackQuoteSpecials() after all since metaParser want '`,
+	to be downed to ,
+	(MetaLevel::downOpName): added
+
+2010-08-10  Steven Eker  <eker@rho>
+
+	* metaDown.cc (MetaLevel::downQid): don't use
+	Token::unBackQuoteSpecials()
+
+2010-07-13  Steven Eker  <eker@rho>
+
+	* interpreterManagerSymbol.hh (class InterpreterManagerSymbol):
+	added decls for insertView() and showView()
+
+	* interpreterSignature.cc: added insertViewMsg/insertedViewMsg and
+	showViewMsg/showingViewMsg
+
+2010-07-06  Steven Eker  <eker@rho>
+
+	* descentFunctions.cc (MetaLevelOpSymbol::metaDownTerm): fix bug
+	where we were not checking the component of the down'd term
+
+===================================Maude94a===========================================
+
+2010-06-11  Steven Eker  <eker@rho>
+
+	* metaUpView.cc (MetaLevel::upOpMappings): fix bug where we were
+	using the wrong modules to up the lhs and rhs of an op->term
+	mapping
+
+===================================Maude94===========================================
+
+2010-05-07  Steven Eker  <eker@rho>
+
+	* metaLevel.hh (class MetaLevel): updated decl for upHeader()
+
+	* metaUpModule.cc (MetaLevel::upHeader): handle flat argument
+	(MetaLevel::upModule): pass flag arg to upHeader
+
+===================================Maude93d===========================================
+
+2010-05-05  Steven Eker  <eker@rho>
+
+	* metaUpView.cc (MetaLevel::upOpMappings): fixed bug where we
+	using sort mapping set constructors rather than the op mapping
+	ones
+
+2010-04-30  Steven Eker  <eker@rho>
+
+	* metaDown.cc (MetaLevel::downParameterDecl): fix bug by passing m
+	rather than 0 as enclosingModule to downModuleExpression()
+
+===================================Maude93b===========================================
+
+2009-11-06  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevelOpSymbol.hh (class MetaLevelOpSymbol): updated ctor
+
+	* metaLevelOpSymbol.cc (complexStrategy): added
+	(eqRewrite): use complexStrategy()
+	(MetaLevelOpSymbol): take and pass strategy
+
+	* metaLevelOpSymbol.hh (class MetaLevelOpSymbol): added decl for
+	complexStrategy()
+
+2009-11-02  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaMatch.cc (makeMatchSearchState): added DebugAdvisory() to
+	investigate performance problem
+
+===================================Maude92a===========================================
+
+2009-08-24  Steven Eker  <eker@goo.csl.sri.com>
+
+	* meta.hh: added class InterpreterManagerSymbol
+
+2009-08-20  Steven Eker  <eker@goo.csl.sri.com>
+
+	* interpreterManagerSymbol.hh (class InterpreterManagerSymbol):
+	added decl for frewriteTerm()
+
+	* interpreterManagerSymbol.cc (frewriteTerm): added
+	(handleMessage): handle frewriteTermMsg
+
+	* interpreterSignature.cc: added frewriteTermMsg, frewroteTermMsg
+
+2009-08-11  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaUpView.cc (upView): call upOpMappings()
+
+	* metaLevel.hh (class MetaLevel): added decl for upOpMappings()
+
+	* metaUpView.cc (upOpMappings): added
+
+	* metaLevelSignature.cc (MACRO): op mappings don't take
+	attributes!
+
+2009-08-07  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevel.hh (class MetaLevel): added decl for upSortMappings()
+
+	* metaUpView.cc (upSortMappings): added
+
+	* ascentFunctions.cc (metaUpView): added
+
+	* descentSignature.cc (MACRO): added metaUpView
+
+	* metaUpView.cc: created
+
+	* metaLevel.hh (class MetaLevel): added decl for upView()
+
+2009-08-06  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevelSignature.cc (MACRO): added sort/op mapping ctors, view
+	ctor
+
+	* interpreterManagerSymbol.hh (class InterpreterManagerSymbol):
+	added decl for showModule()
+
+	* interpreterManagerSymbol.cc (showModule): added
+	(handleMessage): hande showModuleMsg
+
+2009-08-05  Steven Eker  <eker@goo.csl.sri.com>
+
+	* interpreterSignature.cc (MACRO): added showModuleMsg,
+	showingModuleMsg
+
+2009-03-06  Steven Eker  <eker@goo.csl.sri.com>
+
+	* interpreterManagerSymbol.cc (rewriteTerm): added
+	(handleMessage): support rewriteTermMsg
+
+	* interpreterManagerSymbol.hh (class InterpreterManagerSymbol):
+	added decl for rewriteTerm()
+
+2009-02-26  Steven Eker  <eker@goo.csl.sri.com>
+
+	* interpreterSignature.cc (MACRO): added quitMsg, byeMsg
+
+	* interpreterManagerSymbol.hh (class InterpreterManagerSymbol):
+	added decls for quit() and deleteInterpreter()
+
+	* interpreterManagerSymbol.cc (quit): added
+	(cleanUp): implemented
+	(deleteInterpreter): added
+
+2009-02-20  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaPreModule.hh (class MetaPreModule): added decl for dtor
+
+	* metaPreModule.cc (getFlatModule): use new downModule()
+	convention; call addUser()
+	(~MetaPreModule): added
+
+	* metaLevel.hh (class MetaLevel): updated decl for downModule()
+
+	* metaDown.cc (downModule): take cacheMetaModule argument
+
+2009-02-19  Steven Eker  <eker@goo.csl.sri.com>
+
+	* interpreterManagerSymbol.cc (reduceTerm): use upNat()
+
+	* metaLevel.hh (upNat): added
+
+	* interpreterManagerSymbol.cc (reduceTerm): added
+
+	* interpreterManagerSymbol.hh (class InterpreterManagerSymbol):
+	added decl for reduceTerm()
+
+	* metaPreModule.cc: created
+
+	* metaPreModule.hh (class MetaPreModule): created
+
+	* interpreterManagerSymbol.cc (insertModule): make a MetaPreModule
+
+	* metaModule.cc (MetaModule): init VisibleModule
+
+	* metaModule.hh (class MetaModule): derive from VisibleModule
+	instead of ImportModule
+
+	* meta.hh: added class MetaPreModule
+
+2009-02-12  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaUpModule.cc: revert to PreModule
+
+	* metaDownRenamings.cc: revert to PreModule
+
+	* metaLevel.hh: revert to PreModule
+
+	* ascentFunctions.cc: revert to PreModule
+
+	* metaUpModule.cc: PreModule -> SyntacticPreModule
+
+	* metaDownRenamings.cc: PreModule -> SyntacticPreModule
+
+	* metaDownOps.cc: PreModule -> SyntacticPreModule
+
+	* ascentFunctions.cc: PreModule -> SyntacticPreModule
+
+	* metaLevel.hh: PreModule -> SyntacticPreModule
+
+2009-02-05  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownRenamings.cc (downModuleExpression): don't access global
+	interpreter variable (5 places)
+
+	* metaLevel.hh (class MetaLevel): update decl for downModule()
+
+	* metaDown.cc (downParameterDecl): use a modules owner rather than
+	interpreter global variable
+
+	* metaModule.cc (MetaModule): init owner data member
+
+	* metaModule.hh (class MetaModule): added owner data member;
+	updated decl for ctor
+	(getOwner): added
+
+2009-01-29  Steven Eker  <eker@goo.csl.sri.com>
+
+	* interpreterManagerSymbol.hh: created
+
+	* interpreterManagerSymbol.cc: created
+
+	* metaLevelOpSymbol.hh (getMetaLevel): added
+
+	* metaLevelOpSymbol.cc (eqRewrite): Assert() that metaLevel is not
+	0 rather than testing it since this should be set in
+	postInterSymbolPass()
+
+===================================Maude92===========================================
+
+2008-09-12  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownOps.cc (downOpDecl): added a check to see of we are
+	subsort overloading an operator from one of our parameters
+
+2008-09-11  Steven Eker  <eker@goo.csl.sri.com>
+
+	* ascentFunctions.cc (metaUpImports): deleted decl for unused
+	variable flat
+
+	* metaDownRenamings.cc (downModuleExpression): avoid sign/unsigned
+	comparison warning
+
+2008-08-27  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevel.hh (class MetaLevel): updated decls for
+	downStatementAttrSet(), downStatementAttr(), downPrintList(),
+	downPrintListItem()
+
+	* metaDown.cc (downMembAx): use StatementAttributeInfo
+	(downEquation): use StatementAttributeInfo
+	(downRule): use StatementAttributeInfo
+	(downStatementAttrSet, downStatementAttr, downStatementAttr)
+	(downPrintList): use StatementAttributeInfo
+	(downStatementAttr): disallow multiple print attributes
+
+	* metaLevel.hh (StatementAttributeInfo): added
+	(class MetaLevel): added class StatementAttributeInfo
+
+2008-08-26  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevel.hh (class MetaLevel): updated decls for
+	downStatementAttrSet(), downStatementAttr(); added decls for
+	downPrintList(), downPrintListItem()
+	(class MetaLevel): added PRINT to enum Flags
+
+	* metaDown.cc (downStatementAttrSet, downStatementAttr): take
+	printNames, printSorts
+	(downPrintList, downPrintListItem): added
+	(downStatementAttrSet, downStatementAttr): take MixfixModule*
+	(downMembAx): support print attribute
+	(downEquation): support print attribute
+	(downRule): support print attribute
+
+	* metaUpModule.cc (upStatementAttributes): support print attribute
+
+	* metaLevelSignature.cc (MACRO): added printSymbol
+
+===================================Maude91a===========================================
+
+2008-03-23  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevelOpSymbol.hh (class MetaLevelOpSymbol): deleted decl for
+	metaXunify2()
+
+	* metaUnify.cc (metaXunify2): deleted
+	(metaXunify): deleted
+	(metaDisjointXunify): deleted
+
+	* descentSignature.cc (MACRO): removed metaXunify and metaDisjointXunify
+
+===================================Maude90a===========================================
+
+2008-01-22  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaUnify.cc (metaUnify2): added debug advisories to try and
+	discover unification problem that is causing infinite looping
+
+	* descentSignature.cc (MACRO): metaNarrow2 now has 6 arguments
+
+	* metaNarrow.cc (metaNarrow2): solution # is now arg 5
+	(makeNarrowingSequenceSearch2): handle bool arg
+
+2008-01-21  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaNarrow.cc (makeNarrowingSequenceSearch)
+	(makeNarrowingSequenceSearch2): pass flags arg to
+	NarrowingSequenceSearch()
+
+===================================Maude90===========================================
+
+2007-12-07  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevel.cc (MetaLevel): need to clear variableGenerator in
+	renaming version of constructor
+
+2007-12-05  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaUp.cc (upVariable): deleted variable mapping code
+
+	* metaNarrow.cc (metaNarrow2): correct variableBase by
+	m->getMinimumSubstitutionSize()
+
+	* metaLevel.hh (class MetaLevel): data member variableCounter
+	replaced by variableBase
+	(startVariableMapping): variableCounter replaced by variableBase
+
+	* metaUp.cc (upDagNode): do variable name mapping here based on
+	the index in the VariableDagNode
+
+2007-12-04  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevel.hh (startVariableMapping, stopVariableMapping): added
+
+	* metaUp.cc (upVariable): handle variable mapping
+
+	* metaLevel.cc (MetaLevel): clear variableGenerator
+
+	* metaLevel.hh (class MetaLevel): added data members
+	variableCounter and variableGenerator
+
+	* metaNarrow.cc (makeNarrowingSequenceSearch2): don't bother with
+	Bool argument or setVariableCounter()
+
+	* metaLevelSignature.cc (MACRO): added failure2Symbol
+
+	* metaLevel.hh (class MetaLevel): added decl for upFailurePair()
+
+	* metaUp.cc (upFailurePair): added
+
+	* descentSignature.cc (MACRO): added metaNarrow2
+
+	* metaLevelOpSymbol.hh (class MetaLevelOpSymbol): added decl for
+	makeNarrowingSequenceSearch2()
+
+	* metaNarrow.cc (makeNarrowingSequenceSearch): comment out dead
+	code
+	(makeNarrowingSequenceSearch2): added
+	(metaNarrow2): added
+
+2007-11-30  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaApply.cc (getCachedRewriteSearchState): use new
+	remove() semantics; changed test from < to <=
+
+	* metaMatch.cc (getCachedMatchSearchState): use new
+	remove() semantics; changed test from < to <=
+
+2007-11-29  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaNarrow.cc (getCachedNarrowingSequenceSearch): use new
+	remove() semantics; changed test from < to <=
+
+	* metaUnify.cc (getCachedUnificationProblem): use new remove()
+	semantics 
+
+	* metaOpCache.cc (remove): collapse 4 versions to a single
+	simplified version
+	(clear): make local_inline
+
+	* metaOpCache.hh (class MetaOpCache): replaced decls for insert()
+	and remove()
+
+	* metaOpCache.cc (clear): simplified
+	(insert): collapse 4 versions to a single simplified version
+
+	* metaOpCache.hh (class MetaOpCache): use CachableState* rather
+	than the various specialized classes in struct Item
+
+2007-11-27  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaUnify.cc (getCachedUnificationProblem): changed test from <
+	to <=
+
+	* metaOpCache.cc (insert): fix failure to clear unused entries bug
+	in all four versions
+
+	* metaOpCache.hh (class MetaOpCache): bumped default cache size to 40
+
+	* metaUnify.cc (metaUnify2): added DebugAdvisoryCheck() to report
+	unexpected jumps in solution number
+
+2007-11-19  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevelOpSymbol.hh (class MetaLevelOpSymbol): added decls for
+	getCachedNarrowingSequenceSearch() and
+	makeNarrowingSequenceSearch()
+
+	* metaNarrow.cc: created
+
+	* metaLevelOpSymbol.hh (class MetaLevelOpSymbol): updated decl for
+	downSearchType()
+
+	* metaSearch.cc (downSearchType): use SequenceSearch in place of
+	RewriteSequenceSearch
+
+	* metaOpCache.hh (class MetaOpCache): added narrowingSearch to
+	struct Item
+
+	* metaOpCache.cc (insert, remove): added NarrowingSequenceSearch*
+	versions
+	(clear): delete narrowingSearch
+
+	* metaOpCache.hh (class MetaOpCache): added declarations for
+	NarrowingSequenceSearch* versions of insert() and remove()
+
+	* descentSignature.cc (MACRO): added metaNarrow
+
+2007-10-11  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaUnify.cc (metaUnify2): use getVariableInfo()
+	(metaXunify2): use getVariableInfo()
+
+===================================Maude89h===========================================
+
+2007-08-24  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaUnify.cc (metaXunify2): variablesOK() -> problemOK()
+	(metaUnify2): variablesOK() -> problemOK()
+
+	* metaUp.cc (upResultTriple, upResult4Tuple, upUnificationPair) 
+	(upUnificationContextTriple, upMatchPair): upSubstition() ->
+	upSubstitution()
+	(upSubstition): becomes upSubstitution()
+
+	* metaMatch.cc (metaMatch): upSubstition() -> upSubstitution()
+
+	* metaLevel.hh (class MetaLevel): upSubstition() ->
+	upSubstitution()
+
+===================================Maude89g===========================================
+
+2007-07-09  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevel.cc (MetaLevel): fix nasty bug where we weren't
+	initializing flagVariables in the copy via SymbolMap ctor
+
+2007-06-27  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaUnify.cc (metaXunify2): pass disjoint arg to downTermPair()
+	(metaUnify2): new downUnificationProblem() convention
+
+	* metaDown.cc (downUnificationProblem): moved makeDisjoint arg
+
+	* metaLevel.hh (class MetaLevel): deleted decl for
+	downDisjointTermPair(); added makeDisjoint arg to downTermPair();
+	moved makeDisjoint arg in downUnificandPair() and
+	downUnificationProblem()
+
+	* metaDown.cc (downUnificandPair): moved makeDisjoint arg to last
+	place
+	(downTermPair): added makeDisjoint arg
+	(downDisjointTermPair): deleted
+
+	* metaUnify.cc (metaXunify2): don't assume that left hand sides
+	have had their sort information filled out
+
+	* metaLevelSignature.cc (MACRO): added
+	unificationContextTripleSymbol, unificationContext4TupleSymbol,
+	noUnifierContextTripleSymbol, noUnifierContext4TupleSymbol
+
+	* metaUnify.cc (metaXunify2): use upNoUnifierContext4Tuple(),
+	upNoUnifierContextTriple(), upUnificationContext4Tuple(),
+	upUnificationContextTriple()
+
+	* metaLevel.hh (class MetaLevel): added decls for
+	upNoUnifierContextTriple() and upNoUnifierContext4Tuple()
+
+	* metaUp.cc (upNoUnifierContextTriple, upNoUnifierContext4Tuple):
+	added
+
+	* metaLevel.hh (class MetaLevel): added decls for
+	upUnificationContextTriple() and upUnificationContext4Tuple()
+
+	* metaUp.cc (upUnificationContextTriple) 
+	(upUnificationContext4Tuple): added
+
+	* descentSignature.cc (MACRO): added entries for metaUnify(),
+	metaDisjointUnify()
+
+	* metaUnify.cc (metaUnify, metaDisjointUnify, metaXunify2): added
+
+2007-06-21  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevelOpSymbol.hh (class MetaLevelOpSymbol): added decl for
+	metaUnify2()
+
+	* metaUnify.cc (metaUnify2): added
+	(metaUnify, metaDisjointUnify): use metaUnify2()
+
+2007-06-19  Steven Eker  <eker@goo.csl.sri.com>
+
+	* descentSignature.cc (MACRO): updated nr args for metaUnify and
+	metaDisjointUnify
+
+	* metaUnify.cc (metaDisjointUnify, metaUnify): use
+	downUnificationProblem()
+
+	* metaLevel.hh (class MetaLevel): added decls for
+	downUnificationProblem(), downUnificandPair()
+
+	* metaDown.cc (downUnificationProblem, downUnificandPair): added
+
+	* metaLevelSignature.cc (MACRO): added unificandPairSymbol and
+	unificationConjunctionSymbol
+
+	* metaUnify.cc (metaUnify, metaDisjointUnify): use new
+	UnificationProblem() interface
+
+2007-06-14  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaUnify.cc (metaDisjointUnify, metaUnify): check variables and
+	don't do a reduction if a variable is unsafe
+
+	* descentSignature.cc (MACRO): updated entry for metaUnify()
+
+	* metaUnify.cc (metaUnify): rewritten for new semantics
+
+	* metaLevel.hh (class MetaLevel): added decls for
+	upUnificationPair() and upNoUnifierPair()
+
+	* metaUp.cc (upUnificationPair): added
+	(upNoUnifierPair): added
+
+	* metaLevelSignature.cc (MACRO): added unificationPairSymbol and
+	noUnifierPairSymbol
+
+2007-06-13  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaUnify.cc (metaDisjointUnify): rewritten to respect bignum
+	values for varIndex
+
+	* metaLevel.hh (isNat, getNat): added
+
+2007-06-11  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaUnify.cc (metaDisjointUnify): new UnificationProblem() and
+	FreshVariableSource() conventions
+
+2007-06-08  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaUnify.cc (metaDisjointUnify): pass variableIndex to
+	upUnificationTriple()
+
+	* metaLevel.hh (class MetaLevel): updated decl for
+	upUnificationTriple()
+
+	* metaUp.cc (upUnificationTriple): handle variableIndex arg
+
+	* metaUnify.cc (metaDisjointUnify): pass variableIndex to
+	UnificationProblem()
+
+	* metaUp.cc (upVariable): use unflaggedCode()
+
+2007-06-07  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevel.hh (class MetaLevel): added decls for
+	upUnificationTriple() and upDisjointSubstitutions()
+
+	* metaUp.cc (upDisjointSubstitutions): added
+	(upUnificationTriple): added
+
+	* metaLevel.hh (class MetaLevel): added decl for
+	upNoUnifierTriple()
+
+	* metaUp.cc (upNoUnifierTriple): added
+
+	* metaLevelSignature.cc (MACRO): added unificationTripleSymbol and
+	noUnifierTripleSymbol
+
+	* metaLevel.hh (class MetaLevel): added decl for
+	downDisjointTermPair()
+
+	* metaDown.cc (downTerm): support flagVariables flag
+	(downDisjointTermPair): added
+
+	* metaLevel.cc (MetaLevel): init flagVariables
+
+	* metaLevel.hh (class MetaLevel): added flagVariables data member
+
+	* metaUnify.cc (metaDisjointUnify): added
+
+	* descentSignature.cc (MACRO): added metaDisjointUnify
+
+===================================Maude89c===========================================
+
+2007-02-13  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaUnify.cc (metaUnify): use getSolution()
+
+2007-01-17  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevel.hh (class MetaLevel): added decl for new version of
+	upConstant()
+
+	* metaUp.cc (upDagNode): avoid calling getSort() in variable case
+	(upConstant): added DagNode* version that handles the not
+	calculated sort case possible with unification
+	(upDagNode): use new version of upConstant()
+
+	* metaLevelOpSymbol.hh (class MetaLevelOpSymbol): added decl for
+	getCachedUnificationProblem()
+
+	* metaUnify.cc: created
+
+	* metaOpCache.cc (insert, remove): added UnificationProblem
+	versions
+	(insert): (non-UnificationProblem versions) clear unification
+	field
+	(clear): handle unification field
+
+	* metaOpCache.hh (class MetaOpCache): added function and data
+	decls for UnificationProblem support
+
+	* descentSignature.cc (MACRO): added entry for metaUnify()
+
+2006-12-07  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaMatch.cc (metaXmatch): pass UNDEFINED index to VariableDagNode()
+
+===================================Maude88d===========================================
+
+2006-11-15  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownRenamings.cc: IssueAdvisory()s in the case of an
+	unusable or nonexistent module
+
+===================================Maude88c===========================================
+
+2006-10-26  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaMatch.cc (metaXmatch): use new rebuildDag() semantics
+
+	* metaApply.cc (metaXapply): use new rebuildDag() semantics to fix
+	trace bug
+	(metaApply): use new rebuildDag() semantics
+
+===================================Maude88b===========================================
+
+2006-10-05  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaMatch.cc (makeMatchSearchState2): revert fix from 2005-02-16
+	since requiring pattern and subject to be in the same component is
+	too strong for metaXmatch()
+
+2006-09-26  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaUpModule.cc (upRenaming): fix bug where we weren't handling
+	the single argument case
+
+===================================Maude88a===========================================
+
+2006-07-20  Steven Eker  <eker@goo.csl.sri.com>
+
+	* descentFunctions.cc (metaNormalize): added
+	(metaNormalize): need to fill out sort info
+
+	* descentSignature.cc (MACRO): added metaNormalize
+
+===================================Maude88===========================================
+
+2006-05-09  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaSearch.cc (metaSearchPath): fix comment
+
+===================================Maude87a===========================================
+
+2006-01-23  Steven Eker  <eker@goo.csl.sri.com>
+
+	* descentFunctions.cc (metaRewrite): added DebugAdvisory()s
+
+===================================Maude87===========================================
+
+2005-11-28  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownOps.cc (downAttr): fix long standing bug where we were
+	not setting PREC flag
+
+===================================Maude86e===========================================
+
+2005-11-16  Steven Eker  <eker@goo.csl.sri.com>
+
+	* descentFunctions.cc (metaLesserSorts): use downType() rather
+	than downSimpleSort() to fix a bug
+	(metaSortLeq): use downType() rather than downSimpleSort() (2
+	places)
+
+2005-11-14  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaModuleCache.cc (regretToInform): fix longstanding bug where
+	we moving cached pairs the wrong way after a deletion
+
+===================================Maude86d===========================================
+
+2005-09-20  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownRenamings.cc (downModuleExpression): allow bound
+	parameters in modules that are to be renamed
+
+2005-09-16  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownRenamings.cc (downModuleExpression): check for
+	instantiation having both a PEM and a theory-view
+
+2005-09-15  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownRenamings.cc: use parametersBound() rather than
+	getNrBoundParameters()
+	(downModuleExpression): use getNrParameters() rather than
+	getNrFreeParameters()
+	(downModuleExpression): use getParameterTheory() rather than
+	getFreeParameterTheory() (2 places)
+
+	* metaDown.cc (downImport): use parametersBound() and
+	getNrParameters() rather than getNrFreeParameters()
+
+2005-07-27  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownRenamings.cc (downModuleExpression): check bad flag in
+	modules returned by interpreter member functions
+
+2005-07-21  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevel.hh (class MetaLevel): added decls for
+	upParameterDecl(), upParameterDecls(), upHeader()
+
+	* metaUpModule.cc (upParameterDecl, upParameterDecls, upHeader):
+	added
+	(upModule): use upHeader()
+
+	* metaLevel.hh (class MetaLevel): added decl for upArguments()
+
+	* metaUpModule.cc (upArguments): added
+	(upModuleExpression): support instantiation
+
+2005-07-20  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevel.hh (class MetaLevel): added decls for downHeader(),
+	downParameterDeclList(), downParameterDecl()
+
+	* metaDown.cc (downModule): use safeCase()
+	(downHeader): added
+	(downParameterDeclList): added
+	(downParameterDecl): added
+	(downModule): handle parameter lists
+
+	* metaLevelSignature.cc (MACRO): added headerSymbol,
+	parameterDeclSymbol, parameterDeclListSymbol
+
+	* metaDown.cc (downImport): check that we don't have free parameters
+
+	* metaLevel.hh (class MetaLevel): added decl for
+	downInstantiationArguments()
+
+	* metaDownRenamings.cc (downModuleExpression): implemented
+	instantiationSymbol case
+	(downInstantiationArguments): added
+
+	* metaDown.cc (downImport): pass enclosingModule argument to
+	downModuleExpression()
+
+	* metaLevel.hh (class MetaLevel): updated decl for
+	downModuleExpression()
+
+	* metaDownRenamings.cc (downModuleExpression): don't allow modules
+	with parameters to be summed
+	(downModuleExpression): don't allow modules with bound parameters
+	to be renamed
+	(downModuleExpression): take and pass enclosingModule argument
+
+2005-07-19  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownRenamings.cc (downModuleExpression): added code stub for
+	instantiationSymbol case
+	(downModuleExpression): fixed nasty bug where we were returning
+	the result of makeSummation() rather than assigning it to m
+
+	* metaLevelSignature.cc (MACRO): added instantiationSymbol
+
+2005-06-07  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownRenamings.cc (downRenamingType): new addType() calling
+	convention
+
+===================================Maude86b===========================================
+
+2005-04-27  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaModule.cc (MetaModule): pass origin argument to
+	ImportModule()
+
+2005-04-19  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownRenamings.cc (downRenamingType): AUX_PARAMETERIZED_SORT
+	-> AUX_STRUCTURED_SORT
+
+	* metaDown.cc (downType2): AUX_PARAMETERIZED_SORT ->
+	AUX_STRUCTURED_SORT
+
+===================================Maude86a===========================================
+
+2005-03-17  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaModuleCache.cc (regretToInform): removed removeUser() hack
+
+2005-03-16  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaModuleCache.cc (regretToInform): call removeUser()
+
+	* metaModule.cc (MetaModule): Parent* -> User*
+	(MetaModule): User* -> Entity::User*
+
+	* metaModule.hh (class MetaModule): Parent* -> User*
+
+	* metaModuleCache.cc (regretToInform): need to cast doomedEntity
+
+	* metaModuleCache.hh (User): derive from Entity::User rather than
+	ImportModule::Parent; update decl for regretToInform()
+
+2005-03-07  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownRenamings.cc (downRenamingType): handle
+	AUX_PARAMETERIZED_SORT
+
+	* metaDown.cc (downType2): handle AUX_PARAMETERIZED_SORT
+
+2005-02-16  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaMatch.cc (makeMatchSearchState2): use downTermPair() to
+	simplify and fix bug where pattern and subject are in different
+	kinds
+
+2005-01-07  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDown.cc (downPrintOption): support ratSymbol
+
+	* metaLevelSignature.cc (MACRO): added ratSymbol
+
+2005-01-06  Steven Eker  <eker@goo.csl.sri.com>
+
+	* descentSignature.cc (MACRO): metaPrettyPrint now takes 3 arguments
+
+	* metaLevel.hh (class MetaLevel): added decls for
+	downPrintOptionSet() and downPrintOption()
+
+	* metaDown.cc (downPrintOptionSet): added
+	(downPrintOption): added
+
+	* descentFunctions.cc (metaPrettyPrint): handle print options argument
+
+	* metaLevelSignature.cc (MACRO): added print option constructors
+
+===================================Maude86===========================================
+
+2004-12-08  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaUpModule.cc (upPolymorphDecl): handle metadata
+
+	* metaDownOps.cc (downOpDecl): pass metadata to addPolymorph()
+
+	* metaUpModule.cc (upOpDecl): handle metadata
+
+	* metaDownOps.cc (downAttr): handle metadata
+
+	* metaLevel.hh (AttributeInfo): set metadata to NONE
+
+	* metaDownOps.cc (downOpDecl): pass metadata to addOpDeclaration()
+
+	* metaLevel.hh (class MetaLevel): added metadata field to struct AttributeInfo
+
+2004-12-07  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownOps.cc (downOpDecl): pass dummy metadata arg to
+	addOpDeclaration()
+
+===================================Maude85a===========================================
+
+2004-12-03  Steven Eker  <eker@goo.csl.sri.com>
+
+	* descentFunctions.cc (metaMaximalAritySet): use upTypeListSet()
+	and getMaximalOpDeclSet()
+
+	* metaLevel.hh (class MetaLevel): added decls for upTypeListSet()
+	and upTypeList()
+
+	* metaUp.cc (upTypeListSet): added
+	(upTypeList): added
+
+2004-12-02  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaUp.cc (upKindSet): use SortSet ctors rather than KindSet
+	ctors
+
+	* metaLevelSignature.cc (MACRO): deleted KindSet ctors (we have
+	combined these with SortSet,TypeSet ctors)
+
+2004-12-01  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevel.hh (class MetaLevel): made downTypeList() public
+
+	* descentFunctions.cc (metaMaximalAritySet): added
+
+	* descentSignature.cc (MACRO): added metaMaximalAritySet
+
+2004-11-17  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevel.hh (class MetaLevel): added decls for upTrace() and
+	upTraceStep()
+
+	* metaUp.cc (upTraceStep): added
+	(upTrace): added
+
+	* metaSearch.cc (metaSearchPath): added
+
+	* metaLevel.hh (class MetaLevel): added decl for upFailureTrace()
+
+	* metaUp.cc (upFailureTrace): added
+
+	* descentSignature.cc (MACRO): added metaSearchPath
+
+	* metaLevelSignature.cc (MACRO): added traceStepSymbol,
+	nilTraceSymbol, traceSymbol. failureTraceSymbol
+
+	* metaSearch.cc (makeRewriteSequenceSearch): removed local inline
+
+2004-09-10  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaUp.cc (upJoin): use KIND
+	(upTerm): fix bug by using the exact sort for VARIABLE case rather
+	than relying on MixfixModule::disambiguatorSort()
+	(upType): use KIND
+	(upSortSet): use upType() in place of upQid() so we can handle
+	kinds
+
+	* descentFunctions.cc (metaGlbSorts): use downType() rather than
+	downSimpleSort()
+	(metaGlbSorts): simplified using new findMaximalSorts() interface
+	(metaMinimalSorts): use KIND
+	(metaMaximalSorts): use KIND
+
+===================================Maude85===========================================
+
+2004-06-21  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDown.cc: print the metaterm in the "could not find an
+	operator" advisory
+
+===================================Maude84d===========================================
+
+2004-06-14  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaApply.cc (metaApply): support tracing of meta applications
+	(metaXapply): support tracing of meta applications
+	(metaXapply): unprotect metamodule on abort
+	(metaApply): unprotect metamodule on abort
+
+2004-06-07  Steven Eker  <eker@goo.csl.sri.com>
+
+	* descentFunctions.cc (metaRewrite): use saveHiddenState() and
+	restoreHiddenState()
+	(metaFrewrite): use saveHiddenState() and restoreHiddenState()
+
+===================================Maude84c===========================================
+
+2004-05-24  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownFixUps.cc (fixUpBubble): use new fixUpBubbleSpec()
+	convention
+
+2004-05-18  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaUpModule.cc (upModule): handle theories
+
+	* metaDown.cc (downImport): create line number as a temporary
+
+2004-05-17  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaUpModule.cc (upImports): PROTECTING and EXTENDING now belong
+	to ImportModule
+
+	* metaDown.cc (downModule): handle theories
+	(downImport): handle import modes and new addImport() conventions
+
+	* metaLevelSignature.cc (MACRO): added fthSymbol and thSymbol
+
+===================================Maude84b===========================================
+
+2004-04-27  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaUpModule.cc (upImports): use getAutoImports() and handle
+	protecting/extending
+
+===================================Maude84a===========================================
+
+2004-02-27  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownRenamings.cc (downModuleExpression): use interpreter
+	inplace of moduleCache (2 places)
+
+	* metaDown.cc (downModule): use interpreter inplace of moduleCache
+	(2 places)
+
+	* metaLevel.cc: removed moduleCache hack
+
+	* metaDown.cc (downImport): removed old commented out code
+
+===================================Maude84===========================================
+
+2004-02-23  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownFixUps.cc (handleIdentity): (polymorph version) handle
+	the case that the idnetity has already been set
+
+	* metaDown.cc (downModule): added call to destructUnusedModules()
+	in the success case as well to handle garbage from displaced meta
+	modules and meta-meta processing
+
+	* metaLevel.cc: added hack to be able to acces module cache
+
+	* metaModuleCache.cc (regretToInform): added DebugAvisory() to
+	check for the case that the doomed module is not in the cache
+
+	* metaDown.cc (downModule): call destructUnusedModules() if we
+	fail to complete the metamodule
+
+2004-02-20  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDown.cc (downModule): deepSelfDestruct() rather than delete
+	partially built module on failure to ensure dependent pointer in
+	modules we depend on don't become stale; this fixes a nasty long
+	standing bug
+
+	* metaDownRenamings.cc (downRenaming): fixed bad arg #
+
+	* metaDown.cc (downImport): use downModuleExpression()
+
+	* metaLevel.hh (class MetaLevel): added decl for
+	downModuleExpression()
+
+	* metaDownRenamings.cc (downModuleExpression): added
+
+2004-02-19  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevel.hh (class MetaLevel): added decls for
+	convertToTokens(), downRenamings(), downRenaming(),
+	downRenamingTypes(), downRenamingType(), downRenamingAttributes(),
+	downRenamingAttribute()
+
+	* metaDownRenamings.cc: created
+
+2004-02-18  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevelSignature.cc (MACRO): changed owiseSymbol and
+	nonexecSymbol from FreeSymbol to Symbol
+
+	* metaLevel.hh (class MetaLevel): deleted decl for
+	upAttributeSet2()
+
+	* metaUpModule.cc (upImports): simplified using upGroup()
+	(upSubsortDecls): simplified using upGroup()
+	(upOpDecls): simplified using upGroup()
+	(upAttributeSet): use upGroup() in place of upAttributeSet2()
+	(upMbs): simplified using upGroup()
+	(upEqs): simplified using upGroup()
+	(upRls): simplified using upGroup()
+	(upStatementAttributes): simplified using upGroup()
+	(upStatementAttributes): don't use dummy Vector in owise and
+	nonexec cases
+	(upRenamingAttributeSet): use upGroup() in place of
+	upAttributeSet2()
+	(upAttributeSet2): deleted
+
+	* metaLevel.hh (upGroup): added
+	(class MetaLevel): added decls for upModuleExpression(),
+	upRenaming(), upTypeSorts(), upRenamingAttributeSet(),
+	upAttributeSet2()
+
+	* metaUpModule.cc (upModuleExpression): added
+	(upRenaming): added
+	(upTypeSorts): added
+	(upAttributeSet2): added
+	(upAttributeSet): use upAttributeSet2()
+	(upRenamingAttributeSet): added
+	(upImports): use upModuleExpression()
+
+2004-02-17  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevelSignature.cc (MACRO): added renaming and module
+	expression constructors
+
+	* metaUpModule.cc (upImports): use new getModuleName() semantics
+
+===================================Maude83a===========================================
+
+2003-11-10  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownFixUps.cc (downFixUps): don't try attaching hooks to
+	symbols and polymorphs that don't take attachments
+
+	* metaLevel.hh (class MetaLevel): added decl for upSpecial()
+
+	* metaUpModule.cc (upSpecial): added
+	(upOpDecl): use upSpecial()
+
+	* metaUp.cc (upTerm): use disambiguatorSort() (5 places)
+
+	* metaLevel.hh (class MetaLevel): added decls for
+	upPolymorphSpecial(), upIdHook(), upOpHook(), upTermHook()
+
+	* metaUpModule.cc (upPolymorphDecl): pass qidMap to upQidList()
+	(upOpDecl): pass qidMap to upQidList()
+	(upPolymorphSpecial): added
+	(upIdHook): added
+	(upOpHook): added
+	(upTermHook): added
+	(upPolymorphDecl): use upPolymorphSpecial()
+
+	* metaLevel.hh (class MetaLevel): added decl for qidMap version of
+	upQidList()
+
+	* metaUp.cc (upQidList): take qidMap arg
+	(upQidList): added no qidMap version
+
+2003-11-05  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevel.cc (getSymbolAttachments): added
+	(getTermAttachments): added
+
+	* metaLevel.hh (class MetaLevel): added decls for
+	getSymbolAttachments(), getTermAttachments()
+
+	* metaLevelOpSymbol.hh (class MetaLevelOpSymbol): added decls for
+	getDataAttachments(), getSymbolAttachments(), getTermAttachments()
+
+	* metaLevelOpSymbol.cc (attachSymbol): call FreeSymbol::attachSymbol()
+	(attachTerm): call FreeSymbol::attachTerm()
+	(copyAttachments): call FreeSymbol::copyAttachments()
+	(getDataAttachments): added
+	(getSymbolAttachments): added
+	(getTermAttachments): added
+	(attachData): call FreeSymbol::attachData()
+
+2003-11-03  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevel.hh (class MetaLevel): added decl for iterToken()
+
+	* metaUp.cc (iterToken): added
+	(upContext): use iterToken() to handle iter case, fixing a bug
+	(upDagNode): use iterToken()
+
+2003-10-30  Steven Eker  <eker@goo.csl.sri.com>
+
+	* descentSignature.cc (MACRO): added metaUpModule
+
+	* ascentFunctions.cc (metaUpModule): added
+
+	* metaLevel.hh (class MetaLevel): added decl for upModule()
+
+	* metaUpModule.cc (upModule): added
+
+	* metaLevel.hh (class MetaLevel): added declarations for
+	upGather() and upIdentity()
+
+	* metaUpModule.cc (upPolymorphDecl): added support for prec,
+	gather and id: attributes
+	(upOpDecl): added support for prec, gather and id: attributes
+	(upIdentity): added
+	(upGather): added
+
+2003-10-29  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevel.hh (class MetaLevel): added decls for upStrat() and
+	upFrozen()
+
+	* metaUpModule.cc (upStrat): added
+	(upFrozen): added
+	(upPolymorphDecl): handle strat, frozen, format
+	(upOpDecl): handle strat, frozen, format
+
+	* metaLevel.hh (class MetaLevel): added decl for upAttributeSet()
+
+	* metaUpModule.cc (upAttributeSet): added
+
+	* metaLevel.hh (class MetaLevel): added decls for upOpDecl(),
+	upPolymorphDecl() and upOpDecls()
+
+	* metaUpModule.cc (upPolymorphDecl): added
+	(upOpDecl): added
+
+	* descentSignature.cc (MACRO): added metaUpOpDecls
+
+	* metaUpModule.cc (upOpDecls): added
+
+	* ascentFunctions.cc (metaUpOpDecls): added
+
+	* metaLevel.hh (class MetaLevel): added decl for upImports()
+
+	* descentSignature.cc (MACRO): added metaUpImports
+
+	* metaUpModule.cc (upImports): added
+
+	* ascentFunctions.cc (metaUpImports): added
+
+2003-10-28  Steven Eker  <eker@goo.csl.sri.com>
+
+	* descentSignature.cc (MACRO): added metaUpSubsortDecls
+
+	* ascentFunctions.cc (metaUpSubsortDecls): added
+
+	* metaLevel.hh (class MetaLevel): added decl for upSubsortDecls()
+
+	* metaUpModule.cc (upSubsortDecls): added
+
+	* metaLevel.hh (class MetaLevel): added decl for upSorts()
+
+	* metaUpModule.cc (upSorts): added
+	(upSorts): added
+
+	* metaLevel.hh (class MetaLevel): added del for 4 arg version of
+	upSortSet()
+
+	* metaUp.cc (upSortSet): added 4 arg version
+	(upSortSet): reimplemented in terms of 4 arg version
+
+	* descentSignature.cc (MACRO): added metaUpSorts
+
+	* ascentFunctions.cc (metaUpSorts): added
+
+2003-10-24  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevel.hh (class MetaLevel): updated many decls
+
+	* metaDownFixUps.cc (fixUpIdentitySymbol): renamed to handleIdentity()
+	(fixUpSpecialSymbol): renamed to handleSpecial()
+	(fixUpPolymorph): renamed to handleSpecial()
+	(handleIdentity): added polymorph version
+
+	* metaDownOps.cc (downOpDecl): use new addComplexSymbol() conventions
+
+	* metaLevel.hh (class MetaLevel): replaced IDENTITY_SYMBOL and
+	SPECIAL_SYMBOL with REGULAR_SYMBOL in enum ComplexSymbolType
+
+	* metaModule.cc (addComplexSymbol): handle identity separately
+	(both versions)
+	(removeComplexSymbol): handle identity separately
+
+	* metaModule.hh (class MetaModule): updated decls for all member
+	functions; added identity field to struct ComplexSymbol
+
+2003-10-21  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownFixUps.cc (downHook): use safeCast() and temp var
+	(downOpHook): use safeCast()
+	(fixUpBubble): use safeCast()
+
+	* metaDownOps.cc (downPolymorphTypeList): use polyArgs rather than
+	wanted set
+	(downAttr): don't subtract 1 from poly attribute numbers
+	(downOpDecl): fixed test for range being poly
+	(downAttr): use safeCast() (3 places)
+	(checkHook): use safeCast()
+
+	* metaLevel.hh (class MetaLevel): added decl for polymorph version
+	of downHook()
+
+	* metaDownFixUps.cc (downHook): added polymorph version
+	(fixUpPolymorph): rewritten in generic way
+
+	* metaLevel.hh (class MetaLevel): updated decl for
+	downPolymorphTypeList()
+
+	* metaDownOps.cc (downPolymorphTypeList): rewritten to handle
+	wanted set
+	(downOpDecl): polymorph code rewritten in generic way
+
+2003-10-20  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownOps.cc (downAttr): handle poly meta-attribute
+
+	* metaLevel.hh (class MetaLevel): added polyArgs to struct AttributeInfo
+
+	* metaLevelSignature.cc (MACRO): added instatiation for polySymbol
+
+	* metaDownOps.cc (downOpDecl): commented out UP_SYMBOL,
+	DOWN_SYMBOL cases
+
+2003-10-13  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownOps.cc (downOpDecl): don't use isPolymorph(); use new
+	addPolymorph() convention
+
+===================================Maude83===========================================
+
+2003-09-30  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownFixUps.cc (fixUpPolymorph): handle shareWith hook
+
+	* metaLevel.hh (class MetaLevel): added decl for
+	downPolymorphTypeList()
+
+	* metaDownOps.cc (downPolymorphTypeList): added
+	(downOpDecl): rewritten using downPolymorphTypeList() and handling
+	UP_SYMBOL and DOWN_SYMBOL
+
+2003-09-29  Steven Eker  <eker@goo.csl.sri.com>
+
+	* descentFunctions.cc (metaUpTerm): added
+	(metaDownTerm): added
+
+	* metaLevel.hh: made upDagNode() public
+
+	* metaApply.cc (getCachedRewriteSearchState): moved here
+	(metaApply): moved here
+	(metaXapply): moved here
+
+	* descentSignature.cc: added entries for metaUpTerm() and
+	metaDownTerm()
+
+	* metaLevelOpSymbol.cc (eqRewrite): use safeCast()
+	(copyAttachments): use safeCast()
+
+===================================Maude82===========================================
+
+2003-05-27  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDown.cc (downImport): handle extendingSymbol
+
+	* metaLevelSignature.cc (MACRO): added extendingSymbol
+
+2003-05-23  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaUpModule.cc (upMbs): only up non-bad mbs
+	(upEqs): only up non-bad eqs
+	(upRls): only up non-bad rls
+	(upStatementAttributes): handle nonexec
+
+	* metaDown.cc (downEquation): handle nonexec
+	(downRule): handle nonexec
+	(downStatementAttr): handle nonexec
+	(downMembAx): handle nonexec
+
+	* metaDownOps.cc (downAttr): handle configSymbol, objectSymbol,
+	msgSymbol
+
+	* metaLevelSignature.cc (MACRO): added configSymbol, objectSymbol,
+	msgSymbol, nonexecSymbol
+
+	* descentFunctions.cc (metaApply): pass ALLOW_NONEXEC to
+	RewriteSearchState()
+	(metaXapply): pass ALLOW_NONEXEC to RewriteSearchState()
+
+2003-05-22  Steven Eker  <eker@goo.csl.sri.com>
+
+	* descentFunctions.cc (metaFrewrite): fixed nasty bug where
+	safeCast() macro was causing the creation of 3 subcontexts rather
+	than one
+
+2003-05-21  Steven Eker  <eker@goo.csl.sri.com>
+
+	* descentFunctions.cc (metaFrewrite): call setObjectMode()
+
+2003-04-18  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDown.cc (downSimpleSortList): fixed != nilQidListSymbol bug
+	that we introduced today
+
+	* metaDownOps.cc (checkHookList): rewritten to use
+	DagArgumentIterator; fixed fall thru bug
+
+	* metaLevelSignature.cc (MACRO): got rid of AU_DagNode and
+	ACU_DagNode
+
+	* metaDownOps.cc (downOpDecl): rewritten to use
+	DagArgumentIterator
+	(downBubbleSpec): rewritten to use DagArgumentIterator
+
+	* metaDownFixUps.cc (fixUpSpecialSymbol): rewritten to use
+	DagArgumentIterator
+	(fixUpBubble): rewritten to use DagArgumentIterator
+	(fixUpPolymorph): rewritten to use DagArgumentIterator
+
+	* metaDown.cc (downSimpleSortList): rewritten to use
+	DagArgumentIterator
+	(downTypeList): rewritten to use DagArgumentIterator
+	(downCondition): rewritten to use DagArgumentIterator and
+	FOR_EACH_CONST()
+	(downTermList): rewritten to use DagArgumentIterator and
+	FOR_EACH_CONST()
+	(downSubstitution): use clear()
+
+2003-04-17  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDown.cc (downImports): use DagArgumentIterator instead of
+	casting to AU_DagNode
+	(downNatList): ditto
+	(downQidList): ditto
+
+===================================Maude80===========================================
+
+2003-02-26  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaUpModule.cc (upConditionFragment): Assert() -> CantHappen()
+
+	* metaUp.cc (upJoin): updated Assert()
+	(upDagNode): updated Assert()
+	(upTerm): updated Assert()
+	(upContext): updated Assert()
+	(upResultPair): updated Assert() (both versions)
+	(upResultTriple): updated Assert()
+	(upResult4Tuple): updated Assert()
+	(upAmbiguity): updated Assert()
+
+	* metaOpCache.cc: removed #pragma
+
+	* metaOpCache.hh: removed #pragma
+
+	* metaModuleCache.cc: removed #pragma
+	(moveToFront): DebugAdvisoryCheck() -> DebugAdvisory()
+	(insert): DebugAdvisoryCheck() -> DebugAdvisory()
+
+	* metaModuleCache.hh: removed #pragma
+
+	* metaModule.cc: removed #pragma
+
+	* metaModule.hh: removed #pragma
+
+	* metaLevelOpSymbol.cc: removed #pragma
+	(eqRewrite): updated Assert()
+
+	* metaLevelOpSymbol.hh: removed #pragma
+
+	* metaLevel.cc: removed #pragma
+	(bind): updated Assert() (both versions)
+
+	* metaLevel.hh: removed #pragma
+
+===================================Maude79===========================================
+
+2003-01-08  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownOps.cc (downOpDecls): use DagArgumentIterator rather
+	than messing with ACU_DagNode
+
+	* metaDown.cc (downSorts): use DagArgumentIterator rather than
+	messing with ACU_DagNode
+	(downSubsorts): ditto
+	(downStatementAttrSet): ditto
+	(downMembAxs): ditto
+	(downEquations): ditto; removed MOS hack
+	(downRules): ditto
+	(downSubstitution): ditto
+
+===================================Maude78==================================================
+
+2002-11-19  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaMatch.cc (makeMatchSearchState2): reverted to previous
+	version since pattern and subject need not be in the same kind for
+	metaXmatch()
+
+2002-11-15  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownFixUps.cc (downOpHook): replaced AdvisoryCheck() with
+	new style IssueAdvisory()
+	(fixUpBubble): use new style IssueAdvisory()
+
+	* metaDownOps.cc (downOpDecl): use new style IssueAdvisory()
+	(downAttr): use new style IssueAdvisory()s
+
+	* metaDown.cc (downSort): use new style IssueAdvisory()
+	(downType2): use new style IssueAdvisory()s
+	(downSimpleSort): use new style IssueAdvisory()
+	(downTermAndSort): use new style IssueAdvisory()
+	(downTermPair): use new style IssueAdvisory()
+	(downTerm): use new style IssueAdvisory()s
+
+	* metaLevel.cc (bind): (both versions) use new style
+	IssueWarning()
+
+2002-11-14  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaSearch.cc (makeRewriteSequenceSearch): rewritten using
+	downTermPair()
+
+	* metaMatch.cc (makeMatchSearchState): rewritten using
+	downTermPair()
+	(makeMatchSearchState2): rewritten using downTermPair()
+
+	* descentFunctions.cc (dagifySubstitution): don't check for
+	component clash here since we always get our substitution from
+	downSubstitution() which no longer return substitutions with
+	component clashes
+
+	* metaDown.cc (downAssignment): rewritten using downTermPair()
+
+	* metaLevel.hh (class MetaLevel): added decl for downTermAndSort()
+
+	* metaDown.cc (downEquation): rewritten to be symmetric with
+	downRule()
+	(downConditionFragment): use downTermPair() for
+	equality/match/rewrite cases
+	(downTermAndSort): added
+	(downConditionFragment): use downTermAndSort() in sort test case
+	(downMembAx): rewritten using downTermAndSort()
+
+2002-11-13  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDown.cc (downRule): rewritten using downTermPair() to fix
+	kind clash bug and term memory leak
+	(downRule): use safeCast
+	(downRule): removed static Vector
+
+	* metaLevel.hh (class MetaLevel): added decl for downTermPair()
+
+	* metaDown.cc (downTermPair): added
+
+2002-11-11  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaUpModule.cc (upStatementAttributes): handle owise
+
+	* metaLevel.hh (class MetaLevel): updated decls for
+	downStatementAttrSet() and downStatementAttr(); added enum Flags
+
+	* metaDown.cc (downStatementAttr): handle owiseSymbol
+	(downStatementAttrSet): handle flags
+	(downRule): pass flags arg to downStatementAttrSet()
+	(downMembAx): pass flags arg to downStatementAttrSet()
+
+	* metaLevelSignature.cc (MACRO): added owiseSymbol
+
+	* metaDown.cc (downEquation): pass owise arg to Equation()
+
+2002-10-11  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevel.hh (class MetaLevel): updated decls for downAttrSet()
+	and downAttr()
+
+	* metaDownOps.cc (downAttr): rewritten using AttributeInfo
+	(downOpDecl): rewritten using AttributeInfo
+	(downAttrSet): rewritten using AttributeInfo
+
+	* metaLevel.hh (class MetaLevel): added struct AttributeInfo
+	(AttributeInfo): added
+
+	* metaLevelSignature.cc (MACRO): deleted oldFrozenSymbol
+
+2002-10-10  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDown.cc (downQidList): use clear() instead of contractTo(0)
+
+	* metaDownOps.cc (downAttr): take frozen arg
+	(downAttrSet): take and pass frozen arg
+	(downOpDecl): handle NatSet of frozen args; fixed bug where we were
+	not clear format Vector - actually it not a visible bug since if
+	we set the format flag, downQidList will clear the Vector for us
+
+	* metaLevelSignature.cc (MACRO): frozenSymbol now take 1 arg;
+	added oldFrozenSymbol
+
+2002-10-08  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownOps.cc (downOpDecl): updated frozen hack
+
+2002-10-02  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownOps.cc (downOpDecl): pass dummy frozen arg to
+	addOpDeclaration() - must fix later
+
+===================================Maude76==================================================
+
+2002-09-08  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaUp.cc (upJoin): fixed bug where we were starting kind with
+	'[ rather than `[
+
+2002-08-27  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownOps.cc (downAttr): handle ctor attribute
+
+===================================Maude75==================================================
+
+2002-07-25  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaUp.cc (upDagNode): deleted MACHINE_INTEGER case
+	(upTerm): deleted MACHINE_INTEGER case
+
+	* metaDown.cc (downTerm): deleted SMALL_NAT, SMALL_NEG and ZERO
+	cases since we no longer have machine ints
+
+===================================Maude74==================================================
+
+2002-06-19  Steven Eker  <eker@goo.csl.sri.com>
+
+	* descentFunctions.cc (metaFrewrite): fixd bug where we were
+	comparing gas to 9 rather than 0 to decide if it is legal
+
+	* metaMatch.cc (makeMatchSearchState2): fixed symmetric bug
+
+	* descentFunctions.cc (metaXapply): fixed bug where we were
+	passing NONE to RewriteSearchState() in maxDepth = unbounded case,
+	but here NONE is interpreted as depth = 0, no extension
+
+2002-06-17  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevel.hh (class MetaLevel): added decl for
+	upStatementAttributes()
+
+	* metaUpModule.cc (upStatementAttributes): added
+	(upRl): rewritten to use upStatementAttributes()
+	(upMb): rewritten to use upStatementAttributes()
+	(upEq): rewritten to use upStatementAttributes()
+
+	* metaLevelSignature.cc (MACRO): added stringSymbol
+
+	* metaLevel.hh (class MetaLevel): updated decls for
+	downStatementAttrSet() and downStatementAttr()
+
+	* metaDown.cc (downEquation): handle metadata
+	(downRule): handle metadata
+	(downMembAx): handle metadata
+	(downStatementAttrSet): handle metadata
+	(downStatementAttr): handle metadata
+
+2002-06-14  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevel.hh (class MetaLevel): added decls for
+	downStatementAttrSet() and downStatementAttr()
+
+	* metaDown.cc (downStatementAttr): added
+	(downStatementAttrSet): added
+	(downMembAx): handle new mb/cmb ctors
+	(downEquation): handle new eq/ceq ctors
+	(downRule): handle new rl/cel ctors
+
+	* metaLevelSignature.cc (MACRO): added labelSymbol and
+	metadataSymbol
+	(MACRO): changed arities for mbSymbol, cmbSymbol, eqSymbol and
+	ceqSymbol
+
+2002-06-12  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDown.cc (downEquation): pass NONE as first arg of Equation()
+	(downMembAx): pass NONE as first arg of SortConstraint()
+
+	* descentFunctions.cc (metaRewrite): don't allow a limit of 0
+	(metaFrewrite): don't allow limit or gas of 0; use
+	downSaturate64() for gas since fairRewrite() doesn't handle gas of
+	-1
+
+2002-06-10  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaUp.cc (upTerm): MachineFloat -> Float
+	(upDagNode): MachineFloat -> Float
+
+	* metaDown.cc (downTerm): MachineFloat -> Float
+
+2002-06-07  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevel.hh (class MetaLevel): deleted decl for
+	downMachineInt()
+
+	* metaDown.cc (downMachineInt): deleted
+
+	* metaLevel.hh (class MetaLevel): deleted decl for upMachineInt()
+
+	* metaUp.cc (upNoParse): use makeNatDag()
+	(upMachineInt): deleted
+
+	* metaSearch.cc (metaSearch): use downSaturate64()
+	(makeRewriteSequenceSearch): use downBound()
+
+	* descentFunctions.cc (metaXapply): no need to convert a maxDepth
+	of -1 into INT_MAX since RewriteSearchState() groks -1 as unbounded
+
+	* metaMatch.cc (metaMatch): use downSaturate64()
+	(metaXmatch): use downSaturate64()
+	(makeMatchSearchState2): use downSaturate() and downBound()
+
+	* metaLevel.hh (downNat): deleted
+	(downNat64): deleted
+
+	* metaDown.cc (downBound): added
+	(downSaturate): added
+
+	* descentFunctions.cc (metaApply): use downSaturate64()
+	(metaXapply): use downSaturate64(), downBound(), downSaturate()
+
+	* metaLevel.hh (class MetaLevel): added decl for downSaturate64()
+
+	* metaDown.cc (downSaturate64): added
+
+	* descentFunctions.cc (metaRewrite): use downBound64()
+	(metaFrewrite): use downBound64() (2 places)
+
+	* metaLevel.hh (class MetaLevel): added decl for downBound64()
+
+	* metaDown.cc (downBound64): added
+
+	* metaLevelSignature.cc (MACRO): added unboundedSymbol
+
+	* descentFunctions.cc (metaRewrite): use downNat64()
+
+	* metaLevel.hh (downNat): added
+	(downNat64): added
+
+	* metaDownOps.cc (downAttr): use downNatList()
+	(downAttr): use getSignedInt() and safeCast()
+
+	* metaLevel.hh (class MetaLevel): decl for downNatList() replaces
+	decl for downMachineIntList()
+
+	* metaDown.cc (downMachineIntList): becomes downNatList()
+
+	* metaLevelSignature.cc (MACRO): replace machine int stuff with
+	succSymbol and natListSymbol
+
+===================================Maude73==================================================
+
+2002-05-31  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownOps.cc (downAttr): support iterSymbol
+
+	* metaLevelSignature.cc (MACRO): added iterSymbol
+
+	* metaUp.cc (upDagNode): handle iter theory by creating metaterms
+	like 'f^42[...]
+	(upTerm):  handle iter theory likewise
+
+2002-05-24  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDown.cc (downTerm): support downing terms of the form
+	f^42(...)
+
+2002-05-22  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDown.cc (downTerm): added Token::ZERO case
+
+2002-04-15  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownOps.cc (checkHook): use
+	SymbolType::specialNameToBasicType()
+
+	* descentFunctions.cc (metaSortLeq): check that sorts are in the
+	same component - this fixes a bug.
+
+2002-04-09  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDown.cc (downImport): use interpreter.getModule() in place
+	of PreModule::findModule()
+
+===================================Maude72==================================================
+
+2002-04-05  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownOps.cc (downAttr): fix bugs where we weren't calling
+	symbolType.setFlags(SymbolType::GATHER) and
+	symbolType.setFlags(SymbolType::FORMAT)
+
+2002-04-04  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevel.hh (class MetaLevel): updated decls for downAttrSet()
+	and downAttr()
+
+	* metaDownOps.cc (downOpDecl): pass format arg to downAttrSet()
+	(downAttrSet): take format arg and pass it to downAttr()
+	(downAttr): support format attribute
+
+	* metaLevelSignature.cc (MACRO): added formatSymbol
+
+2002-04-03  Steven Eker  <eker@goo.csl.sri.com>
+
+	* descentFunctions.cc (dagifySubstitution): simplified using
+	normalize() default 2nd arg
+	(term2RewritingContext): simplified using normalize() default 2nd
+	arg
+	(metaLeastSort): simplified using normalize() default 2nd arg
+	(metaReduce): simplified using normalize() default 2nd arg
+	(metaRewrite): simplified using normalize() default 2nd arg
+	(metaFrewrite): simplified using normalize() default 2nd arg
+
+	* metaUp.cc (upContext): simplified now that makeDagNode() has a
+	default argument
+	(upResultTriple): deleted unused static dummy Vector
+	(upResult4Tuple): deleted unused static dummy Vector
+	(upSubstition): simplified now that makeDagNode() has a default
+	argument
+	(upFailureTriple): simplified now that makeDagNode() has a default
+	argument
+	(upNoMatchSubst): simplified now that makeDagNode() has a default
+	argument
+	(upNoMatchPair): simplified now that makeDagNode() has a default
+	argument
+	(upFailure4Tuple): simplified now that makeDagNode() has a default
+	argument
+
+	* descentSignature.cc: added metaUpMbs, metaUpEqs
+
+	* ascentFunctions.cc (metaUpMbs): added
+	(metaUpEqs): added
+
+	* metaLevel.hh (class MetaLevel): added decls for upMb(), upEq(),
+	upMbs(), upEqs()
+
+	* metaUpModule.cc (upEqs): added
+	(upEq): added
+	(upMbs): added
+	(upMb): added
+
+	* ascentFunctions.cc (metaUpRls): handle flat flag
+
+	* metaLevel.hh (class MetaLevel): added decl for downBool()
+
+	* metaDown.cc (downBool): added
+
+	* ascentFuctions.cc: created
+
+	* descentSignature.cc (MACRO): added metaUpRls
+
+	* metaLevel.hh (class MetaLevel): added decls for upRl(),
+	upLabel(), upCondition(), upConditionFragment(),  upRls()
+
+	* metaUpModule.cc (upRls): created
+	
+===================================Maude71a==================================================
+
+2002-03-22  Steven Eker  <eker@goo.csl.sri.com>
+
+	* meta.hh: created
+	
+===================================Maude71==================================================
+
+2002-03-10  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownOps.cc (checkHook): fixed bug where we were setting
+	basic type even when MixfixModule::specialNameToBasicType()
+	returned 0; this caused addition id-hooks such as exclude to
+	overwrite the original basic type
+
+2002-02-12  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevelOpSymbol.cc (attachData): check arity and well as op
+	name
+
+	* descentSignature.cc (MACRO): metaXmatch now has 7 args
+
+	* metaLevelOpSymbol.hh (class MetaLevelOpSymbol): added decl for
+	makeMatchSearchState2()
+
+	* metaMatch.cc (makeMatchSearchState2): added
+	(metaXmatch): simplified and support side condition using
+	makeMatchSearchState2()
+
+	* metaLevelOpSymbol.hh (class MetaLevelOpSymbol): updared decls
+	for makeRewriteSequenceSearch() and downSearchType()
+
+	* metaSearch.cc (makeRewriteSequenceSearch): made const
+	(downSearchType): made const
+
+	* metaLevelOpSymbol.hh (class MetaLevelOpSymbol): delete static
+	data member eagerStrategy
+
+	* metaLevelOpSymbol.cc (MetaLevelOpSymbol): don't pass
+	eagerStrategy to FreeSymbol()
+
+	* metaLevelOpSymbol.hh (class MetaLevelOpSymbol): ma
+	(class MetaLevelOpSymbol): made term2Dag() and
+	term2RewritingContext() static
+
+	* descentSignature.cc (MACRO): metaMatch now has 5 args
+
+	* metaLevelOpSymbol.hh (class MetaLevelOpSymbol): added decl for
+	makeMatchSearchState()
+
+	* metaMatch.cc (getCachedMatchSearchState): moved here
+	(metaMatch): moved here
+	(metaXmatch): moved here
+	(makeMatchSearchState): added
+	(metaMatch): simplified and support side condition using
+	makeMatchSearchState()
+
+	* metaSearch.cc (downSearchType): moved here
+	(getCachedRewriteSequenceSearch): moved here
+	(makeRewriteSequenceSearch): moved here
+	(metaSearch): moved here
+
+2002-02-11  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevel.hh (class MetaLevel): made downCondition() public
+
+	* descentSignature.cc (MACRO): metaSearch() now has 7 args
+
+	* descentFunctions.cc (makeRewriteSequenceSearch): added; handle condition
+	(metaSearch): simplified using makeRewriteSequenceSearch()
+
+	* metaDown.cc (downCondition): handle noConditionSymbol; fix
+	memory leak by deleting already downed fragments in the case of
+	and error
+
+	* metaLevelSignature.cc (MACRO): added noConditionSymbol
+
+	* descentFunctions.cc (metaApply): use transferCount() instead of
+	addInCount() for RewriteSearchState
+	(metaXapply): use transferCount() instead of addInCount() for
+	RewriteSearchState
+	(metaMatch): use transferCount() instead of addInCount() for
+	MatchSearchState
+	(metaXmatch): use transferCount() instead of addInCount() for
+	MatchSearchState
+	(metaSearch): use transferCount() instead of addInCount() and
+	clearCount()
+
+2002-02-07  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevel.cc: added #includes for new classes
+
+	* metaDown.cc (downConditionFragment): use classes
+	EqualityConditionFragment, SortTestConditionFragment,
+	AssignmentConditionFragment and RewriteConditionFragment in place
+	of old ConditionFragment class
+
+2002-02-04  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownOps.cc (downOpDecl): pass dummy format to
+	addOpDeclaration() and addPolymorph()
+
+2002-01-31  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaUp.cc (upDagNode): rewritten using class SymbolType
+
+	* metaLevelSignature.cc: rewritten using class SymbolType
+
+	* metaUp.cc (upTerm): rewritten using class SymbolType
+
+	* metaDownFixUps.cc (fixUpIdentitySymbol): rewritten using class
+	SymbolType
+
+	* metaDownOps.cc: rewritten using class SymbolType
+
+	* metaDownFixUps.cc (downOpHook): use new findSymbol()
+
+	* metaDown.cc (downTerm): use new findSymbol() (2 places)
+	
+===================================Maude70==================================================
+
+2002-01-24  Steven Eker  <eker@goo.csl.sri.com>
+
+	* descentFunctions.cc (metaSearch): added Verbose() call
+	(metaSearch): removed const_casts
+
+	* metaLevel.hh (class MetaLevel): updated decls
+
+	* metaUp.cc (upResultTriple): made substitution & variableInfo
+	args const
+	(upResult4Tuple): made substitution & variableInfo args const
+	(upSubstition): made substitution & variableInfo args const
+	(upMatchPair): made substitution & variableInfo args const
+
+2002-01-23  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaOpCache.cc (clear): Triple -> Item
+
+	* metaOpCache.hh (class MetaOpCache): added search field to struct
+	Triple and renamed it to struct Item
+
+	* metaOpCache.cc (insert): added RewriteSequenceSearch version
+	(remove): added RewriteSequenceSearch version
+	(insert): clear search field in SearchState version
+	(clear): delete search
+
+	* descentFunctions.cc (downSearchType): added
+	(getCachedRewriteSequenceSearch): added
+	(metaSearch): added
+
+	* descentSignature.cc (MACRO): added metaSearch
+
+2001-12-21  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaLevelOpSymbol.hh (class MetaLevelOpSymbol): updated decls
+	for getCachedRewriteSearchState() and getCachedMatchSearchState()
+
+	* descentFunctions.cc (getCachedRewriteSearchState): take context
+	and pass it to remove()
+	(getCachedMatchSearchState): take context and pass it to remove()
+	(metaApply): pass context to getCachedRewriteSearchState()
+	(metaXapply): pass context to getCachedRewriteSearchState()
+	(metaMatch): pass context to getCachedMatchSearchState()
+	(metaXmatch): pass context to getCachedMatchSearchState()
+
+	* metaOpCache.cc (remove): take parent context ptr, and if we
+	extra a cached state, have the states context be adopted by the
+	parent context; this fixes a nasty bug where there original parent
+	may no longer exist and the cached states context has a stale
+	parent pointer
+
+	* metaOpCache.hh (class MetaOpCache): updated decl for remove()
+
+2001-04-25  Steven Eker  <eker@goo.csl.sri.com>
+
+	* descentFunctions.cc (metaMatch): pass GC flags to
+	MatchSearchState()
+	(metaXmatch): pass GC flags to MatchSearchState()
+	(metaApply): pass GC flags to RewriteSearchState()
+	(metaXapply): pass GC flags to RewriteSearchState()
+
+2001-03-29  Steven Eker  <eker@goo.csl.sri.com>
+
+	* metaDownOps.cc (downAttr): handle frozen attribute
+
+	* metaLevelOpSymbol.hh (class MetaLevelOpSymbol): generate decls
+	for desent functions by macro expansion
+
+	* metaLevelSignature.cc (MACRO): added decl for frozenSymbol
+
+	* descentSignature.cc: added MACRO for metaFrewrite; corrected
+	MACRO for metaRewrite
+
+	* descentFunctions.cc (metaRewrite): use limit = NONE convention
+	(metaFrewrite): added
+
+2001-03-28  Steven Eker  <eker@goo.csl.sri.com>
+
+	* descentFunctions.cc (metaRewrite): call resetRules()
+
+2001-03-16  Steven Eker  <eker@goo.csl.sri.com>
+
+	* descentFunctions.cc (metaLeastSort): use addInCount() instead of
+	incrementCount() and count()
+	(metaReduce): use addInCount() instead of incrementCount() and
+	count()
+	(metaRewrite): use addInCount() instead of incrementCount() and
+	count()
+	(metaApply): use addInCount() instead of incrementCount() and
+	count(); use incrementRlCount()
+	(metaXapply): use addInCount() instead of incrementCount() and
+	count(); use incrementRlCount()
+	(metaXmatch): use addInCount() instead of incrementCount() and
+	count()
+	(metaApply): use addInCount() instead of incrementCount() and
+	count()
+
