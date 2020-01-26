@@ -53,6 +53,8 @@ StrategicSearch::StrategicSearch(RewritingContext* initial, StrategyExpression* 
   Assert(initial != 0, "null context");
   Assert(initial->root() != 0, "null root");
   Assert(strategy != 0, "null strategy");
+
+  pending = NONE;
 }
 
 StrategicSearch::~StrategicSearch()

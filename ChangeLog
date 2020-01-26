@@ -760,6 +760,10 @@
 
 ===================================Maude117===========================================
 
+2018-03-23  Rubén Rubio  <rubenrub@ucm.es>
+
+	* configure.ac: added reference to GNU Readline
+
 2018-03-16  Steven Eker  <eker@install.csl.sri.com>
 
 	* configure.ac: remove ref to MSCP10
