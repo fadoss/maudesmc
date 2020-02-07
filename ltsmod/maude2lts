@@ -30,6 +30,7 @@ $0 MAUDE_FILE INITIAL_TERM [options]
 
 Input data:
   --module NAME           Choose the module where to model check
+  --metamodule TERM       Choose a metamodule where to model check
   --strat EXPR            Select a strategy to control the system
   --aprops TEXT           Colon-separated list of atomic propositions
 
@@ -65,9 +66,6 @@ while [ "$1" != "" ]; do
 		--help )	usage
 				exit
 				;;
-		--module )	shift
-				module=$1
-				;;
 		--strat )	shift
 				strategy=$1
 				;;
@@ -94,8 +92,16 @@ while [ "$1" != "" ]; do
 				additionalArgs="$additionalArgs	--biased-matchrew"
 				;;
 		--opaque-strats )
-				additionalArgs="$additionalArgs	--opaque-strats	$2"
 				shift
+				additionalArgs="$additionalArgs	--opaque-strats=$1"
+				;;
+		--module )
+				shift
+				additionalArgs="$additionalArgs	--module=$1"
+				;;
+		--metamodule )
+				shift
+				additionalArgs="$additionalArgs	--metamodule=$1"
 				;;
 		--*)		echo "Unknown option $1."
 				exit
@@ -184,14 +190,12 @@ if [ -n "$type" ]; then
 	fi
 
 	tool_args="$tool_args	--$type=$formula"
+
+	# The mucalc option requires calling a parity game solver to obtain the result
+	if [ "$type" == "mucalc" ]; then
+		tool_args="$tool_args	--pg-solve"
+	fi
 fi
 
-# The mucalc options requires calling a parity game solver to obtain its result
-if [ "$type" == "mucalc" ]; then
-	IFS="	"
-	"${LTSMIN_PATH}pins2lts-$tool" $tool_args $additionalArgs --pg-write=game.spg
-	exec "${LTSMIN_PATH}spgsolver" game.spg
-else
-	IFS="	"
-	exec "${LTSMIN_PATH}pins2lts-$tool" $tool_args $additionalArgs
-fi
+IFS="	"
+exec "${LTSMIN_PATH}pins2lts-$tool" $tool_args $additionalArgs

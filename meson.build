@@ -1028,6 +1028,7 @@ maudemc_includes = include_directories(
 	'src/Interface',
 	'src/Utility',
 	'src/FullCompiler',
+	'src/Meta',
 	'src/Mixfix',
 	'src/Variable',
 	'src/IO_Stuff',
@@ -1037,6 +1038,7 @@ maudemc_includes = include_directories(
 	'src/NA_Theory',
 	'src/Parser',
 	'src/ObjectSystem',
+	'src/S_Theory',
 	'ltsmod',
 )
 
