@@ -335,18 +335,6 @@ mixfix_source = [
 	'src/Mixfix/variableGenerator.cc',
 ]
 
-lexer = custom_target('lexer',
-	input: 'src/Mixfix/lexer.ll',
-	output: '@BASENAME@.cc',
-	command: [flex, '-p', '-p', '-o', '@OUTPUT@', '@INPUT@']
-)
-
-tokenizer = custom_target('tokenizer',
-	input: 'src/Mixfix/tokenizer.ll',
-	output: '@BASENAME@.cc',
-	command: [flex, '-Pzz', '-p', '-p', '-o', '@OUTPUT@', '@INPUT@']
-)
-
 surfaceyy = custom_target('surfaceyy',
 	input: ['src/Mixfix/top.yy', 'src/Mixfix/modules.yy', 'src/Mixfix/commands.yy', 'src/Mixfix/bottom.yy'],
 	output: 'surface.yy',
@@ -366,10 +354,23 @@ surfacecc = custom_target('surfacecc',
 	command: [cp, '@INPUT@', '@OUTPUT@']
 )
 
+lexer = custom_target('lexer',
+	input: 'src/Mixfix/lexer.ll',
+	depends: surfacec,
+	output: '@BASENAME@.cc',
+	command: [flex, '-p', '-p', '-o', '@OUTPUT@', '@INPUT@'],
+)
+
+tokenizer = custom_target('tokenizer',
+	input: 'src/Mixfix/tokenizer.ll',
+	output: '@BASENAME@.cc',
+	command: [flex, '-Pzz', '-p', '-p', '-o', '@OUTPUT@', '@INPUT@']
+)
+
 mixfix_generators = [
+	surfacecc,
 	lexer,
-	tokenizer,
-	surfacecc
+	tokenizer
 ]
 
 mixfix = static_library('mixfix', mixfix_source, mixfix_generators, include_directories: mixfix_includes)
@@ -1020,6 +1021,7 @@ maudemc_includes = include_directories(
 	'src/Interface',
 	'src/Utility',
 	'src/FullCompiler',
+	'src/Meta',
 	'src/Mixfix',
 	'src/Variable',
 	'src/IO_Stuff',
@@ -1029,6 +1031,7 @@ maudemc_includes = include_directories(
 	'src/NA_Theory',
 	'src/Parser',
 	'src/ObjectSystem',
+	'src/S_Theory',
 	'ltsmod',
 )
 
