@@ -51,6 +51,10 @@
 #include "stateTransitionGraph.hh"
 #include "strategyTransitionGraph.hh"
 #include "cachedDag.hh"
+#include "meta.hh"
+#include "metaLevel.hh"
+#include "metaModule.hh"
+#include "metaLevelOpSymbol.hh"
 
 // LTSmin stuff
 extern "C" {
@@ -92,13 +96,14 @@ struct loader_record pins_loaders[] = {
 };
 
 // Input arguments from the command line
-char *popt_initial, *popt_aprops, *popt_module, *popt_strategy, *popt_opaques, *popt_merge;
+char *popt_initial, *popt_aprops, *popt_module, *popt_metamodule, *popt_strategy, *popt_opaques, *popt_merge;
 int popt_purge, popt_biased;
 
 struct poptOption pins_options[] = {
 	{"initial", '\0', POPT_ARG_STRING, &popt_initial, 0, "Initial state", nullptr},
 	{"aprops", '\0', POPT_ARG_STRING, &popt_aprops, 0, "Atomic propositions that may appear in the formula (comma separated list of Maude terms)", nullptr},
 	{"module", '\0', POPT_ARG_STRING, &popt_module, 0, "Maude module to select (by default, the last one)", nullptr},
+	{"metamodule", '\0', POPT_ARG_STRING, &popt_metamodule, 0, "Maude term that reduces to a meta-module where to model check (optional)", nullptr},
 	{"strat", '\0', POPT_ARG_STRING, &popt_strategy, 0, "Strategy expression to control the system (optional)", nullptr},
 	{"merge-states", '\0', POPT_ARG_STRING, &popt_merge, 0, "Avoid artificial branching due to strategies by merging states", "state|edge|none"},
 	{"purge-fails", '\0', POPT_ARG_NONE, &popt_purge, 0, "Remove states where the strategy has failed from the model", nullptr},
@@ -154,6 +159,7 @@ class MaudePINSModule {
 	bool checkProposition(int stateNr, int propIndex);
 	void loadMaudeFile(const char* fileName, bool readPrelude = true);
 	VisibleModule* selectModule(const char* moduleName);
+	VisibleModule* selectMetamodule(const char* moduleTerm);
 
 	// Read atomic props from a comma-separated list
 	void readAtomicProps(const char* apspec);
@@ -207,9 +213,14 @@ toDag(Term* term) {
 	NatSet emptySet;
 	Vector<int> emptyVector;
 	bool changed;
+
 	term->markEagerArguments(0, emptySet, emptyVector);
 	term->normalize(true, changed);
-	return term->term2Dag(term->getSortIndex() != Sort::SORT_UNKNOWN);
+	DagNode* dag = term->term2Dag(term->getSortIndex() != Sort::SORT_UNKNOWN);
+
+	// The term is freed after the conversion
+	term->deepSelfDestruct();
+	return dag;
 }
 
 #if STATE_AS_CHUNK
@@ -301,21 +312,98 @@ MaudePINSModule::loadMaudeFile(const char* filename, bool readPrelude) {
 inline VisibleModule*
 MaudePINSModule::selectModule(const char* modulename) {
 
-	if (modulename != nullptr && *modulename != '\0') {
-		PreModule* preModule = interpreter.getModule(Token::encode(modulename));
+	PreModule* premodule;
 
-		if (preModule == nullptr) {
+	// If a name was given, look for such module
+	if (modulename != nullptr && *modulename != '\0') {
+		premodule = interpreter.getModule(Token::encode(modulename));
+
+		if (premodule == nullptr) {
 			Printf(assertion, "%s: module %s does not exist\n", pins_plugin_name, modulename);
 			ltsmin_abort(1);
 		}
 
-		module = preModule->getFlatModule();
-	} else {
-		module = interpreter.getCurrentModule()->getFlatModule();
-		Printf(infoShort, "%s: selected module is %s\n", pins_plugin_name, Token::name(module->id()));
+	}
+	// Get the current module (the last one if not explicitly selected
+	// using the select command)
+	else {
+		premodule = interpreter.getCurrentModule();
+		Printf(infoShort, "%s: selected module is %s\n", pins_plugin_name, Token::name(premodule->id()));
+	}
+
+	// Abort if the module has syntactic problems
+	if (premodule->getFlatSignature()->isBad()) {
+		Printf(assertion, "%s: module %s is unusable\n", pins_plugin_name, Token::name(premodule->id()));
+		ltsmin_abort(2);
+	}
+
+	// Import the module statements and finish it
+	module = premodule->getFlatModule();
+
+	if (module->isBad()) {
+		Printf(assertion, "%s: module %s is unusable\n", pins_plugin_name, Token::name(module->id()));
+		ltsmin_abort(2);
 	}
 
 	return module;
+}
+
+inline VisibleModule*
+MaudePINSModule::selectMetamodule(const char* moduleTerm) {
+
+	// Parse and reduce the metamodule in the current module
+	Term* term = parseTerm(moduleTerm);
+
+	if (term == nullptr) {
+		Printf(assertion, "%s: cannot parse meta-module term\n", pins_plugin_name);
+		ltsmin_abort(3);
+	}
+
+	DagNode* dagMetamod = toDag(term);
+	RewritingContext* context = new RewritingContext(dagMetamod);
+	context->reduce();
+
+	// Turn the metamodule into a object-level module
+	// A valid instance of the MetaLevel class is obtained
+	// through any special operator of the META-LEVEL module
+	PreModule* metaLevelPreModule = interpreter.getModule(Token::encode("META-LEVEL"));
+
+	if (metaLevelPreModule == nullptr) {
+		Printf(assertion, "%s: cannot find the META-LEVEL module\n", pins_plugin_name);
+		ltsmin_abort(3);
+	}
+
+	VisibleModule* metaLevelModule = metaLevelPreModule->getFlatSignature();
+
+	// Finds an operator of type MetaLevelOpSymbol for which to obtain
+	// the MetaLevel instance (the first would certainly match, so the
+	// loop is just in case META-LEVEL was altered)
+
+	const Vector<Symbol*> &symbols = metaLevelModule->getSymbols();
+	int symbolIndex = metaLevelModule->getNrUserSymbols() - 1;
+
+	MetaLevelOpSymbol* metaSymbol = nullptr;
+
+	while (metaSymbol == nullptr && symbolIndex >= 0)
+		metaSymbol = dynamic_cast<MetaLevelOpSymbol*>(symbols[symbolIndex--]);
+
+	if (metaSymbol == nullptr) {
+		Printf(assertion, "%s: cannot get access to the metalevel\n", pins_plugin_name);
+		ltsmin_abort(3);
+	}
+
+	VisibleModule* metamodule = metaSymbol->getMetaLevel()->downModule(dagMetamod);
+
+	if (metamodule == nullptr) {
+		Printf(assertion, "%s: not a valid meta-module\n", pins_plugin_name);
+		ltsmin_abort(3);
+	} else
+		module = metamodule;
+
+	// The meta-module term is no longer needed
+	delete context;
+
+	return metamodule;
 }
 
 inline void
@@ -536,7 +624,7 @@ state_label(model_t m, int label, int* src) {
 extern "C" int
 next_state(void* model, int group, int *src, TransitionCB callback, void *arg) {
 
-	int written = 1;
+	int written = 0;
 	int state = *src;
 	int index = 0;
 	int edgeLabel = 0;
@@ -563,7 +651,7 @@ next_state(void* model, int group, int *src, TransitionCB callback, void *arg) {
 	// this can be done explicitly.
 	#ifdef EXPLICIT_DEADLOCK_LOOPS
 	if (index == 0) {
-		written = 0;
+		written = 1;
 		nextState = state;
 		edgeLabel = 0;
 		index++;
@@ -579,7 +667,7 @@ next_state(void* model, int group, int *src, TransitionCB callback, void *arg) {
 extern "C" int
 next_state_strat(void* model, int group, int *src, TransitionCB callback, void *arg) {
 
-	int written = 1;
+	int written = 0;
 	int state = *src;
 	int index = 0;
 	int edgeLabel = 0;
@@ -607,7 +695,7 @@ next_state_strat(void* model, int group, int *src, TransitionCB callback, void *
 
 	// Self-loop transition corresponding to a solution state
 	if (index == 0 && maudem.sgraph->isSolutionState(state)) {
-		written = 0;
+		written = 1;
 		nextState = state;
 		edgeLabel = 0;
 		index++;
@@ -622,7 +710,7 @@ next_state_strat(void* model, int group, int *src, TransitionCB callback, void *
 extern "C" int
 next_state_strat_purged(void* model, int group, int *src, TransitionCB callback, void *arg) {
 
-	int written = 1;
+	int written = 0;
 	int state = *src;
 	int index = 0;
 	int count = 0;
@@ -652,7 +740,7 @@ next_state_strat_purged(void* model, int group, int *src, TransitionCB callback,
 
 	// Self-loop transition corresponding to a solution state
 	if (index == 0 && maudem.sgraph->isSolutionState(state)) {
-		written = 0;
+		written = 1;
 		nextState = state;
 		edgeLabel = 0;
 		count++;
@@ -668,7 +756,7 @@ next_state_strat_purged(void* model, int group, int *src, TransitionCB callback,
 extern "C" int
 next_state_strat_merged(void* model, int group, int *src, TransitionCB callback, void *arg) {
 
-	int written = 1;
+	int written = 0;
 	int mergedStateIdx = *src;
 	int index = 0;
 	int edgeLabel = 0;
@@ -748,7 +836,7 @@ next_state_strat_merged(void* model, int group, int *src, TransitionCB callback,
 extern "C" int
 next_state_strat_merged_edge(void* model, int group, int *src, TransitionCB callback, void *arg) {
 
-	int written = 1;
+	int written = 0;
 	int mergedStateIdx = *src;
 	int index = 0;
 	int edgeLabel = 0;
@@ -827,6 +915,11 @@ pins_maude_model_init(model_t m, const char* maudef) {
 	// (2) Select the given module
 	maudem.selectModule(popt_module);
 
+	// If the metamodule option is present, its content
+	// is parsed, reduced and set as current module
+	if (popt_metamodule != nullptr && *popt_metamodule != '\0')
+		maudem.selectMetamodule(popt_metamodule);
+
 	// (3) Parse the initial term
 	if (popt_initial == nullptr || *popt_initial == '\0') {
 		Printf(assertion, "%s: no initial term given\n", pins_plugin_name);
@@ -874,6 +967,7 @@ pins_maude_model_init(model_t m, const char* maudef) {
 	}
 
 	maudem.satisfiesSymbol = satisfiesTerm->symbol();
+	satisfiesTerm->deepSelfDestruct();
 
 	// (8) Set up LTSmin environment
 
@@ -887,14 +981,14 @@ pins_maude_model_init(model_t m, const char* maudef) {
 	#else
 	int state_type = lts_type_put_type(ltstype, "state", LTStypeDirect, nullptr);
 	#endif
-	int rule_type = lts_type_put_type(ltstype, "rule", LTStypeEnum, nullptr);
+	int rule_type = lts_type_put_type(ltstype, "action", LTStypeEnum, nullptr);
 	int aprop_type = lts_type_put_type(ltstype, "prop", LTStypeBool, nullptr);
 	lts_type_set_state_name(ltstype, 0, "s");
         lts_type_set_state_typeno(ltstype, 0, state_type);
 	// The type of edge labels
 	lts_type_set_edge_label_count (ltstype, 1);
-	lts_type_set_edge_label_name(ltstype, 0, "rule");
-	lts_type_set_edge_label_type(ltstype, 0, "rule");
+	lts_type_set_edge_label_name(ltstype, 0, "action");
+	lts_type_set_edge_label_type(ltstype, 0, "action");
 	lts_type_set_edge_label_typeno(ltstype, 0, rule_type);
 	// The type of state labels
 	const size_t nrAtomicProps = maudem.atomicProps.size();
