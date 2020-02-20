@@ -4,8 +4,8 @@ project('Maude', 'cpp', version: '3.5.1+smc', default_options: ['cpp_std=c++14']
 ## Configuration
 #
 
-add_global_arguments('-Wno-non-virtual-dtor', language : 'cpp')
-add_global_arguments('-DHAVE_CONFIG_H', language : 'cpp')
+add_project_arguments('-Wno-non-virtual-dtor', language : 'cpp')
+add_project_arguments('-DHAVE_CONFIG_H', language : 'cpp')
 
 conf = configuration_data()
 
@@ -86,7 +86,7 @@ extraSearchPaths = get_option('extra-lib-dirs')
 extraIncludePaths = get_option('extra-include-dirs')
 
 foreach path : extraIncludePaths
-	add_global_arguments('-I' + path, language: 'cpp')
+	add_project_arguments('-I' + path, language: 'cpp')
 endforeach
 
 # BuDDy library (http://sourceforge.net/projects/buddy)
@@ -99,7 +99,7 @@ readline = dependency('readline', required: get_option('with-readline'))
 # GNU libsigsegv (https://www.gnu.org/software/libsigsegv/)
 sigsegv = cxx.find_library('sigsegv', required: get_option('with-sigsegv'), dirs: extraSearchPaths)
 
-libraries = [buddy, gmpxx, gmp, readline, sigsegv]
+libraries = [buddy, gmpxx, gmp, sigsegv]
 
 if readline.found()
 	conf.set('USE_READLINE', 1, description: 'use GNU readline command line editing library')
@@ -113,12 +113,12 @@ endif
 smtOption = get_option('with-smt')
 
 if smtOption == 'yices2'
-	yices2 = cxx.find_library('yices2')
+	yices2 = cxx.find_library('yices', dirs: extraSearchPaths)
 	libraries += [yices2]
 	conf.set('USE_YICES2', 1, description: 'use Yices2 SMT solver library')
 elif smtOption == 'cvc4'
-	cvc4 = cxx.find_library('cvc4')
-	cln = cxx.find_library('cln')
+	cvc4 = cxx.find_library('cvc4', dirs: extraSearchPaths)
+	cln = cxx.find_library('cln', dirs: extraSearchPaths)
 	libraries += [cvc4, cln]
 	conf.set('USE_CVC4', 1, description: 'use CVC4 SMT solver library')
 endif
@@ -668,7 +668,8 @@ ioStuff_source = [
 	'src/IO_Stuff/directoryManager.cc',
 ]
 
-ioStuff = static_library('ioStuff', ioStuff_source, include_directories: ioStuff_includes)
+ioStuff = static_library('ioStuff', ioStuff_source, include_directories: ioStuff_includes,
+			 cpp_args: '-DLIBRARY_BUILD=_LB_LIBRARY')
 
 # ObjectSystem
 
@@ -1021,10 +1022,14 @@ if get_option('enable-compiler')
 	maudeSubdirsInternal += [fullCompiler]
 endif
 
-libmaude = shared_library('maude', link_whole: maudeSubdirs, link_with: maudeSubsdirsInternal, dependencies: libraries)
-executable('maude', link_with: [main, libmaude])
+libmaude = shared_library('maude',
+	link_whole: maudeSubdirs,
+	link_with: maudeSubsdirsInternal,
+	dependencies: libraries,
+	install: true
+)
 
-maudemc_includes = include_directories(
+libmaude_includes = include_directories(
 	'src/Core',
 	'src/StrategyLanguage',
 	'src/Higher',
@@ -1042,7 +1047,42 @@ maudemc_includes = include_directories(
 	'src/Parser',
 	'src/ObjectSystem',
 	'src/S_Theory',
-	'ltsmod',
 )
 
-shared_module('maudemc', 'ltsmod/maudemc.cc', link_with: libmaude, include_directories: maudemc_includes, override_options: ['cpp_std=c++17'])
+libmaude_dep = declare_dependency(
+	include_directories: libmaude_includes,
+	link_with: libmaude
+)
+
+executable('maude',
+	'src/IO_Stuff/IO_Manager.cc',
+	include_directories: ioStuff_includes,
+	link_with: main,
+	dependencies: [libmaude_dep, readline],
+	cpp_args: '-DLIBRARY_BUILD=_LB_EXECUTABLE',
+	install: true
+)
+
+install_data(
+	'src/Main/file.maude',
+	'src/Main/linear.maude',
+	'src/Main/machine-int.maude',
+	'src/Main/metaInterpreter.maude',
+	'src/Main/model-checker.maude',
+	'src/Main/prelude.maude',
+	'src/Main/process.maude',
+	'src/Main/smt.maude',
+	'src/Main/socket.maude',
+	'src/Main/term-order.maude',
+	'src/Main/time.maude',
+)
+
+if get_option('with-ltsmin').enabled()
+	shared_module('maudemc',
+		'ltsmod/maudemc.cc',
+		dependencies: libmaude_dep,
+		include_directories: include_directories('ltsmod'),
+		override_options: ['cpp_std=c++17'],
+		install: true
+	)
+endif
