@@ -34,6 +34,13 @@
 #include "rope.hh"
 
 //	line editing stuff
+#define _LB_LIBRARY 1
+#define _LB_EXECUTABLE 2
+#if LIBRARY_BUILD == _LB_LIBRARY
+// readline is disabled when building Maude as a library
+#undef USE_READLINE
+#endif
+
 #ifdef USE_READLINE
 #if HAVE_SYS_TERMIOS_H
 #include <sys/termios.h>
@@ -46,6 +53,7 @@
 #include "autoWrapBuffer.hh"
 #include "IO_Manager.hh"
 
+#if LIBRARY_BUILD != _LB_EXECUTABLE
 IO_Manager::IO_Manager()
 {
   usingReadline = false;
@@ -63,6 +71,7 @@ IO_Manager::IO_Manager()
   buffer = 0;
 
 }
+#endif
 
 IO_Manager::~IO_Manager()
 {
@@ -90,6 +99,7 @@ IO_Manager::setCommandLineEditing(size_t /* lineLength */, size_t historyLength)
 #endif
 }
 
+#if LIBRARY_BUILD != _LB_EXECUTABLE
 void
 IO_Manager::setAutoWrap()
 {
@@ -136,6 +146,7 @@ IO_Manager::unsetAutoWrap()
       savedErr = 0;
     }
 }
+#endif
 
 ssize_t
 IO_Manager::getInput(char* buf, size_t maxSize, FILE* stream)
@@ -220,6 +231,7 @@ IO_Manager::getInput(char* buf, size_t maxSize, FILE* stream)
   return readFromStdin(buf, maxSize);
 }
 
+#if LIBRARY_BUILD != _LB_EXECUTABLE
 ssize_t
 IO_Manager::readFromStdin(char* buf, size_t maxSize)
 {
@@ -273,6 +285,7 @@ IO_Manager::readFromStdin(char* buf, size_t maxSize)
     }
   return i;
 }
+#endif
 
 Rope
 IO_Manager::getLineFromStdin(const Rope& prompt)
