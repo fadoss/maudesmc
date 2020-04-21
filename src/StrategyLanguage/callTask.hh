@@ -34,7 +34,7 @@ class CallTask : public StrategicTask
 public:
   CallTask(StrategicSearch& searchObject,
 	   int startIndex,
-	   int callee,
+	   RewriteStrategy* callee,
 	   StrategyExpression* strategy,
 	   StrategyStackManager::StackId pending,
 	   VariableBindingsManager::ContextId varBinds,
@@ -49,7 +49,7 @@ public:
 
 private:
   StrategicSearch& searchObject;
-  int callee;
+  RewriteStrategy* callee;
 };
 
 #endif

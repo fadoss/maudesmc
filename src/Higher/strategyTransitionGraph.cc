@@ -38,6 +38,8 @@
 //	core class definitions
 #include "rewriteSearchState.hh"
 #include "strategyTransitionGraph.hh"
+#include "rule.hh"
+#include "rewriteStrategy.hh"
 
 //	mixfix class definitions
 #include "token.hh"
@@ -332,8 +334,7 @@ StrategyTransitionGraph::Substate::~Substate()
 void StrategyTransitionGraph::commitState(int dagNode,
 					  StrategyStackManager::StackId stackId,
 					  StrategicExecution* taskSibling,
-					  TransitionType type,
-					  int data)
+					  const Transition& transition)
 {
   StrategicTask* task = taskSibling->getOwner();
   int nextStateNr;
@@ -367,7 +368,7 @@ void StrategyTransitionGraph::commitState(int dagNode,
 	while (enclosing != 0)
 	  {
 	    completeDag = enclosing->onCommitState(completeDag, stackId,
-						   taskSibling, type, data);
+						   taskSibling, transition);
 
 	    // The enclosing task has said that this new state will
 	    // be committed in a different way
@@ -433,7 +434,7 @@ void StrategyTransitionGraph::commitState(int dagNode,
 
   // Links with the parent state
   currentSubstate->nextStates.append(nextStateNr);
-  currentSubstate->fwdArcs[nextStateNr].insert(Transition(type, data));
+  currentSubstate->fwdArcs[nextStateNr].insert(transition);
 
   // Increment the number of solutions and collects garbage
   ++nrNextStates;
@@ -441,12 +442,11 @@ void StrategyTransitionGraph::commitState(int dagNode,
 }
 
 void StrategyTransitionGraph::linkState(int nextState,
-					StrategyTransitionGraph::TransitionType type,
-					int data)
+					const Transition& transition)
 {
   // Links the current state with the nextState
   currentSubstate->nextStates.append(nextState);
-  currentSubstate->fwdArcs[nextState].insert(Transition(type, data));
+  currentSubstate->fwdArcs[nextState].insert(transition);
 
   // Increment the number of solutions
   ++nrNextStates;
@@ -456,8 +456,7 @@ int StrategyTransitionGraph::newState(int dagNode,
 				      int completeDagNode,
 				      StrategyStackManager::StackId stackId,
 				      StrategicProcess* initialProcess,
-				      StrategyTransitionGraph::TransitionType type,
-				      int data)
+				      const Transition& transition)
 {
   StrategicTask* task = initialProcess->getOwner()->getOwner();
 
@@ -469,7 +468,7 @@ int StrategyTransitionGraph::newState(int dagNode,
     while (enclosing != 0)
       {
 	completeDag = enclosing->onCommitState(completeDag, stackId,
-					       initialProcess, type, data);
+					       initialProcess, transition);
 
 	enclosing = enclosing == enclosing->getEnclosingSubtermTask()
 		      ? 0 : enclosing->getEnclosingSubtermTask();
@@ -481,7 +480,7 @@ int StrategyTransitionGraph::newState(int dagNode,
   newState->stateNr = stateNr;
 
   seen->append(newState);
-  linkState(stateNr, type, data);
+  linkState(stateNr, transition);
 
   return stateNr;
 }
@@ -994,17 +993,17 @@ void StrategyTransitionGraph::dotDump(ostream& s) const
 	  writeInt(s, current->nextStates[j]);
 
 	  const Transition & transition = *current->fwdArcs[current->nextStates[j]].begin();
-	  switch (transition.type)
+	  switch (transition.getType())
 	    {
 	      case SOLUTION : s.put(0); break;
 	      case RULE_APPLICATION :
 		s.put(1);
-		position = table.position(DumpTable::TOKEN, transition.data);
+		position = table.position(DumpTable::TOKEN, transition.getRule()->getLabel().id());
 		writeInt(s, position);
 		break;
 	      case OPAQUE_STRATEGY :
 		s.put(2);
-		position = table.position(DumpTable::TOKEN, transition.data);
+		position = table.position(DumpTable::TOKEN, transition.getStrategy()->id());
 		writeInt(s, position);
 		break;
 	    }
