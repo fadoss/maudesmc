@@ -82,8 +82,7 @@ public:
   virtual int onCommitState(int dagNode,
 			    StrategyStackManager::StackId stackId,
 			    StrategicExecution* taskSibling,
-			    StrategyTransitionGraph::TransitionType type,
-			    int data) = 0;
+			    const StrategyTransitionGraph::Transition& transition) = 0;
 
   ~ModelCheckerSubtermTask();
 

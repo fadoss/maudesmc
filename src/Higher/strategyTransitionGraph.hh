@@ -47,21 +47,38 @@ public:
     SOLUTION		// self loops for solutions
   };
 
-  // Describe a transition by its type and additional data, whose meaning
-  // depends on the particular case.
+  // Transitions are described by a rule or strategy definition pointer.
   //
-  // A std::pair could be enough and == and < would be defined for free,
-  // but the attribute names would be confusing.
+  // Since transitions are stored aplenty but consulted unfrequently,
+  // a low-level hack is used to reduce the struct size: writing
+  // the transition type in the lowest bit of the union, assuming
+  // that the pointers it stores are aligned at least to two bytes.
+  //
   struct Transition
   {
     Transition();	// for solutions
-    Transition(TransitionType type, int data);
+    Transition(Rule* rule);
+    Transition(RewriteStrategy* strategy);
 
     bool operator ==(const Transition &other) const;
     bool operator <(const Transition &other) const;
 
-    TransitionType type;
-    int data;	// rule label, strategy name or matchrew position
+    Rule* getRule() const;
+    RewriteStrategy* getStrategy() const;
+    TransitionType getType() const;
+
+    private:
+
+    union {
+      Rule* rule;
+      RewriteStrategy* strategy;
+      uintptr_t raw;
+    };
+
+    static_assert(alignof(Rule*) >= 2, "pointers are not aligned, "
+      "but the lowest bit is used as a flag");
+
+    static constexpr uintptr_t MASK = 0x1;
   };
 
   typedef map<int, set<Transition> > ArcMap;
@@ -76,6 +93,7 @@ public:
   int getNextState(int stateNr, int index);
   DagNode* getStateDag(int stateNr) const;
   const ArcMap& getStateFwdArcs(int stateNr) const;
+  StrategyExpression* getStrategyContinuation(int stateNr) const;
   bool isSolutionState(int stateNr) const;
 
   //
@@ -92,24 +110,21 @@ public:
   void commitState(int dagNode,
 		   StrategyStackManager::StackId stackId,
 		   StrategicExecution* taskSibling,
-		   TransitionType type,
-		   int data);
+		   const Transition& transition);
 
   // This function are variation of commitState needed for an
   // implementation of the matchrew operator
 
   // Links the current state with the given state
   void linkState(int nextState,
-		 TransitionType type,
-		 int data);
+		 const Transition& transition);
 
   // Creates a new state
   int newState(int dagNode,
 	       int completeDagNode,
 	       StrategyStackManager::StackId stackId,
 	       StrategicProcess* initialProcess,
-	       TransitionType type,
-	       int data);
+	       const Transition& transition);
 
   // Marks a states as a solution
   void markSolution(int state);
@@ -281,6 +296,12 @@ StrategyTransitionGraph::getStateDag(int stateNr) const
   return getCanonical((*seen)[stateNr]->completeDagNode);
 }
 
+inline StrategyExpression*
+StrategyTransitionGraph::getStrategyContinuation(int stateNr) const
+{
+  return top((*seen)[stateNr]->stackId);
+}
+
 inline const StrategyTransitionGraph::ArcMap&
 StrategyTransitionGraph::getStateFwdArcs(int stateNr) const
 {
@@ -322,27 +343,54 @@ StrategyTransitionGraph::transferCount(RewritingContext& recipient)
 
 inline
 StrategyTransitionGraph::Transition::Transition()
- : type(SOLUTION), data(0)
+ : raw(0)
 {
 }
 
 inline
-StrategyTransitionGraph::Transition::Transition(TransitionType type, int data)
- : type(type), data(data)
+StrategyTransitionGraph::Transition::Transition(Rule* rule)
+ : rule(rule)
 {
+}
+
+inline
+StrategyTransitionGraph::Transition::Transition(RewriteStrategy* strategy)
+ : strategy(strategy)
+{
+  raw |= MASK;
 }
 
 inline bool
 StrategyTransitionGraph::Transition::operator ==(const Transition &other) const
 {
-  return type == other.type && (type == SOLUTION || data == other.data);
+  return raw == other.raw;
 }
 
 inline bool
 StrategyTransitionGraph::Transition::operator <(const Transition &other) const
 {
-  return type < other.type
-      || (type == other.type && data < other.data);
+  return raw < other.raw;
+}
+
+inline StrategyTransitionGraph::TransitionType
+StrategyTransitionGraph::Transition::getType() const
+{
+  return raw == 0 ? TransitionType::SOLUTION : ((raw & MASK) == 0 ?
+      TransitionType::RULE_APPLICATION
+    : TransitionType::OPAQUE_STRATEGY);
+}
+
+inline Rule*
+StrategyTransitionGraph::Transition::getRule() const
+{
+  return (raw & MASK) == 0 ? rule : nullptr;
+}
+
+inline RewriteStrategy*
+StrategyTransitionGraph::Transition::getStrategy() const
+{
+  return (raw & MASK) == 0 ? nullptr :
+    reinterpret_cast<RewriteStrategy*>(raw & ~ MASK);
 }
 
 inline bool

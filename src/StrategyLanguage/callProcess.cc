@@ -158,7 +158,7 @@ CallProcess::run(StrategicSearch& searchObject)
 
       StrategicTask* callTask = new CallTask(searchObject,
 		subjectDagIndex,
-		strategy->id(),
+		strategy,
 		sdef->getRhs(),
 		optimizedCall ? getOwner()->getContinuation() : pending,
 		cid,
