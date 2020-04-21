@@ -17,7 +17,9 @@
 #include <sstream>
 
 // To retrieve the module path (dladdr, non-standard)
-#ifdef __APPLE__
+#if defined(_WIN32)
+#include <windows.h>
+#elif defined(__APPLE__)
 #include <dlfcn.h>
 #else
 #include <link.h>
@@ -274,11 +276,17 @@ MaudePINSModule::loadMaudeFile(const char* filename, bool readPrelude) {
 
 	createRootBuffer(fp, false);
 
-	// To obtain the path where the module is to find here the prelude
+	// Obtain the path where the Maude library is to locate the prelude
+	#ifdef _WIN32
+	char buffer[FILENAME_MAX];
+	GetModuleFileName(GetModuleHandle("libmaude.dll"), buffer, FILENAME_MAX);
+	string executable(buffer);
+	#else
 	Dl_info dlinfo;
-	dladdr((void*) &tokenizeString, &dlinfo);
-
+	dladdr((void*) &createRootBuffer, &dlinfo);
 	string executable(dlinfo.dli_fname);
+	#endif
+
 	directoryManager.initialize();
 	findExecutableDirectory(executableDirectory, executable);
 	if (readPrelude) {
@@ -360,7 +368,7 @@ MaudePINSModule::selectMetamodule(const char* moduleTerm) {
 	}
 
 	DagNode* dagMetamod = toDag(term);
-	RewritingContext* context = new RewritingContext(dagMetamod);
+	RewritingContext* context = new UserLevelRewritingContext(dagMetamod);
 	context->reduce();
 
 	// Turn the metamodule into a object-level module
@@ -686,7 +694,9 @@ next_state_strat(void* model, int group, int *src, TransitionCB callback, void *
 		#endif
 
 		auto &transition = *maudem.sgraph->getStateFwdArcs(state).at(nextState).begin();
-		int ruleLabel = transition.type == StrategyTransitionGraph::RULE_APPLICATION ? transition.data : -(1+transition.data);
+		int ruleLabel = transition.getType() == StrategyTransitionGraph::RULE_APPLICATION
+			? transition.getRule()->getLabel().id()
+			: -(1 + transition.getStrategy()->id());
 		edgeLabel = maudem.elabelTranslation[ruleLabel];
 		callback(arg, &tinfo, &nextState, &written);
 
@@ -727,9 +737,9 @@ next_state_strat_purged(void* model, int group, int *src, TransitionCB callback,
 
 		if (maudem.validStates[nextState]) {
 			auto &transition = *maudem.sgraph->getStateFwdArcs(state).at(nextState).begin();
-			int ruleLabel = transition.type == StrategyTransitionGraph::RULE_APPLICATION
-				? transition.data
-				: -(1+transition.data);
+			int ruleLabel = transition.getType() == StrategyTransitionGraph::RULE_APPLICATION
+				? transition.getRule()->getLabel().id()
+				: -(1 + transition.getStrategy()->id());
 			edgeLabel = maudem.elabelTranslation[ruleLabel];
 			callback(arg, &tinfo, &nextState, &written);
 			count++;
@@ -776,8 +786,9 @@ next_state_strat_merged(void* model, int group, int *src, TransitionCB callback,
 		while (nextState != -1) {
 			if (popt_purge && maudem.validStates[nextState]) {
 				auto &transition = *maudem.sgraph->getStateFwdArcs(state).at(nextState).begin();
-				int ruleLabel = transition.type == StrategyTransitionGraph::RULE_APPLICATION
-							? transition.data : -(1+transition.data);
+				int ruleLabel = transition.getType() == StrategyTransitionGraph::RULE_APPLICATION
+							? transition.getRule()->getLabel().id()
+							: -(1 + transition.getStrategy()->id());
 
 				auto &[succStates, succEdges] = successors[maudem.sgraph->getStatePoint(nextState).first];
 				succStates.insert(nextState);
@@ -856,8 +867,9 @@ next_state_strat_merged_edge(void* model, int group, int *src, TransitionCB call
 		while (nextState != -1) {
 			if (popt_purge && maudem.validStates[nextState]) {
 				auto &transition = *maudem.sgraph->getStateFwdArcs(state).at(nextState).begin();
-				int ruleLabel = transition.type == StrategyTransitionGraph::RULE_APPLICATION
-							? transition.data : -(1+transition.data);
+				int ruleLabel = transition.getType() == StrategyTransitionGraph::RULE_APPLICATION
+							? transition.getRule()->getLabel().id()
+							: -(1 + transition.getStrategy()->id());
 
 				set<int> &succStates = successors[{maudem.elabelTranslation[ruleLabel],
 								           maudem.sgraph->getStatePoint(nextState).first}];
@@ -1074,7 +1086,7 @@ pins_maude_model_init(model_t m, const char* maudef) {
 				ruleLabels.insert(strat->id());
 
 		for (int strat : ruleLabels) {
-			maudem.elabelTranslation[-(1+strat)] = index;
+			maudem.elabelTranslation[-(1 + strat)] = index;
 			pins_chunk_put(m, rule_type, chunk_str((string("opaque_") + Token::name(strat)).c_str()));
 			index++;
 		}
