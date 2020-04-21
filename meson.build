@@ -10,11 +10,21 @@ add_project_arguments('-DHAVE_CONFIG_H', language : 'cpp')
 conf = configuration_data()
 
 # Replicates the options and settings of the original Autotools system
-conf.set_quoted('PACKAGE', meson.project_name(), description: 'Name of package')
-conf.set_quoted('VERSION', meson.project_version(), description: 'Version number of package')
-conf.set_quoted('PACKAGE_VERSION', meson.project_version(), description: 'Define to the version of this package')
-conf.set_quoted('PACKAGE_STRING', meson.project_name() + ' ' + meson.project_version(), description: 'Define to the full name and version of this package')
-conf.set_quoted('PACKAGE_BUGREPORT', 'maude-bugs@lists.cs.illinois.edu', description: 'Define to the address where bug reports for this package should be sent')
+conf.set_quoted('PACKAGE',
+	meson.project_name(),
+	description: 'Name of package')
+conf.set_quoted('VERSION',
+	meson.project_version(),
+	description: 'Version number of package')
+conf.set_quoted('PACKAGE_VERSION',
+	meson.project_version(),
+	description: 'Define to the version of this package')
+conf.set_quoted('PACKAGE_STRING',
+	meson.project_name() + ' ' + meson.project_version(),
+	description: 'Define to the full name and version of this package')
+conf.set_quoted('PACKAGE_BUGREPORT',
+	'maude-bugs@lists.cs.illinois.edu',
+	description: 'Define to the address where bug reports for this package should be sent')
 
 if get_option('enable-debug')
 	conf.set('DUMP', 1, description: 'include dump code')
@@ -45,7 +55,8 @@ systemTypes = {
 foreach key, type : systemTypes
 	size = cxx.sizeof(type)
 	if size > 0
-		conf.set('SIZEOF_' + key, size, description: 'The size of ' + type + ', as computed by sizeof.')
+		conf.set('SIZEOF_' + key, size,
+			 description: 'The size of ' + type + ', as computed by sizeof.')
 	endif
 endforeach
 
@@ -73,7 +84,8 @@ systemHeaders = [
 foreach header : systemHeaders
 	name = header.to_upper().underscorify()
 	if cxx.has_header(header)
-		conf.set('HAVE_' + name, 1, description: 'Define to 1 if you have the <' + header + '> header file.')
+		conf.set('HAVE_' + name, 1,
+			 description: 'Define to 1 if you have the <' + header + '> header file.')
 	endif
 endforeach
 
@@ -84,22 +96,54 @@ endforeach
 # Allow additional header and library directories
 extraSearchPaths = get_option('extra-lib-dirs')
 extraIncludePaths = get_option('extra-include-dirs')
+extraIncludeArgs = []
 
 foreach path : extraIncludePaths
-	add_project_arguments('-I' + path, language: 'cpp')
+	extraIncludeArgs += ['-I' + path]
 endforeach
 
-# BuDDy library (http://sourceforge.net/projects/buddy)
-buddy = cxx.find_library('bdd', dirs: extraSearchPaths)
-# GNU multiprecision library (https://gmplib.org/)
-gmpxx = cxx.find_library('gmpxx', dirs: extraSearchPaths)
-gmp = cxx.find_library('gmp', dirs: extraSearchPaths)
-# GNU readline (https://tiswww.case.edu/php/chet/readline/rltop.html)
-readline = dependency('readline', required: get_option('with-readline'))
-# GNU libsigsegv (https://www.gnu.org/software/libsigsegv/)
-sigsegv = cxx.find_library('sigsegv', required: get_option('with-sigsegv'), dirs: extraSearchPaths)
+add_project_arguments(extraIncludeArgs, language: 'cpp')
 
-libraries = [buddy, gmpxx, gmp, sigsegv]
+# Indicate which libraries must be statically linked
+staticLibs = get_option('static-libs')
+
+libraries = []
+
+# GNU multiprecision library (https://gmplib.org/)
+gmpxx = dependency('gmpxx',
+		static: 'gmp' in staticLibs,
+		required: false)
+
+if not gmpxx.found()
+	# Versions before 6.2.0 do not include a pkg-config file
+
+	gmpxx = cxx.find_library('gmpxx',
+			static: 'gmp' in staticLibs,
+			dirs: extraSearchPaths)
+	gmp = cxx.find_library('gmp',
+			static: 'gmp' in staticLibs,
+			dirs: extraSearchPaths)
+
+	libraries += [gmp]
+endif
+
+# GNU readline (https://tiswww.case.edu/php/chet/readline/rltop.html)
+readline = dependency('readline',
+		static: 'readline' in staticLibs,
+		required: get_option('with-readline'))
+
+# BuDDy library (http://sourceforge.net/projects/buddy)
+buddy = cxx.find_library('bdd',
+		static: 'buddy' in staticLibs,
+		dirs: extraSearchPaths)
+
+# GNU libsigsegv (https://www.gnu.org/software/libsigsegv/)
+sigsegv = cxx.find_library('sigsegv',
+		static: 'sigsegv' in staticLibs,
+		required: get_option('with-sigsegv'),
+		dirs: extraSearchPaths)
+
+libraries += [buddy, gmpxx, sigsegv]
 
 if readline.found()
 	conf.set('USE_READLINE', 1, description: 'use GNU readline command line editing library')
@@ -113,12 +157,19 @@ endif
 smtOption = get_option('with-smt')
 
 if smtOption == 'yices2'
-	yices2 = cxx.find_library('yices', dirs: extraSearchPaths)
+	yices2 = cxx.find_library('yices',
+			static: 'yices2' in staticLibs,
+			dirs: extraSearchPaths)
 	libraries += [yices2]
 	conf.set('USE_YICES2', 1, description: 'use Yices2 SMT solver library')
+
 elif smtOption == 'cvc4'
-	cvc4 = cxx.find_library('cvc4', dirs: extraSearchPaths)
-	cln = cxx.find_library('cln', dirs: extraSearchPaths)
+	cvc4 = cxx.find_library('cvc4',
+			static: 'cvc4' in staticLibs,
+			dirs: extraSearchPaths)
+	cln = cxx.find_library('cln',
+			dirs: extraSearchPaths,
+			required: false)
 	libraries += [cvc4, cln]
 	conf.set('USE_CVC4', 1, description: 'use CVC4 SMT solver library')
 endif
@@ -1022,6 +1073,9 @@ if get_option('enable-compiler')
 	maudeSubdirsInternal += [fullCompiler]
 endif
 
+#
+## Maude as a library
+
 libmaude = shared_library('maude',
 	link_whole: maudeSubdirs,
 	link_with: maudeSubsdirsInternal,
@@ -1030,23 +1084,25 @@ libmaude = shared_library('maude',
 )
 
 libmaude_includes = include_directories(
+	'src/BuiltIn',
 	'src/Core',
-	'src/StrategyLanguage',
+	'src/FreeTheory',
+	'src/FullCompiler',
 	'src/Higher',
 	'src/Interface',
-	'src/Utility',
-	'src/FullCompiler',
+	'src/IO_Stuff',
 	'src/Meta',
 	'src/Mixfix',
-	'src/Variable',
-	'src/IO_Stuff',
-	'src/FreeTheory',
-	'src/BuiltIn',
-	'src/SMT',
 	'src/NA_Theory',
-	'src/Parser',
 	'src/ObjectSystem',
+	'src/Parser',
+	'src/SMT',
 	'src/S_Theory',
+	'src/StrategyLanguage',
+	'src/Temporal',
+	'src/Utility',
+	'src/Variable',
+	'ltsmod',
 )
 
 libmaude_dep = declare_dependency(
@@ -1054,13 +1110,28 @@ libmaude_dep = declare_dependency(
 	link_with: libmaude
 )
 
+# Sets the RPATH so that maude can find libmaude in the same directory
+if target_machine.system() == 'darwin'
+	rpath_value = '@loader_path'
+else
+	rpath_value = '$ORIGIN'
+endif
+
+#
+## The Maude interpreter using the library
+#
+# IO_Manager is compiled again with the _LB_EXCUTABLE flag to
+# replace the default input functions with those using GNU
+# readline, which should not be included in the library.
+
 executable('maude',
 	'src/IO_Stuff/IO_Manager.cc',
 	include_directories: ioStuff_includes,
 	link_with: main,
 	dependencies: [libmaude_dep, readline],
 	cpp_args: '-DLIBRARY_BUILD=_LB_EXECUTABLE',
-	install: true
+	install: true,
+	install_rpath: rpath_value
 )
 
 install_data(
@@ -1077,12 +1148,20 @@ install_data(
 	'src/Main/time.maude',
 )
 
+#
+## The model-checking plugin for LTSmin
+
 if get_option('with-ltsmin').enabled()
+
+	cxx.has_header('ltsmin/pins.h', args: extraIncludeArgs, required: true)
+	dependency('popt', static: 'popt' in staticLibs)
+
 	shared_module('maudemc',
 		'ltsmod/maudemc.cc',
 		dependencies: libmaude_dep,
 		include_directories: include_directories('ltsmod'),
 		override_options: ['cpp_std=c++17'],
+		install_rpath: rpath_value,
 		install: true
 	)
 endif
