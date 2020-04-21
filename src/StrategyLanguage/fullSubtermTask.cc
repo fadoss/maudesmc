@@ -34,7 +34,7 @@
 //	interface class definitions
 #include "extensionInfo.hh"
 
-//	higuer class definitions
+//	higher class definitions
 #include "strategyTransitionGraph.hh"
 
 //	strategy language class definitions
@@ -253,7 +253,7 @@ Survival FullSubtermTask::InterleaverProcess::run(StrategicSearch& searchObject)
   if (it != parent->stateMap.end())
     {
       graph->selectSubgraph(originalGraph);
-      graph->linkState(it->second.first, transition.type, transition.data);
+      graph->linkState(it->second.first, transition);
     }
 
   // Otherwise, a new state is created, but without calling commitState
@@ -285,8 +285,7 @@ Survival FullSubtermTask::InterleaverProcess::run(StrategicSearch& searchObject)
 				       completeDagNode,
 				       stateInfo.second,
 				       firstProcess,
-				       transition.type,
-				       transition.data);
+				       transition);
 
       // Maps the current subterm combination to the new state
       parent->stateMap[subgraphStates] = make_pair(newStateNr, isSolution);
@@ -363,8 +362,7 @@ StrategicExecution::Survival FullSubtermTask::executionsExhausted(StrategicProce
 int FullSubtermTask::onCommitState(int dagIndex,
 				   StrategyStackManager::StackId stackId,
 				   StrategicExecution* taskSibling,
-				   StrategyTransitionGraph::TransitionType type,
-				   int data)
+				   const StrategyTransitionGraph::Transition& transition)
 {
   CantHappen("onCommitState called for FullSubtermTask");
   return NONE;

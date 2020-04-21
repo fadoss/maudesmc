@@ -110,8 +110,7 @@ Survival BiasedSubtermTask::executionSucceeded(int dagNode, StrategicProcess* in
 int BiasedSubtermTask::onCommitState(int rewrittenSubterm,
 				     StrategyStackManager::StackId,
 				     StrategicExecution*,
-				     StrategyTransitionGraph::TransitionType,
-				     int)
+				     const StrategyTransitionGraph::Transition& transition)
 {
   subterms[currentSubterm] = searchObject.getCanonical(rewrittenSubterm);
   return rebuild(subterms);

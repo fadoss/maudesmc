@@ -33,6 +33,10 @@
 #include "core.hh"
 #include "strategyLanguage.hh"
 
+//	core class definitions
+#include "symbol.hh"
+#include "rewriteStrategy.hh"
+
 //	higher class definitions
 #include "strategyTransitionGraph.hh"
 
@@ -43,7 +47,7 @@
 
 CallTask::CallTask(StrategicSearch& searchObject,
 		   int startIndex,
-		   int callee,
+		   RewriteStrategy* callee,
 		   StrategyExpression* strategy,
 		   StrategyStackManager::StackId pending,
 		   VariableBindingsManager::ContextId varBinds,
@@ -64,12 +68,12 @@ CallTask::CallTask(StrategicSearch& searchObject,
   // When running an opaque strategy, model checking is disabled inside
   //
   StrategyTransitionGraph* transitionGraph = getTransitionGraph();
-  if (transitionGraph != 0 && callee != NONE && transitionGraph->isOpaque(callee))
+  if (transitionGraph != 0 && callee != nullptr && transitionGraph->isOpaque(callee->id()))
     setTransitionGraph(0);
-  // Otherwise, callee is set to NONE because the information is not needed and we
-  // can then use callee != NONE to detect if we are running an opaque strategy
+  // Otherwise, callee is set to nullptr because the information is not needed and we
+  // can then use callee != nullptr to detect if we are running an opaque strategy
   else
-    this->callee = NONE;
+    this->callee = nullptr;
 }
 
 StrategicExecution::Survival
@@ -78,11 +82,8 @@ CallTask::executionSucceeded(int resultIndex, StrategicProcess* insertionPoint)
   StrategyTransitionGraph* transitionGraph = getOwner()->getTransitionGraph();
 
   // For opaque strategies, we inform that a new state has been reached
-  if (callee != NONE)
-    {
-      transitionGraph->commitState(resultIndex, pending, this,
-				   StrategyTransitionGraph::OPAQUE_STRATEGY, callee);
-    }
+  if (callee != nullptr)
+    transitionGraph->commitState(resultIndex, pending, this, callee);
   // Otherwise, we recover the execution just after the strategy call
   else
    resumeOwner(resultIndex, pending, insertionPoint);

@@ -61,8 +61,7 @@ public:
   int onCommitState(int dagNode,
 		    StrategyStackManager::StackId stackId,
 		    StrategicExecution* taskSibling,
-		    StrategyTransitionGraph::TransitionType type,
-		    int data);
+		    const StrategyTransitionGraph::Transition& transition);
 
 private:
   //
