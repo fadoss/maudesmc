@@ -154,7 +154,7 @@ CallStrategy::decompose(StrategicSearch& searchObject, DecompositionProcess* rem
 
       StrategicTask* callTask = new CallTask(searchObject,
 			  remainder->getDagIndex(),
-			  strategy->id(),
+			  strategy,
 			  definition->getRhs(),
 			  remainder->getPending(),
 			  VariableBindingsManager::EMPTY_CONTEXT,
