@@ -205,11 +205,11 @@ StrategyModelCheckerSymbol::makeTransition(const StrategyTransitionGraph& states
 
   const StrategyTransitionGraph::Transition &transition = *(i->second.begin());
 
-  switch (transition.type)
+  switch (transition.getType())
     {
       case StrategyTransitionGraph::RULE_APPLICATION :
 	{
-	  int label = transition.data;
+	  int label = transition.getRule()->getLabel().id();
 
 	  args[1] = (label == NONE) ? unlabeledSymbol->makeDagNode() :
 		      new QuotedIdentifierDagNode(qidSymbol, label);
@@ -218,7 +218,9 @@ StrategyModelCheckerSymbol::makeTransition(const StrategyTransitionGraph& states
       case StrategyTransitionGraph::OPAQUE_STRATEGY :
 	{
 	  Vector<DagNode*> args2(1);
-	  args2[0] = new QuotedIdentifierDagNode(qidSymbol, transition.data);
+	  int label = transition.getStrategy()->id();
+
+	  args2[0] = new QuotedIdentifierDagNode(qidSymbol, label);
 	  args[1] = opaqueSymbol->makeDagNode(args2);
 	  break;
 	}
@@ -247,7 +249,7 @@ StrategyModelCheckerSymbol::makeTransitionList(const StrategyTransitionGraph& st
 	{
 	  // This removes the transition to the fake self-loop state.
 	  // Read StrategyTransitionGraph::getSelfLoop for an explanation.
-	  if (!firstPath || states.getStateFwdArcs(stateNr).find(lastTarget)->second.begin()->type
+	  if (!firstPath || states.getStateFwdArcs(stateNr).find(lastTarget)->second.begin()->getType()
 		!= StrategyTransitionGraph::SOLUTION)
 	    {
 	      args.append(makeTransition(states, stateNr, lastTarget));

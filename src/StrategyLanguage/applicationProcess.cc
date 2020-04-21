@@ -176,9 +176,7 @@ ApplicationProcess::run(StrategicSearch& searchObject)
 
 	      else
 		// Announces to the model checker that a new state has been reached
-		graph->commitState(resultIndex, pending, this,
-				   StrategyTransitionGraph::RULE_APPLICATION,
-				   rule->getLabel().id());
+		graph->commitState(resultIndex, pending, this, rule);
 
 	      return SURVIVE;  // stick around to look for another rewrite
 	    }
@@ -382,9 +380,7 @@ ApplicationProcess::resolveRemainingConditionFragments(StrategicSearch& searchOb
 
       else
 	// Announces to the model checker that a new state has been reached
-	graph->commitState(resultIndex, pending, taskSibling,
-			    StrategyTransitionGraph::RULE_APPLICATION,
-			    rule->getLabel().id());
+	graph->commitState(resultIndex, pending, taskSibling, rule);
 
       return SURVIVE;  // stick around to look for another rewrite
     }
