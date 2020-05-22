@@ -15,6 +15,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <sstream>
+#include <mutex>
 
 // To retrieve the module path (dladdr, non-standard)
 #if defined(_WIN32)
@@ -29,7 +30,7 @@
 #include "macros.hh"
 #include "vector.hh"
 
-// forward instantiations
+// forward declarations
 #include "interface.hh"
 #include "core.hh"
 #include "higher.hh"
@@ -77,16 +78,20 @@ using namespace std;
 //
 
 extern "C" {
+	// Next-state functions for each model variant (replicated for efficiency)
 	int next_state(void* model, int group, int *src, TransitionCB callback, void *arg);
 	int next_state_strat(void* model, int group, int *src, TransitionCB callback, void *arg);
 	int next_state_strat_purged(void* model, int group, int *src, TransitionCB callback, void *arg);
 	int next_state_strat_merged(void* model, int group, int *src, TransitionCB callback, void *arg);
 	int next_state_strat_merged_edge(void* model, int group, int *src, TransitionCB callback, void *arg);
+	// State-label (i.e. atomic-proposition) checking function
 	int state_label(model_t m, int label, int* src);
+	// Maude language module entry point
 	void pins_maude_model_init(model_t m, const char* maudef);
 }
 
-void at_exit();	// The LTSmin GBsetExit is not always executed
+// Function to be called at the program exit to show some statistics
+void at_exit();
 
 // The name of plugin
 char pins_plugin_name[] = "maude-mc";
@@ -128,7 +133,7 @@ class MaudePINSModule {
 	// (only one of them is not null)
 	StateTransitionGraph* graph = nullptr;
 	StrategyTransitionGraph* sgraph = nullptr;
-	// Term true and satisfies symbol to test atomic propositions
+	// Bool's true term and satisfies symbol to test atomic propositions
 	CachedDag trueTerm;
 	Symbol* satisfiesSymbol = nullptr;
 
@@ -138,7 +143,7 @@ class MaudePINSModule {
 	vector<string> atomicNames;
 
 	#ifdef STATE_AS_CHUNK
-	// Index of the highest state known by the translator
+	// Index of the highest state known by the translator plus one
 	int stateCount = 1;
 	int state_type;
 	#endif
@@ -155,7 +160,11 @@ class MaudePINSModule {
 	vector<set<int>> mergedStates;
 	map<set<int>, int> mergedStTable;
 
-	// Wrapper of the getNextState of Maude graphs
+	// Maude does not support concurrent reductions and pins2lts-sym
+	// may check state labels in parallel
+	std::mutex mutex;
+
+	// Wrapped getNextState for Maude graphs
 	int getNextState(int stateNr, int index);
 
 	bool checkProposition(int stateNr, int propIndex);
@@ -250,11 +259,14 @@ MaudePINSModule::checkProposition(int stateNr, int propositionIndex) {
 		args[0] = sgraph->getStateDag(*mergedStates[stateNr].begin());
 	args[1] = atomicProps[propositionIndex].getNode();
 
+	mutex.lock();
+	// This is a critical section since the Maude rewriting engine is not reentrant
 	RewritingContext* testContext = context->makeSubcontext(satisfiesSymbol->makeDagNode(args));
 	testContext->reduce();
 	bool result = trueTerm.getDag()->equal(testContext->root());
 	context->addInCount(*testContext);
 	delete testContext;
+	mutex.unlock();
 
 	return result;
 }
@@ -524,7 +536,7 @@ MaudePINSModule::parseStrategyExpr(const char* txt) {
 	VariableInfo vinfo;
 	TermSet termSet;
 
-	// Check that the variable expression is well-formed and prepare it
+	// Check whether the strategy expression is well-formed and prepare it
 	if (!strategy->check(vinfo, termSet)) {
 		Printf(assertion, "%s: bad strategy\n", pins_plugin_name);
 		ltsmin_abort(4);
@@ -586,7 +598,7 @@ MaudePINSModule::expand(int state) {
 		else if (validStates[nextState]) {
 			thisIsValid = true;
 		}
-		// Otherwisw, a failure state is reached
+		// Otherwise, nextState is a failed state
 
 		nextState = maudem.getNextState(state, ++index);
 	}
@@ -615,6 +627,18 @@ at_exit() {
 	// Print the number of rewrites only (initialization error)
 	else if (maudem.context != nullptr)
 		Printf(infoShort, "%s: %li rewrites\n", pins_plugin_name, maudem.context->getTotalCount());
+}
+
+inline int
+getLabel(const StrategyTransitionGraph::Transition &transition) {
+	switch (transition.getType()) {
+		case StrategyTransitionGraph::RULE_APPLICATION:
+			return transition.getRule()->getLabel().id();
+		case StrategyTransitionGraph::OPAQUE_STRATEGY:
+			return -(1 + transition.getStrategy()->id());
+		default: // StrategyTransitionGraph::SOLUTION
+			return 0;	// zero is reserved for deadlock/solution
+	}
 }
 
 
@@ -670,7 +694,7 @@ next_state(void* model, int group, int *src, TransitionCB callback, void *arg) {
 	return index;
 }
 
-// Next state function for strategy-aware case
+// Next state function for the strategy-aware case
 
 extern "C" int
 next_state_strat(void* model, int group, int *src, TransitionCB callback, void *arg) {
@@ -694,10 +718,7 @@ next_state_strat(void* model, int group, int *src, TransitionCB callback, void *
 		#endif
 
 		auto &transition = *maudem.sgraph->getStateFwdArcs(state).at(nextState).begin();
-		int ruleLabel = transition.getType() == StrategyTransitionGraph::RULE_APPLICATION
-			? transition.getRule()->getLabel().id()
-			: -(1 + transition.getStrategy()->id());
-		edgeLabel = maudem.elabelTranslation[ruleLabel];
+		edgeLabel = maudem.elabelTranslation[getLabel(transition)];
 		callback(arg, &tinfo, &nextState, &written);
 
 		nextState = maudem.sgraph->getNextState(state, ++index);
@@ -737,10 +758,7 @@ next_state_strat_purged(void* model, int group, int *src, TransitionCB callback,
 
 		if (maudem.validStates[nextState]) {
 			auto &transition = *maudem.sgraph->getStateFwdArcs(state).at(nextState).begin();
-			int ruleLabel = transition.getType() == StrategyTransitionGraph::RULE_APPLICATION
-				? transition.getRule()->getLabel().id()
-				: -(1 + transition.getStrategy()->id());
-			edgeLabel = maudem.elabelTranslation[ruleLabel];
+			edgeLabel = maudem.elabelTranslation[getLabel(transition)];
 			callback(arg, &tinfo, &nextState, &written);
 			count++;
 		}
@@ -786,13 +804,10 @@ next_state_strat_merged(void* model, int group, int *src, TransitionCB callback,
 		while (nextState != -1) {
 			if (popt_purge && maudem.validStates[nextState]) {
 				auto &transition = *maudem.sgraph->getStateFwdArcs(state).at(nextState).begin();
-				int ruleLabel = transition.getType() == StrategyTransitionGraph::RULE_APPLICATION
-							? transition.getRule()->getLabel().id()
-							: -(1 + transition.getStrategy()->id());
 
 				auto &[succStates, succEdges] = successors[maudem.sgraph->getStatePoint(nextState).first];
 				succStates.insert(nextState);
-				succEdges.insert(maudem.elabelTranslation[ruleLabel]);
+				succEdges.insert(maudem.elabelTranslation[getLabel(transition)]);
 			}
 			nextState = maudem.sgraph->getNextState(state, ++index);
 		}
@@ -813,7 +828,7 @@ next_state_strat_merged(void* model, int group, int *src, TransitionCB callback,
 
 		int nextState;
 
-		// Check whether the states has been seen before
+		// Check whether the augmented state has been seen before
 		if (it == maudem.mergedStTable.end()) {
 			#ifdef STATE_AS_CHUNK
 			if (nextState >= maudem.stateCount) {
@@ -867,11 +882,8 @@ next_state_strat_merged_edge(void* model, int group, int *src, TransitionCB call
 		while (nextState != -1) {
 			if (popt_purge && maudem.validStates[nextState]) {
 				auto &transition = *maudem.sgraph->getStateFwdArcs(state).at(nextState).begin();
-				int ruleLabel = transition.getType() == StrategyTransitionGraph::RULE_APPLICATION
-							? transition.getRule()->getLabel().id()
-							: -(1 + transition.getStrategy()->id());
 
-				set<int> &succStates = successors[{maudem.elabelTranslation[ruleLabel],
+				set<int> &succStates = successors[{maudem.elabelTranslation[getLabel(transition)],
 								           maudem.sgraph->getStatePoint(nextState).first}];
 				succStates.insert(nextState);
 			}
@@ -893,7 +905,7 @@ next_state_strat_merged_edge(void* model, int group, int *src, TransitionCB call
 
 		int nextState;
 
-		// Check whether the states has been seen before
+		// Check whether the augmented state has been seen before
 		if (it == maudem.mergedStTable.end()) {
 			#ifdef STATE_AS_CHUNK
 			if (nextState >= maudem.stateCount) {
@@ -970,21 +982,34 @@ pins_maude_model_init(model_t m, const char* maudef) {
 	maudem.trueTerm.normalize();
 	maudem.trueTerm.prepare();
 
-	// Hacer esto de forma más limpia
-	Term* satisfiesTerm = maudem.parseTerm("S:State |= P:Prop");
+	// Find the satisfaction symbol
 
-	if (satisfiesTerm == nullptr) {
-		Printf(assertion, "%s: cannot find satisfaction symbol\n", pins_plugin_name);
+	Sort* stateSort = maudem.module->findSort(Token::encode("State"));
+	Sort* propSort = maudem.module->findSort(Token::encode("Prop"));
+	Sort* boolSort = maudem.module->findSort(Token::encode("Bool"));
+
+	if (stateSort == nullptr || propSort == nullptr) {
+		Printf(assertion, "%s: the selected module is not prepared for model checking "
+			"(missing State or Prop sorts)\n", pins_plugin_name);
 		ltsmin_abort(3);
 	}
 
-	maudem.satisfiesSymbol = satisfiesTerm->symbol();
-	satisfiesTerm->deepSelfDestruct();
+	Vector<ConnectedComponent*> domain(2);
+	domain[0] = stateSort->component();
+	domain[1] = propSort->component();
+
+	maudem.satisfiesSymbol = maudem.module->findSymbol(Token::encode("_|=_"), domain, boolSort->component());
+
+	if (maudem.satisfiesSymbol == nullptr) {
+		Printf(assertion, "%s: the selected module is not prepared for model checking "
+			"(missing satisfaction symbol)\n", pins_plugin_name);
+		ltsmin_abort(3);
+	}
 
 	// (8) Set up LTSmin environment
 
 	lts_type_t ltstype = lts_type_create();
-	// Our states are opaque
+	// Our states are opaque indices to Maude's internal graph
 	lts_type_set_state_length(ltstype, 1);
 	// The types of the states should be int
 	#ifdef STATE_AS_CHUNK
@@ -1006,8 +1031,6 @@ pins_maude_model_init(model_t m, const char* maudef) {
 	const size_t nrAtomicProps = maudem.atomicProps.size();
 	lts_type_set_state_label_count (ltstype, nrAtomicProps);
 	for (size_t i = 0; i < nrAtomicProps; i++) {
-		// Usar mejor los nombres que se pusieron a la entrada
-		// modificándolos si fuera necesario (quitar paréntesis)
 		lts_type_set_state_label_name(ltstype, i, maudem.atomicNames[i].c_str());
 		lts_type_set_state_label_type(ltstype, i, "prop");
 		lts_type_set_state_label_typeno(ltstype, i, aprop_type);
@@ -1020,7 +1043,7 @@ pins_maude_model_init(model_t m, const char* maudef) {
 	GBsetInitialState(m, &initialIndex);
 	GBsetStateLabelLong(m, (get_label_method_t) state_label);
 
-	// Select a different next method depending on the
+	// Select a different next-state method depending on the
 	// given configuration flags
 	next_method_grey_t next_method = (next_method_grey_t) next_state;
 
@@ -1046,12 +1069,13 @@ pins_maude_model_init(model_t m, const char* maudef) {
 					? next_state_strat_purged
 					: next_state_strat));
 
-		// If the option merge-states is not set or set to none
+		// If merging states
 		if (mergeValue != NONE) {
 			maudem.mergedStates.push_back({0});
 			maudem.mergedStTable[{0}] = 0;
 		}
 
+		// Expand the graph while purging failed states
 		if (popt_purge)
 			maudem.expand();
 	}
@@ -1069,8 +1093,12 @@ pins_maude_model_init(model_t m, const char* maudef) {
 
 	pins_chunk_put(m, rule_type, chunk_str("deadlock/solution"));
 	maudem.elabelTranslation[0] = 0;
+	pins_chunk_put(m, rule_type, chunk_str("%unlabeled%"));
+	maudem.elabelTranslation[-1] = 1;
 
-	size_t index = 1;
+	ruleLabels.erase(-1);
+
+	size_t index = 2;
 	for (int label : ruleLabels) {
 		maudem.elabelTranslation[label] = index;
 		pins_chunk_put(m, rule_type, chunk_str(Token::name(label)));
