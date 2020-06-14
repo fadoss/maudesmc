@@ -167,18 +167,8 @@ StrategyTransitionGraph::getNextState(int stateNr, int index)
 	  importFirstDependency(currentSubstate);
 	}
 
-      // The solutions are copied along the dependencies stack to the initial
-      // state. However, a solution from a dependency may have already been
-      // seen in its dependent, in which case it is not copied. Hence, the
-      // number of solutions nrNextState might be overestimated.
-
-      // If we probably have all the requested solutions
-      if (nrNextStates > index)
-	for (size_t i = dependencyStack.size(); i > 0; )
-	  importFirstDependency(dependencyStack[--i]);
-
-      // If there are no more processes to run
-      else if (currentSubstate->nextProcess == 0)
+      // If there are no more processes to run, but more children are needed
+      if (nrNextStates <= index && currentSubstate->nextProcess == 0)
 	{
 	  if (currentSubstate->dependencies.empty())
 	    return NONE;
@@ -202,6 +192,26 @@ StrategyTransitionGraph::getNextState(int stateNr, int index)
 	  currentSubstate = nextDependency;
 	  nrNextStates += currentSubstate->importDependencies();
 	}
+
+      // The solutions are copied along the dependencies stack to the initial
+      // state. However, a solution from a dependency may have already been
+      // seen in its dependent, in which case it is not copied. Hence, the
+      // number of solutions nrNextState might be overestimated.
+
+      // If we probably have all the requested solutions
+      if (nrNextStates > index)
+	for (size_t i = dependencyStack.size(); i > 0; )
+	  if (importFirstDependency(dependencyStack[--i]))
+	    {
+	      // Importing an exhausted dependency may destroy its substate,
+	      // so it cannot be kept as the currentSubstate
+	      currentSubstate = dependencyStack[i];
+	      dependencyStack.pop_back();
+	    }
+
+      // At this point nrNextStates is accurate, because it has been
+      // corrected by importFirstDependency
+
     }
 
 //  cerr << "\x1b[1m<!> getNextState(" << stateNr << " whose key is " << seen[stateNr]->dagNode << ":"
@@ -796,6 +806,12 @@ StrategyTransitionGraph::absorbState(int absorber, int absorbed)
   State* absorbedState = (*seen)[absorbed];
   // Assert(absorbedState->nextStates.length() == 0, "absorbed non-empty state");
 
+  // The nextProcess of the absorbed state is what we are executing now,
+  // and it will be immediately deleted in getNextState. However, the pointer
+  // will not be set to null there, since currentState will have been replaced
+  // by the absorber state, so it must be done here.
+  absorbedState->nextProcess = nullptr;
+
   if (absorbedState->referenceCount-- == 1)
     delete absorbedState;
   else
@@ -856,7 +872,7 @@ void StrategyTransitionGraph::descend()
   initialSubstate->free();
 }
 
-void StrategyTransitionGraph::importFirstDependency(Substate* dependent)
+bool StrategyTransitionGraph::importFirstDependency(Substate* dependent)
 {
   Assert(dependent->dependencies.size() > 0, "no first dependency exists");
 
@@ -864,11 +880,15 @@ void StrategyTransitionGraph::importFirstDependency(Substate* dependent)
 
   size_t expectedImports = dependency->dependee->nextStates.size()
 			    - dependency->alreadyImported;
+  bool finished = dependency->dependee->nextProcess == 0
+		  && dependency->dependee->dependencies.empty();
 
   size_t actualImports = dependent->importDependency(dependency);
 
   if (actualImports != expectedImports)
     nrNextStates -= (expectedImports - actualImports);
+
+  return finished;
 }
 
 
