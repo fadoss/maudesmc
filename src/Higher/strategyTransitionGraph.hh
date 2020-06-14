@@ -248,7 +248,7 @@ private:
   void absorbState(int absorber, int absorbed);
   void descend();
   bool descendProcess(StrategicProcess* proc) const;
-  void importFirstDependency(Substate* dependent);
+  bool importFirstDependency(Substate* dependent);
 
   // This variable communicate getNextState with commitState/onResumeTask
   Substate* currentSubstate;
