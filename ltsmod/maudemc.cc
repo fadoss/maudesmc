@@ -104,7 +104,7 @@ struct loader_record pins_loaders[] = {
 
 // Input arguments from the command line
 char *popt_initial, *popt_aprops, *popt_module, *popt_metamodule, *popt_strategy, *popt_opaques, *popt_merge;
-int popt_purge, popt_biased;
+int popt_purge, popt_biased, popt_noadvise;
 
 struct poptOption pins_options[] = {
 	{"initial", '\0', POPT_ARG_STRING, &popt_initial, 0, "Initial state", nullptr},
@@ -116,6 +116,7 @@ struct poptOption pins_options[] = {
 	{"purge-fails", '\0', POPT_ARG_NONE, &popt_purge, 0, "Remove states where the strategy has failed from the model", nullptr},
 	{"biased-matchrew", '\0', POPT_ARG_NONE, &popt_biased, 0, "Disable generating all possible interleavings of subterm executions in matchrew", nullptr},
 	{"opaque-strats", '\0', POPT_ARG_STRING, &popt_opaques, 0, "Strategies to be considered opaque (comma separated list)", nullptr},
+	{"no-advise", '\0', POPT_ARG_NONE, &popt_noadvise, 0, "Disable showing Maude debugging and advisory messages", nullptr},
 	POPT_TABLEEND
 };
 
@@ -287,6 +288,10 @@ MaudePINSModule::loadMaudeFile(const char* filename, bool readPrelude) {
 	}
 
 	createRootBuffer(fp, false);
+
+	// Disable advising if requested
+	if (popt_noadvise)
+		globalAdvisoryFlag = false;
 
 	// Obtain the path where the Maude library is to locate the prelude
 	#ifdef _WIN32
@@ -466,32 +471,6 @@ MaudePINSModule::readAtomicProps(const char* apspec) {
 
 		atomicProps[i].setNode(toDag(term));
 	}
-
-	// LTSmin does not admit general atomic proposition terms as state
-	// labels, so we generate a usable name by removing their parentheses
-	// and replacing commas by underscores
-	for (string &name : atomicNames) {
-		string result;
-		bool changed = false;
-
-		for (size_t i = 0; i < name.size(); i++) {
-
-			if (name[i] != '(' && name[i] != ')' && name[i] != ' ' && name[i] != ',')
-				result.push_back(name[i]);
-			else if (name[i] == ',') {
-				result.push_back('_');
-				changed = true;
-			}
-			else
-				changed = true;
-		}
-
-		if (changed) {
-			Printf(infoShort, "%s: proposition %s should be written as %s\n",
-			       pins_plugin_name, name.c_str(), result.c_str());
-			name.swap(result);
-		}
-	}
 }
 
 inline void
@@ -550,7 +529,7 @@ inline void
 MaudePINSModule::setUpGraph(Term* term, StrategyExpression* strategy) {
 	DagNode* dagNode = toDag(term);
 
-	context = new RewritingContext(dagNode);
+	context = new UserLevelRewritingContext(dagNode);
 	context->reduce();
 	if (strategy == nullptr) {
 		graph = new StateTransitionGraph(context);
