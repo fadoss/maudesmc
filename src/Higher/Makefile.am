@@ -50,7 +50,8 @@ libhigher_a_SOURCES = \
 	variantMatchingProblem.cc \
 	strategyModelCheckerSymbol.cc \
 	strategyTransitionGraph.cc \
-	strategySequenceSearch.cc
+	strategySequenceSearch.cc \
+	specialHubSymbol.cc
 
 EXTRA_DIST = \
 	strategyTaskInfo.cc
@@ -94,4 +95,5 @@ noinst_HEADERS = \
 	variantMatchingProblem.hh \
 	strategyModelCheckerSymbol.hh \
 	strategyTransitionGraph.hh \
-	strategySequenceSearch.hh
+	strategySequenceSearch.hh \
+	specialHubSymbol.hh
