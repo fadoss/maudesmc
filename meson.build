@@ -507,6 +507,7 @@ higher_source = [
 	'src/Higher/variantMatchingProblem.cc',
 	'src/Higher/strategyModelCheckerSymbol.cc',
 	'src/Higher/strategyTransitionGraph.cc',
+	'src/Higher/specialHubSymbol.cc',
 ]
 
 higher = static_library('higher', higher_source, include_directories: higher_includes)

@@ -131,6 +131,8 @@ MixfixModule::newFancySymbol(Token prefixName,
       return new ModelCheckerSymbol(name);
     case SymbolType::STRATEGY_MODEL_CHECKER_SYMBOL:
       return new StrategyModelCheckerSymbol(name);
+    case SymbolType::SPECIAL_HUB_SYMBOL:
+      return new SpecialHubSymbol(name, nrArgs);
     case SymbolType::SAT_SOLVER_SYMBOL:
       return new SatSolverSymbol(name);
     case SymbolType::SUCC_SYMBOL:
