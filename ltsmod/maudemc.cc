@@ -389,23 +389,15 @@ MaudePINSModule::selectMetamodule(const char* moduleTerm) {
 	context->reduce();
 
 	// Turn the metamodule into a object-level module
-	// A valid instance of the MetaLevel class is obtained
-	// through any special operator of the META-LEVEL module
-	PreModule* metaLevelPreModule = interpreter.getModule(Token::encode("META-LEVEL"));
-
-	if (metaLevelPreModule == nullptr) {
-		Printf(assertion, "%s: cannot find the META-LEVEL module\n", pins_plugin_name);
-		ltsmin_abort(3);
-	}
-
-	VisibleModule* metaLevelModule = metaLevelPreModule->getFlatSignature();
+	// A valid instance of the MetaLevel class is obtained through any
+	// special operator of type MetaLevelOpSymbol in the module where the
+	// term is parsed, which must include META-LEVEL
 
 	// Finds an operator of type MetaLevelOpSymbol for which to obtain
-	// the MetaLevel instance (the first would certainly match, so the
-	// loop is just in case META-LEVEL was altered)
+	// the MetaLevel instance
 
-	const Vector<Symbol*> &symbols = metaLevelModule->getSymbols();
-	int symbolIndex = metaLevelModule->getNrUserSymbols() - 1;
+	const Vector<Symbol*> &symbols = module->getSymbols();
+	int symbolIndex = module->getNrUserSymbols() - 1;
 
 	MetaLevelOpSymbol* metaSymbol = nullptr;
 
@@ -413,7 +405,9 @@ MaudePINSModule::selectMetamodule(const char* moduleTerm) {
 		metaSymbol = dynamic_cast<MetaLevelOpSymbol*>(symbols[symbolIndex--]);
 
 	if (metaSymbol == nullptr) {
-		Printf(assertion, "%s: cannot get access to the metalevel\n", pins_plugin_name);
+		Printf(assertion, "%s: cannot get access to the metalevel "
+		                  "(META-LEVEL must be included in the module "
+		                  "where the metamodule is expressed)\n", pins_plugin_name);
 		ltsmin_abort(3);
 	}
 
