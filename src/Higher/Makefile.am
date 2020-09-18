@@ -48,6 +48,7 @@ libhigher_a_SOURCES = \
 	variantUnifierFilter.cc \
 	filteredVariantUnifierSearch.cc \
 	variantMatchingProblem.cc \
+	specialHubSymbol.cc \
 	strategyModelCheckerSymbol.cc \
 	strategyTransitionGraph.cc \
 	strategySequenceSearch.cc
@@ -92,6 +93,7 @@ noinst_HEADERS = \
 	variantUnifierFilter.hh \
 	filteredVariantUnifierSearch.hh \
 	variantMatchingProblem.hh \
+	specialHubSymbol.hh \
 	strategyModelCheckerSymbol.hh \
 	strategyTransitionGraph.hh \
 	strategySequenceSearch.hh
