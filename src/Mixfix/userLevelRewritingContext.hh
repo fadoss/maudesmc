@@ -164,8 +164,7 @@ private:
   static bool dontTrace(const DagNode* redex, const PreEquation* pe);
 
   bool handleInterrupt();
-  bool blockAndHandleInterrupts(sigset_t *normalSet);
-  
+
   void checkForPrintAttribute(MetadataStore::ItemType itemType, const PreEquation* item);
   bool handleDebug(DagNode* subject, const PreEquation* pe);
   void where(ostream& s);

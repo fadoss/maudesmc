@@ -75,16 +75,6 @@ RewritingContext::handleInterrupt()
 }
 
 bool
-RewritingContext::blockAndHandleInterrupts(sigset_t *normalSet)
-{
-  //
-  //	Hard to do anything sensible here.
-  //
-  CantHappen("base class version shouldn't be called");
-  return false;
-}
-
-bool
 RewritingContext::interruptSeen()
 {
   //

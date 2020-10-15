@@ -105,7 +105,7 @@ public:
   //	a blocking system call. normalSet will be installed during
   //	the blocking system call.
   //
-  static int eventLoop(bool block = true, sigset_t* normalSet = 0);
+  static int eventLoop(bool block = true);
   //
   //	Clear any requests for callbacks on a given fd.
   //
@@ -137,8 +137,7 @@ public:
   virtual void doWrite(int fd);  // a write is possible
   virtual void doError(int fd);   // a error happened
   virtual void doHungUp(int fd);  // the other end of a socket was closed when wanting to do a write (for some OS, when wanting to do a read)
-  virtual void doCallback(long clientData);  // notBefore time reached for a requested call back
-  virtual void doChildExit(pid_t childPid);
+  virtual void doCallback();  // notBefore time reached for a requested call back
 
 private:
   enum Values
@@ -165,13 +164,13 @@ private:
     bool exited;
   };
 
+  typedef priority_queue<CallbackRequest> CallbackQueue;
+
   static bool processCallbacks(int& returnValue, timespec& wait);
-  static int processFds(const timespec* waitPointer, sigset_t* normalSet);
+  static int processFds(const timespec* waitPointer);
   static void link(int fd);
   static void unlink(int fd);
 
-  static void sigchldHandler(int signalNr, siginfo_t* info, void* context);
-  static bool dispatchChildRequests();
   //
   //	All data is shared between PseudoThread objects since it refers to
   //	a common set of fds and a global callback map.

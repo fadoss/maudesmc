@@ -74,51 +74,14 @@ private:
      ERROR_BUFFER_SIZE = 256
     };
 
-  struct ChildProcess
-  {
-    ChildProcess();
-    //
-    //	Sockets connected to this process.
-    //
-    int ioSocket;
-    int errSocket;
-    //
-    //	If we make a request for an async notification of a child exit
-    //	we need to save a pointer to the original context and the waitForExit()
-    //	message so we can generate an exited() reply.
-    //
-    ObjectSystemRewritingContext* waitContext;
-    DagRoot waitMessage;
-  };
-
-  typedef map<pid_t, ChildProcess> ProcessMap;
-
   bool createProcess(FreeDagNode* message, ObjectSystemRewritingContext& context);
   bool waitForExit(FreeDagNode* message, ObjectSystemRewritingContext& context);
   bool signalProcess(FreeDagNode* message, ObjectSystemRewritingContext& context);
 
-  int checkStringList(DagNode* stringList);
-  char* const* makeStringArray(DagNode*  zeroArgument,
-			       DagNode* remainingArguments,
-			       int nrRemainingArguments);
-  bool getChildProcess(DagNode* processArg, int& processId, ChildProcess*& cpp);
-  bool makeNonblockingSocketPair(int pair[2],
-				 FreeDagNode* message,
-				 ObjectSystemRewritingContext& context,
-				 bool readOnly);
-  bool makeCloseOnExitPipe(int pair[2],
-			   FreeDagNode* message,
-			   ObjectSystemRewritingContext& context);
-  void exitedReply(pid_t processId,
-		   int exitCode,
-		   FreeDagNode* originalMessage,
-		   ObjectSystemRewritingContext& context);
   void errorReply(const Rope& errorMessage,
 		  FreeDagNode* originalMessage,
 		  ObjectSystemRewritingContext& context);
     
-  static int getSignalNumber(const char* signalString);
-  static const char* getSignalName(int signalNumber);
   //
   //	Shared flag to disable the functionality of this class.
   //
@@ -130,20 +93,12 @@ private:
   SymbolClass* SymbolName;
 #include "processSignature.cc"
 #undef MACRO
-
-  ProcessMap childProcesses;
 };
 
 inline void
 ProcessManagerSymbol::setAllowProcesses(bool flag)
 {
   allowProcesses = flag;
-}
-
-inline
-ProcessManagerSymbol::ChildProcess::ChildProcess()
-{
-  waitContext = 0;
 }
 
 #endif
