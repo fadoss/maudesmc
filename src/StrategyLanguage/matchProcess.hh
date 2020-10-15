@@ -30,6 +30,8 @@
 #include "rewriteSearchState.hh"
 #include "strategyStackManager.hh"
 
+using std::shared_ptr;
+
 class MatchProcess : public StrategicProcess
 {
   NO_COPYING(MatchProcess);

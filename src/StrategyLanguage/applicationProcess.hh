@@ -30,6 +30,8 @@
 #include "rewriteSearchState.hh"
 #include "strategyStackManager.hh"
 
+using std::shared_ptr;
+
 class ApplicationProcess : public StrategicProcess
 {
   NO_COPYING(ApplicationProcess);

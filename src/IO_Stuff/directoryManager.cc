@@ -28,13 +28,17 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <pwd.h>
+#include <shlobj.h>
+#include <filesystem>
+#include <windows.h>
 
 //      utility stuff
 #include "macros.hh"
 #include "vector.hh"
 
 #include "directoryManager.hh"
+
+namespace fs = std::filesystem;
 
 bool
 DirectoryManager::checkAccess(const string& fullName, int mode)
@@ -62,7 +66,7 @@ DirectoryManager::checkAccess(const string& directory,
   //	See if directory/fileName is accessible, and if not
   //	try added extensions to see if the fixes the problem.
   //
-  string full(directory + '/' + fileName);
+  string full = (fs::path(directory) / fileName).string();
   if (checkAccess(full, mode))
     return true;
   if (ext != 0)
@@ -102,7 +106,7 @@ DirectoryManager::searchPath(const char* pathVar,
       string::size_type len = path.length();
       for (string::size_type start = 0; start < len;)
 	{
-	  string::size_type c = path.find(':', start);
+	  string::size_type c = path.find(';', start);
 	  if (c == string::npos)
 	    c = len;
 	  if (string::size_type partLen = c - start)
@@ -127,88 +131,25 @@ DirectoryManager::realPath(const string& path, string& resolvedPath)
       return;
     }
   //  cout << "in " << path << '\n';
-  resolvedPath.erase();
-  string::size_type p = 0;  // p will index the first path component for standard processing
-  switch (path[0])
+  fs::path fpath(path);
+  if (*fpath.begin() == "~")
     {
-    case '/':  // absolute path name
-      {
-	p = 1;
-	break;
-      }
-    case '~':  // need to expand user home directory
-      {
-	const char* dirPath = 0;
-	string::size_type e = path.find('/');
-	if (e == string::npos)
-	  e = length;
-	if (e == 1)
-	  {
-	    //
-	    //	Get users home directory.
-	    //
-	    dirPath = getenv("HOME");
-	    if (dirPath == 0)
-	      {
-		if (passwd* pw = getpwuid(getuid()))
-		  dirPath = pw->pw_dir;
-	      }
-	  }
-	else
-	  {
-	    //
-	    //	Get somebody elses home directory.
-	    //
-	    if (passwd* pw = getpwnam(path.substr(1, e - 1).c_str()))
-	      dirPath = pw->pw_dir;
-	  }
-	if (dirPath != 0)
-	  {
-	    resolvedPath = dirPath;
-	    p = e + 1;
-	    break;
-	  }
-      }
-      // fall thru
-    default:  // relative path name
-      {
-	resolvedPath = getCwd();
-	break;
-      }
-    }
-  //
-  //	Just in case a home directory or cwd ended in '/'.
-  //
-  string::size_type resLen = resolvedPath.length();
-  if (resLen > 0 && resolvedPath[resLen - 1] == '/')
-    resolvedPath.erase(resLen - 1);
-  //
-  //	Deal with each path component in turn.
-  //
-  while (p < length)
-    {
-      string::size_type pos = path.find('/', p);
-      if (pos == string::npos)
-	pos = length;
-      string::size_type cLen = pos - p;
-      //   cout << "cLen " << cLen << '\n';
-      if (cLen == 0 || (cLen == 1 && path[p] == '.'))
-	;  // ignore component
-      else if (cLen == 2 && path[p] == '.' && path[p + 1] == '.')
+      //
+      //	Get users home directory.
+      //
+      const char* dirPath = getenv("HOME");
+      if (dirPath == 0)
 	{
-	  string::size_type backup = resolvedPath.rfind('/');
-	  if (backup != string::npos)
-	    resolvedPath.erase(backup);
+	  char path[MAX_PATH];
+	  SHGetFolderPath(NULL, CSIDL_PROFILE, NULL, 0, path);
+	  dirPath = path;
 	}
-      else
-	{
-	  resolvedPath += '/';
-	  resolvedPath += path.substr(p, cLen);
-	}
-      p = pos + 1;
+	// TODO: Other users home directory cannot be specified
+
+      fpath = fs::path(dirPath) / fs::relative(fpath, "~");
     }
-  if (resolvedPath.empty())
-    resolvedPath = '/';
+  std::error_code errorcode;
+  resolvedPath = fs::canonical(fpath, errorcode).string();
   //  cout << "out " << resolvedPath << '\n';
 }
 
@@ -304,6 +245,34 @@ DirectoryManager::getCwd()
   return directoryNames.name(directoryStack[directoryStack.length() - 1]);
 }
 
+bool getWindowsFileId(const char* filename, uint64_t &id)
+{
+  BY_HANDLE_FILE_INFORMATION fileInfo;
+  HANDLE fileHandle = CreateFileA(filename,
+				  GENERIC_READ,
+				  FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+				  nullptr,
+				  OPEN_EXISTING,
+				  FILE_ATTRIBUTE_NORMAL,
+				  nullptr);
+  if (fileHandle == INVALID_HANDLE_VALUE)
+    return false;
+  bool ok = GetFileInformationByHandle(fileHandle, &fileInfo);
+  CloseHandle(fileHandle);
+
+  if (ok)
+    {
+      ULARGE_INTEGER fileId;
+      fileId.LowPart = fileInfo.nFileIndexLow;
+      fileId.HighPart = fileInfo.nFileIndexHigh;
+
+      id = fileId.QuadPart;
+      return true;
+    }
+
+  return false;
+}
+
 void
 DirectoryManager::visitFile(const string& fileName)
 {
@@ -311,9 +280,11 @@ DirectoryManager::visitFile(const string& fileName)
   //	Record a visit to a file, with the file's modification time.
   //
   struct stat buf;
-  if (stat(fileName.c_str(), &buf) == 0)
+  uint64_t fileId;
+  if (getWindowsFileId(fileName.c_str(), fileId))
     {
-      pair<int, ino_t> id(directoryStack[directoryStack.length() - 1], buf.st_ino);
+      stat(fileName.c_str(), &buf);
+      pair<int, uint64_t> id(directoryStack[directoryStack.length() - 1], fileId);
       visitedMap[id] = buf.st_mtime;
     }
 }
@@ -324,11 +295,13 @@ DirectoryManager::alreadySeen(const string& directory, const string& fileName)
   //
   //	Check if we previous visited a file, and the file is unchanged.
   //
-  string full(directory + '/' + fileName);
-  struct stat buf;
-  if (stat(full.c_str(), &buf) == 0)
+  string full = (fs::path(directory) / fileName).string();
+  uint64_t fileId;
+  if (getWindowsFileId(full.c_str(), fileId))
     {
-      pair<int, ino_t> id(directoryNames.encode(directory.c_str()), buf.st_ino);
+      struct stat buf;
+      stat(full.c_str(), &buf);
+      pair<int, uint64_t> id(directoryNames.encode(directory.c_str()), fileId);
       VisitedMap::const_iterator i = visitedMap.find(id);
       if (i != visitedMap.end() && i->second == buf.st_mtime)
 	{
