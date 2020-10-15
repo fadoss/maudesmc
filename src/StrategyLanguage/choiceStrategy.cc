@@ -50,6 +50,8 @@
 // in the range 0 to 32767, so the standard C++ library random is used
 #include <random>
 
+using namespace std;
+
 mt19937_64 choice_random_generator;
 
 void

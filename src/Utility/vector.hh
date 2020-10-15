@@ -595,7 +595,7 @@ template<class T>
 inline bool
 operator<(const Vector<T>& lhs,const Vector<T>& rhs)
 {
-  return lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+  return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
 }
 
 #endif

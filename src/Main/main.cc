@@ -27,6 +27,7 @@
 #ifdef ALPHA
 #include <stropts.h>
 #endif
+#include <filesystem>
 
 //      utility stuff
 #include "macros.hh"
@@ -71,6 +72,8 @@
 #include "mixfixModule.hh"
 #include "interpreter.hh"
 #include "global.hh"
+
+namespace fs = std::filesystem;
 
 int
 main(int argc, char* argv[])
@@ -336,15 +339,18 @@ printVersion()
   exit(0);
 }
 
+static char const* const windowsExt[] = {".exe", ".bat", ".com", ".cmd", 0};
+
 bool
 findExecutableDirectory(string& directory, string& executable)
 {
-  string::size_type p = executable.rfind('/');
-  if (p == string::npos)
-    return directoryManager.searchPath("PATH", directory, executable, X_OK);
+  fs::path executablePath(executable);
+  if (!executablePath.has_parent_path() && !fs::exists(executablePath))
+    return directoryManager.searchPath("PATH", directory, executable, X_OK, windowsExt);
   else
     {
-      directoryManager.realPath(executable.substr(0, p), directory);
+      fs::path parent = executablePath.has_parent_path() ? executablePath.parent_path() : ".";
+      directoryManager.realPath(parent.string(), directory);
       return directoryManager.checkAccess(directory, executable, X_OK);
     }
 }

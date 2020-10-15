@@ -40,6 +40,8 @@
 #include "strategicTask.hh"
 #include "variableBindingsManager.hh"
 
+using std::shared_ptr;
+
 class SubtermTask : public StrategicTask
 {
   NO_COPYING(SubtermTask);
