@@ -180,7 +180,7 @@ main(int argc, char* argv[])
     }
   Tty::setEscapeSequencesAllowed(ansiColor);
 
-  bool inputIsTerminal = (isatty(STDIN_FILENO) == 1);
+  bool inputIsTerminal = (isatty(STDIN_FILENO) != 0);
   if (useTecla == UNDECIDED)
     {
       //

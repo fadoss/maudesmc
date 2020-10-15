@@ -470,4 +470,6 @@ const char* doubleToString(double d);
 double stringToDouble(const char* s, bool& error);
 void correctEcvt(double d, int nrDigits, char buffer[], int& decPt, int& sign);
 
+ssize_t getline(char **lineptr, size_t *n, FILE *stream);
+
 #endif
