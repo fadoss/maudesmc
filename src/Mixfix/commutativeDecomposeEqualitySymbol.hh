@@ -59,7 +59,7 @@ protected:
   bool domainSortAlwaysLeqThan(Sort* sort, int argNr);
 
 private:
-  typedef multiset<DagNode*, DagNode::LessThan> DagNodeMultiset;
+  typedef std::multiset<DagNode*, DagNode::LessThan> DagNodeMultiset;
 
   static bool eqRewrite(Symbol* symbol, DagNode* subject, RewritingContext& context);
 

@@ -135,9 +135,9 @@ SocketManagerSymbol::doWrite(int fd)
       int errorCode;
       socklen_t errorSize = sizeof(errorCode);
 #ifdef NO_ASSERT
-      (void) getsockopt(fd, SOL_SOCKET, SO_ERROR, &errorCode, &errorSize);
+      (void) getsockopt(fd, SOL_SOCKET, SO_ERROR, (char*) &errorCode, &errorSize);
 #else
-      int r = getsockopt(fd, SOL_SOCKET, SO_ERROR, &errorCode, &errorSize);
+      int r = getsockopt(fd, SOL_SOCKET, SO_ERROR, (char*)  &errorCode, &errorSize);
       Assert(r == 0 && errorSize == sizeof(errorCode), "getsockopt() problem");
 #endif
 
@@ -222,9 +222,9 @@ SocketManagerSymbol::doError(int fd)
   int errorCode;
   socklen_t errorSize = sizeof(errorCode);
 #ifdef NO_ASSERT
-  getsockopt(fd, SOL_SOCKET, SO_ERROR, &errorCode, &errorSize);
+  getsockopt(fd, SOL_SOCKET, SO_ERROR, (char*) &errorCode, &errorSize);
 #else
-  int r = getsockopt(fd, SOL_SOCKET, SO_ERROR, &errorCode, &errorSize);
+  int r = getsockopt(fd, SOL_SOCKET, SO_ERROR, (char*) &errorCode, &errorSize);
   Assert(r == 0 && errorSize == sizeof(errorCode), "getsockopt() problem");
 #endif
   const char* errorMessage = strerror(errorCode);
