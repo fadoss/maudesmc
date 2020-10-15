@@ -40,6 +40,20 @@ ninja
 
 The available build settings are listed by running `meson configure`. Additional library and include directories can be specified with the `extra-lib-dirs` and `extra-include-dirs` options. The LTSmin headers are required to build the language module. They are included in the release packages available at its [website](https://ltsmin.utwente.nl/), whose `include` directory should be added to the `extra-include-dirs` option if not installed in a default header location.
 
+### Building for Windows using MinGW
+
+Using the [Mingw-w64](http://mingw-w64.org/) compiler and the adaptations of the `windows` branch, Maude and the model checker can be compiled for Windows. First, the required dependencies should be built or downloaded, as described [here](http://safe-tools.dsic.upv.es/maude): [Buddy](https://sourceforge.net/projects/buddy/), [Gmp](https://gmplib.org/), [Sigsegv](https://www.gnu.org/software/libsigsegv/), and [CVC4](https://cvc4.github.io/) or [Yices2](https://yices.csl.sri.com/), if SMT support is required. Linking with [tecla](http://www.astro.caltech.edu/~mcs/tecla/) is not recommended, since the Windows console includes native command line facilities. Within the [MSYS2](https://www.msys2.org/) building platform, some of these dependencies can be installed as packages, like `mingw-w64-gmp` and `mingw-w64-libsigsegv`.
+
+```
+autoreconf -i
+./configure --with-cvc4=no --with-yices2=no --with-tecla=no CXXFLAGS="-O2 -std=c++17 -D_WIN32_WINNT=0x0601 -static-libgcc -static-libstdc++" LDFLAGS="-static -Wl,--stack,16777216" LDLIBS="-lws2_32"
+make
+```
+
+Additional `-I` flags may be added to include the library header paths of the dependencies. `-D_WIN32_WINNT=0x0601` states that the target Windows version is Windows 7 (or above). This is required to use some WSA (socket) functions. `-Wl,--stack,16777216` increases the program stack size to allow more complex computations. We should also specify the dependencies to link with if not in the default paths, with the variables described in the `INSTALL` file.
+
+The Meson build script can also be used, and it generates an executable `maude.exe` and a shared library `libmaude.dll`. The language extension for LTSmin could be generated too.
+
 Usage
 -----
 

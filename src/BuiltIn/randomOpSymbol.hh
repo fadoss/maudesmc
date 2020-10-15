@@ -28,6 +28,8 @@
 #include "numberOpSymbol.hh"
 #include <random>
 
+using std::mt19937;
+
 class RandomOpSymbol : public NumberOpSymbol
 {
 public:
