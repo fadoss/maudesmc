@@ -105,7 +105,7 @@ public:
   //	a blocking system call. normalSet will be installed during
   //	the blocking system call.
   //
-  static int eventLoop(bool block = true, sigset_t* normalSet = 0);
+  static int eventLoop(bool block = true);
   //
   //	Clear any requests for callbacks on a given fd.
   //
@@ -163,8 +163,10 @@ private:
     pid_t pid;
   };
 
+  typedef priority_queue<CallbackRequest> CallbackQueue;
+
   static bool processCallbacks(int& returnValue, timespec& wait);
-  static int processFds(const timespec* waitPointer, sigset_t* normalSet);
+  static int processFds(const timespec* waitPointer);
   static void link(int fd);
   static void unlink(int fd);
 
