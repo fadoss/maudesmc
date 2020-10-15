@@ -40,6 +40,8 @@
 
 #include <memory>
 
+using std::shared_ptr;
+
 class ModelCheckerSubtermTask : public StrategicTask
 {
   NO_COPYING(ModelCheckerSubtermTask);

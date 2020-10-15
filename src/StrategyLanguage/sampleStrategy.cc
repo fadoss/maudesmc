@@ -51,6 +51,8 @@
 
 #include <random>
 
+using namespace std;
+
 // Share the random generator with the choice operator
 extern mt19937_64 choice_random_generator;
 

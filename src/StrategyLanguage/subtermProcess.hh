@@ -28,6 +28,8 @@
 #include <memory>
 #include "strategicProcess.hh"
 
+using std::shared_ptr;
+
 class SubtermProcess : public StrategicProcess
 {
   NO_COPYING(SubtermProcess);
