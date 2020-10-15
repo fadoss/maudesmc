@@ -38,7 +38,6 @@ EXTRA_DIST = \
 	fileOutcomes.cc \
 	streamSignature.cc \
 	processSignature.cc \
-	supportedSignals.cc \
 	processStuff.cc \
 	processOutcomes.cc \
 	processActions.cc \

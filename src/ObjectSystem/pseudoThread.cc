@@ -85,7 +85,7 @@ PseudoThread::processCallbacks(int& returnValue, timespec* wait)
 }
 
 int
-PseudoThread::eventLoop(bool block, sigset_t* normalSet)
+PseudoThread::eventLoop(bool block)
 {
   //
   //	If block is true we make use of normalSet and
@@ -128,7 +128,7 @@ PseudoThread::eventLoop(bool block, sigset_t* normalSet)
 	  //
 	  //	Process fd and interrupt events.
 	  //
-	  returnValue |= processFds(waitPointer, normalSet);
+	  returnValue |= processFds(waitPointer);
 	}
       else
 	{

@@ -147,17 +147,6 @@ public:
   //	If it returns true, the caller assumes it can continue; otherwise the caller should return.
   //
   virtual bool handleInterrupt();
-  //
-  //	This exists so we block signals we are interested in, handle any that have already
-  //	been delivered and let the caller know what the normal signal set looks like.
-  //	The reason for blocking signals is if they are delivered after we last checked
-  //	for them but before the blocking call they could get lost since they won't cause
-  //	the blocking call to return early. If it returns true, the call assumes it can
-  //	continue with the blocking call, using the normalSet as signals that should abort
-  //	the blocking call. If it returns false, the caller returns without making the blocking
-  //	call.
-  //
-  virtual bool blockAndHandleInterrupts(sigset_t *normalSet);
 
   virtual void traceStrategyCall(StrategyDefinition* sdef,
 				 DagNode* callDag,

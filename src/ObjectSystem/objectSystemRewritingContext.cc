@@ -153,36 +153,7 @@ ObjectSystemRewritingContext::externalRewrite()
 
   for (;;)
     {
-      //
-      //	If we get here, we cannot do any more local rewrites in our
-      //	current state, so if there are external events pending we
-      //	block on them.
-      //
-      //	But first we need to deal with any signals that have
-      //	been delivered and then block them so we don't miss them by their
-      //	being delivered before we make our blocking system call.
-      //
-      sigset_t normalSet;
-      if (!blockAndHandleInterrupts(&normalSet))
-	{
-	  //
-	  //	Need to quit externalRewrite() because of an interrupt, but
-	  //	first we need to restore normal signals.
-	  //
-	  sigprocmask(SIG_SETMASK, &normalSet, 0);
-	  break;
-	}
-      //
-      //	Now we can safely block on external events.
-      //
-      int r = PseudoThread::eventLoop(true, &normalSet);
-      //
-      //	Restore normal signals.
-      //
-      sigprocmask(SIG_SETMASK, &normalSet, 0);
-      //
-      //	eventLoop() will have restored signal mask to normalSet.
-      //
+      int r = PseudoThread::eventLoop(true);
       if (r & PseudoThread::NOTHING_PENDING)
 	{
 	  //
