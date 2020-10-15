@@ -29,6 +29,8 @@
 #include <memory>
 #include "strategicTask.hh"
 
+using std::shared_ptr;
+
 class RewriteTask : public StrategicTask
 {
   NO_COPYING(RewriteTask);

@@ -59,7 +59,7 @@ private:
   //	have the same inode number. If a file is deleted and its inode number reused,
   //	it will have a later modified time so we don't worry about this case.
   //
-  typedef map<pair<int, ino_t>, time_t> VisitedMap;
+  typedef map<pair<int, uint64_t>, time_t> VisitedMap;
 
   bool checkAccess(const string& fullName, int mode);
 

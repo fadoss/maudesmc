@@ -28,6 +28,7 @@
 #include "macros.hh"
 #include "vector.hh"
 #include "tty.hh"
+#include <filesystem>
 
 //      forward declarations
 #include "interface.hh"
@@ -73,6 +74,8 @@
 #include "interpreter.hh"
 #include "global.hh"
 
+namespace fs = std::filesystem;
+
 int lineNumber = 1;
 FileTable fileTable;
 DirectoryManager directoryManager;
@@ -97,8 +100,8 @@ findFile(const string& userFileName, string& directory, string& fileName, int li
   //	the file is located; which might be the current directory but could also
   //	be a Maude library directory, or the directory containing the Maude executable.
   //
-  string::size_type p = userFileName.rfind('/');
-  if (p == string::npos)
+  fs::path path = userFileName;
+  if (path.filename() == path)
     {
       //
       //	We have a plain file name, so we will look for the file in all
@@ -126,13 +129,13 @@ findFile(const string& userFileName, string& directory, string& fileName, int li
 	  return true;
 	}
     }
-  else if (p + 1 < userFileName.length())
+  else
     {
       //
       //	We have a full path, so we will just look there.
       //
-      directoryManager.realPath(userFileName.substr(0, p), directory);
-      fileName = userFileName.substr(p + 1);
+      directoryManager.realPath(path.parent_path().string(), directory);
+      fileName = path.filename().string();
       if (directoryManager.checkAccess(directory, fileName, R_OK, ext))
 	return true;
     }
