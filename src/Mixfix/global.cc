@@ -28,6 +28,7 @@
 #include "macros.hh"
 #include "vector.hh"
 #include "tty.hh"
+#include <filesystem>
 
 //      forward declarations
 #include "interface.hh"
@@ -59,6 +60,8 @@
 #include "interpreter.hh"
 #include "global.hh"
 
+namespace fs = std::filesystem;
+
 int lineNumber = 1;
 FileTable fileTable;
 DirectoryManager directoryManager;
@@ -75,8 +78,8 @@ findFile(const string& userFileName, string& directory, string& fileName, int li
 {
   static char const* const ext[] = {".maude", ".fm", ".obj", 0};
 
-  string::size_type p = userFileName.rfind('/');
-  if (p == string::npos)
+  fs::path path = userFileName;
+  if (path.filename() == path)
     {
       fileName = userFileName;
       //directory = ".";
@@ -92,10 +95,10 @@ findFile(const string& userFileName, string& directory, string& fileName, int li
 	  return true;
 	}
     }
-  else if (p + 1 < userFileName.length())
+  else
     {
-      directoryManager.realPath(userFileName.substr(0, p), directory);
-      fileName = userFileName.substr(p + 1);
+      directoryManager.realPath(path.parent_path().string(), directory);
+      fileName = path.filename().string();
       if (directoryManager.checkAccess(directory, fileName, R_OK, ext))
 	return true;
     }

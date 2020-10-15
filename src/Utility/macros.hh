@@ -66,7 +66,62 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
-using namespace std;
+
+namespace std {
+  template<class T, class Container>
+  class stack;
+  template<class Key, class Compare, class Allocator>
+  class set;
+  template<class Key, class T, class Compare, class Allocator>
+  class map;
+  template<class T, class Allocator>
+  class vector;
+  namespace __cxx11 {
+    template<class T, class Allocator>
+    class list;
+  }
+  template<class T, class Container>
+  class queue;
+  template<class T, class Container>
+  class deque;
+  template<class Key, class T, class Compare, class Allocator>
+  class multimap;
+  template<class Key, class Container, class Compare>
+  class priority_queue;
+
+  using __cxx11::list;
+}
+
+using std::ostream;
+using std::ofstream;
+using std::cout;
+using std::cerr;
+using std::cin;
+using std::endl;
+using std::make_pair;
+using std::pair;
+using std::stack;
+using std::set;
+using std::map;
+using std::sort;
+using std::vector;
+using std::queue;
+using std::list;
+using std::deque;
+using std::min;
+using std::max;
+using std::swap;
+using std::random_access_iterator_tag;
+using std::string;
+using std::multimap;
+using std::unique;
+using std::streambuf;
+using std::priority_queue;
+using std::ostringstream;
+using std::flush;
+using std::copy;
+using std::search;
+using std::find_end;
 
 //
 //	Forward declarations for utility classes.
