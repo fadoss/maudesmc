@@ -90,7 +90,7 @@ PseudoThread::processCallbacks(int& returnValue, timespec& wait)
 }
 
 int
-PseudoThread::eventLoop(bool block, sigset_t* normalSet)
+PseudoThread::eventLoop(bool block)
 {
   //
   //	If block is true we make use of normalSet and
@@ -158,7 +158,7 @@ PseudoThread::eventLoop(bool block, sigset_t* normalSet)
 	  //	processFds() can return NOTHING_HAPPENED if
 	  //	we're not blocking (zero wait time) or we timed out.
 	  //
-	  returnValue |= processFds(waitPointer, normalSet);
+	  returnValue |= processFds(waitPointer);
 	  //
 	  //	Do we still have events pending?
 	  //

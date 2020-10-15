@@ -1094,6 +1094,7 @@ libmaude = shared_library('maude',
 	link_whole: maudeSubdirs,
 	link_with: maudeSubsdirsInternal,
 	dependencies: libraries,
+	link_args: '-Wl,--export-all-symbols',
 	install: true
 )
 
@@ -1141,11 +1142,9 @@ endif
 # readline, which should not be included in the library.
 
 executable('maude',
-	'src/IO_Stuff/IO_Manager.cc',
 	include_directories: ioStuff_includes,
 	link_with: main,
 	dependencies: [libmaude_dep, readline],
-	cpp_args: '-DLIBRARY_BUILD=_LB_EXECUTABLE',
 	install: true,
 	install_rpath: rpath_value
 )
