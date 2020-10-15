@@ -24,8 +24,8 @@
 //      Implementation for class ProcessManagerSymbol.
 //
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/wait.h>
+//#include <sys/socket.h>
+//#include <sys/wait.h>
 #include <signal.h>
 
 //      utility stuff

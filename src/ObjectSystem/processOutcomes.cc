@@ -20,65 +20,6 @@
 
 */
 
-const char*
-ProcessManagerSymbol::getSignalName(int signalNumber)
-{
-  switch (signalNumber)
-    {
-#define MACRO(signalName)			  \
-      case signalName: return #signalName ;
-#include "supportedSignals.cc"
-#undef MACRO
-    }
-  return "UNKNOWN";
-}
-
-void
-ProcessManagerSymbol::exitedReply(pid_t processId,
-				  int exitCode,
-				  FreeDagNode* originalMessage,
-				  ObjectSystemRewritingContext& context)
-{
-  //ProcessMap::iterator i = childProcesses.find(processId);
-  Assert(childProcesses.find(processId) != childProcesses.end(), "missing child");
-  //
-  //	Clean up process.
-  //
-  DagNode* processName = originalMessage->getArgument(0);
-  context.deleteExternalObject(processName);
-  childProcesses.erase(processId);
-  //
-  //	Make exited message.
-  //
-  DagNode* target = originalMessage->getArgument(1);
-  Vector<DagNode*> reply(3);
-  reply.resize(1);
-  DagNode* exitStatus;
-  if (exitCode >= 0)
-    {
-      //
-      //	Normal exit.
-      //
-      reply[0] = succSymbol->makeNatDag(exitCode);
-      exitStatus = normalExitSymbol->makeDagNode(reply);
-    }
-  else
-    {
-      //
-      //	Terminated by signal.
-      //	Signal number is passed as one's complement.
-      //
-      const char* signalName = getSignalName(~exitCode);
-      reply[0] = new StringDagNode(stringSymbol, signalName);
-      exitStatus = terminatedBySignalSymbol->makeDagNode(reply);
-    }
-  reply.resize(3);
-  reply[0] = target;
-  reply[1] = originalMessage->getArgument(0);
-  reply[2] = exitStatus;
-  context.bufferMessage(target, exitedMsg->makeDagNode(reply));
-}
-
 void
 ProcessManagerSymbol::errorReply(const Rope& errorMessage,
 				 FreeDagNode* originalMessage,
