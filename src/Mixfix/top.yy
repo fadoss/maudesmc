@@ -392,12 +392,12 @@ directive	:	KW_IN		{ lexerFileNameMode(); }
 		|	KW_LS		{ lexerStringMode(); }
 			UNINTERPRETED_STRING
 			{
-			  returnValueDump = system((string("ls") + $3).c_str());
+			  returnValueDump = system((string("dir /w") + $3).c_str());
 			}
 		|	KW_LL		{ lexerStringMode(); }
 			UNINTERPRETED_STRING
 			{
-			  returnValueDump = system((string("ls -l") + $3).c_str());
+			  returnValueDump = system((string("dir") + $3).c_str());
 			}
 		|	KW_QUIT
 			{
