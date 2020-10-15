@@ -38,22 +38,17 @@ public:
   void stop();
 
 private:
-  enum Constants
-  {
-    CYCLE_LENGTH = 10000000  // length of timer cycle in seconds
-  };
+  static Int64 calculateMicroseconds(Int64 startTime,
+				     Int64 stopTime);
 
-  static void startOsTimers();
-  static Int64 calculateMicroseconds(const itimerval& startTime, const itimerval& stopTime);
-  
-  static bool osTimersStarted;
+  static void getTimers(Int64& real, Int64& virt, Int64& prof);
 
   Int64 realAcc;
   Int64 virtAcc;
   Int64 profAcc;
-  itimerval realStartTime;
-  itimerval virtStartTime;
-  itimerval profStartTime;
+  Int64 realStartTime;
+  Int64 virtStartTime;
+  Int64 profStartTime;
   bool running;
   bool valid;
 };

@@ -83,9 +83,12 @@ FileManagerSymbol::positionGotReply(Int64 position,
 				    FreeDagNode* originalMessage,
 				    ObjectSystemRewritingContext& context)
 {
+  mpz_class pos;
+  mpz_import(pos.get_mpz_t(), 1, -1, sizeof(position), 0, 0, &position);
+
   Vector<DagNode*> reply(3);
   reply[1] = originalMessage->getArgument(0);
-  reply[2] = succSymbol->makeNatDag(position);
+  reply[2] = succSymbol->makeNatDag(pos);
   DagNode* target = originalMessage->getArgument(1);
   reply[0] = target;
   context.bufferMessage(target, positionGotMsg->makeDagNode(reply));

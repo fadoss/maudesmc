@@ -55,7 +55,7 @@ PointerSet::isEqual(const Pair& pair, void* p, unsigned int rawHashValue) const
 unsigned int
 PointerSet::hash(void* pointer) const
 {
-  return reinterpret_cast<unsigned long>(pointer) >> NR_PTR_LOSE_BITS;
+  return reinterpret_cast<uintptr_t>(pointer) >> NR_PTR_LOSE_BITS;
 }
 
 bool 
