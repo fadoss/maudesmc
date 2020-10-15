@@ -24,10 +24,10 @@
 //	pselect() based multiplexing of signals and events on file
 //	descriptors. This is somewhat inefficient, but POSIX compliant.
 //
-#include <sys/select.h>
+//#include <sys/select.h>
 
 int
-PseudoThread::processFds(const timespec* waitPointer, sigset_t* normalSet)
+PseudoThread::processFds(const timespec* waitPointer)
 {
   //
   //	*waitPointer is how long to wait for an event before returning.
@@ -38,23 +38,7 @@ PseudoThread::processFds(const timespec* waitPointer, sigset_t* normalSet)
   //	of these may be currently blocked to avoid losing the
   //	signals if they are delivered before the system call happens.
   //
- int childEvent = NOTHING_HAPPENED;
-  //
-  //	Block SIGCHLD.
-  //
-  sigset_t oldset;
-  sigset_t newset;
-  sigemptyset(&newset);
-  sigaddset(&newset, SIGCHLD);
-  sigprocmask(SIG_BLOCK, &newset, &oldset);
-  //
-  //	Deal with any child exit notifications that became due.
-  //
-  if (dispatchChildRequests())
-    {
-      childEvent |= EVENT_HANDLED;
-      waitPointer = &zeroTime;  // must not block in pselect()
-    }
+  int childEvent = NOTHING_HAPPENED;
 
   static fd_set readfds;
   static fd_set writefds;
@@ -95,15 +79,13 @@ PseudoThread::processFds(const timespec* waitPointer, sigset_t* normalSet)
   //
   //	Now we look to see what happened.
   //
-  //
-  //	Decide on the signals to be atomically unblocked during pselect().
-  //
-  sigset_t* maskForSystemCall = (normalSet != 0) ? normalSet : &oldset;
-  int nrEvents = pselect(maxFd + 1, &readfds, &writefds, 0, waitPointer, maskForSystemCall);
-  //
-  //	We restore mask to what it was before we blocked SIGCHLD.
-  //
-  sigprocmask(SIG_SETMASK, &oldset, 0);
+  timeval waitVal;
+  if (waitPointer != nullptr)
+    {
+      waitVal.tv_sec = waitPointer->tv_sec;
+      waitVal.tv_usec = waitPointer->tv_nsec / 1e3;
+    }
+  int nrEvents = select(maxFd + 1, &readfds, &writefds, 0, waitPointer == nullptr ? nullptr : &waitVal);
 
   if (nrEvents < 0)
     {

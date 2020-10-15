@@ -122,7 +122,7 @@ UserLevelRewritingContext::setHandlers(bool handleCtrlC)
   //	code that made system call that generated the SIGPIPE should
   //	check for EPIPE and is best placed to handle it.
   //
-  signal(SIGPIPE, SIG_IGN);
+  // signal(SIGPIPE, SIG_IGN);
   //
   //	HACK: this should go somewhere else.
   //
@@ -293,34 +293,6 @@ UserLevelRewritingContext::handleInterrupt()
       return true;
     }
   return true;
-}
-
-bool
-UserLevelRewritingContext::blockAndHandleInterrupts(sigset_t* normalSet)
-{
-  //
-  //	This is called because we are about to make a blocking system
-  //	call and could miss signals that are delivered before the call
-  //	happens. We need to block those signals and then handle any
-  //	that have already been delivered.
-  //
-  //	We first block ^C and info signals.
-  //
-  sigset_t blockSet;
-  sigemptyset(&blockSet);
-  sigaddset(&blockSet, SIGINT);
-#ifdef SIGINFO
-  sigaddset(&blockSet, SIGINFO);
-#else
-  sigaddset(&blockSet, SIGUSR1);
-#endif
-  sigprocmask(SIG_BLOCK, &blockSet, normalSet);
-  //
-  //	We now handle any that have already been delivered as usual.
-  //	We rely on the caller to reset the signal mask to normalSet once
-  //	it is done with its blocking call.
-  //
-  return handleInterrupt();
 }
 
 void

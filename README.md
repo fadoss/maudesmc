@@ -50,7 +50,7 @@ autoreconf -i
 make
 ```
 
-Additional `-I` flags may be added to include the library header paths of the dependencies. `-D_WIN32_WINNT=0x0601` states that the target Windows version is Windows 7 (or above). This is required to use some WSA (socket) functions. `-Wl,--stack,16777216` increases the program stack size to allow more complex computations. We should also specify the dependencies to link with if not in the default paths, with the variables described in the `INSTALL` file.
+Additional `-I` flags may be added to include the library header paths of the dependencies. `-D_WIN32_WINNT=0x0601` states that the target Windows version is Windows 7 (or above). This is required to use some WSA (socket) functions. `-Wl,--stack,16777216` increases the program stack size to allow more complex computations. We should also specify the dependencies to link with if not in the default paths, with the variables described in the `INSTALL` file. Notice that the support for external processes added in Maude 3.1 is not available in this Windows port.
 
 The Meson build script can also be used, and it generates an executable `maude.exe` and a shared library `libmaude.dll`. The language extension for LTSmin could be generated too.
 
