@@ -25,7 +25,7 @@
 //
 #ifndef _pseudoThread_hh_
 #define _pseudoThread_hh_
-#include <poll.h>
+#include <winsock2.h>
 #include <signal.h>
 #include <queue>
 #include "timeStuff.hh"

@@ -26,10 +26,8 @@
 
 #include <unistd.h>
 #include <signal.h>
-#include <sys/ioctl.h>
 #include <errno.h>
-#include <sys/types.h>
-#include <sys/wait.h>
+#include <windows.h>
 
 //      utility stuff
 #include "macros.hh"
@@ -113,30 +111,20 @@ IO_Manager::setAutoWrap(bool lineWrapping)
   //
   //	Set up autowrapping of standard output and standard error.
   //
-  winsize w;
+  CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
+
   {
-    int columns = NONE;
-    if (lineWrapping)
-      {
-	 columns = DEFAULT_COLUMNS;
-	 if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0 && w.ws_col > 0)
-	   columns = w.ws_col;
-      }
+    int columns = DEFAULT_COLUMNS;
+    if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &consoleInfo) != 0)
+      columns = consoleInfo.srWindow.Right - consoleInfo.srWindow.Left + 1;
     wrapOut = new AutoWrapBuffer(cout.rdbuf(), columns, true, &waitUntilSafeToAccessStdin);
     savedOut = cout.rdbuf(wrapOut);
   }
   {
-    int columns = NONE;
-    if (lineWrapping)
-      {
-	columns = DEFAULT_COLUMNS;
-	if (ioctl(STDERR_FILENO, TIOCGWINSZ, &w) == 0 && w.ws_col > 0)
-	  columns = w.ws_col;
-      }
-    //
-    //	Because every character is flushed in cerr, we don't respect it otherwise
-    //	we couldn't buffer in order to compute places to wrap.
-    //
+    int columns = DEFAULT_COLUMNS;
+    // cout << "err columns " << columns << '\n';
+    if (GetConsoleScreenBufferInfo(GetStdHandle(STD_ERROR_HANDLE), &consoleInfo) != 0)
+      columns = consoleInfo.srWindow.Right - consoleInfo.srWindow.Left + 1;
     wrapErr = new AutoWrapBuffer(cerr.rdbuf(), columns, false, &waitUntilSafeToAccessStdin);
     savedErr = cerr.rdbuf(wrapErr);
   }
@@ -187,7 +175,9 @@ IO_Manager::waitUntilSafeToAccessStdin()
       //	The child should exit once it is done with stdin
       //	so we wait for it, but leave it in a waitable state.
       //
-      waitpid(stdinOwner, 0, 0);
+      HANDLE pHandle = OpenProcess(SYNCHRONIZE, false, stdinOwner);
+      WaitForSingleObject(pHandle, INFINITE); 
+      CloseHandle(pHandle);
       stdinOwner = 0;
     }
 }
@@ -218,11 +208,14 @@ IO_Manager::getInput(char* buf, size_t maxSize, FILE* stream)
 
 	  // Update the word wrapping buffers size just in case
 	  // the terminal width has changed
-	  winsize ts;
-	  if (wrapOut != 0 && ioctl(STDOUT_FILENO, TIOCGWINSZ , &ts) && ts.ws_col > 0)
-	    wrapOut->setLineWidth(ts.ws_col);
-	  if (wrapErr != 0 && ioctl(STDERR_FILENO, TIOCGWINSZ , &ts) && ts.ws_col > 0)
-	    wrapErr->setLineWidth(ts.ws_col);
+	  CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
+	  int columns;
+	  if (wrapOut != 0 && GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &consoleInfo) != 0
+	      && (columns = consoleInfo.srWindow.Right - consoleInfo.srWindow.Left + 1) > 0)
+	    wrapOut->setLineWidth(columns);
+	  if (wrapErr != 0 && GetConsoleScreenBufferInfo(GetStdHandle(STD_ERROR_HANDLE), &consoleInfo) != 0
+	      && (columns = consoleInfo.srWindow.Right - consoleInfo.srWindow.Left + 1) > 0)
+	    wrapErr->setLineWidth(columns);
 	  contFlag = true;
 
 	  if (rdline == 0)

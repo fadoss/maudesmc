@@ -233,7 +233,8 @@ StringOpSymbol::eqRewrite(DagNode* subject, RewritingContext& context)
 		}
 	      case CODE('l', 'e'):  // length
 		{
-		  r = left.length();
+		  Rope::size_type length = left.length();
+		  mpz_import(r.get_mpz_t(), 1, -1, sizeof(length), 0, 0, &length);
 		  break;
 		}
 	      case CODE('a', 's'):  // acsii
