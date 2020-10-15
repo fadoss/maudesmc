@@ -257,7 +257,10 @@ StringOpSymbol::eqRewrite(DagNode* subject, RewritingContext& context)
 		    }
 		  case CODE3('l', 'e', 'n'):  // length
 		    {
-		      return succSymbol->rewriteToNat(subject, context, left.length());
+		      mpz_class len;
+		      auto original_len = left.length();
+		      mpz_import(len.get_mpz_t(), 1, -1, sizeof(original_len), 0, 0, &original_len);
+		      return succSymbol->rewriteToNat(subject, context, len);
 		    }
 		  case CODE3('a', 's', 'c'):  // acsii
 		    {

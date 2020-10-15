@@ -1017,7 +1017,7 @@ Token::getRational(mpz_class& numerator, mpz_class& denominator)
   const char* name = stringTable.name(codeNr);
   char* s = new char[strlen(name) + 1];
   strcpy(s, name);
-  char* p = index(s, '/');
+  char* p = strchr(s, '/');
   Assert(p != 0, "no /");
   *p = '\0';
   mpz_set_str(numerator.get_mpz_t(), s, 10);

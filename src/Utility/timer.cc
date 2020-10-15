@@ -24,44 +24,51 @@
 //      Implementation for class Timer.
 //
 #include <signal.h>
-#include <sys/time.h>
+
+// Windows API
+#include <processthreadsapi.h>
+#include <profileapi.h>
 
 //      utility stuff
 #include "macros.hh"
 
 #include "timer.hh"
 
-bool Timer::osTimersStarted = false;
-
 local_inline Int64
-Timer::calculateMicroseconds(const itimerval& startTime, const itimerval& stopTime)
+Timer::calculateMicroseconds(Int64 startTime,
+			     Int64 stopTime)
 {
-  const Int64 M = 1000000;
-  Int64 usec = startTime.it_value.tv_usec - stopTime.it_value.tv_usec +
-    M * (startTime.it_value.tv_sec - stopTime.it_value.tv_sec);
-  if (usec < 0)  // timer wrap around
-    usec += M * CYCLE_LENGTH;
-  return usec;
+  return (stopTime - startTime) / 10;
 }
 
-void
-Timer::startOsTimers()
+local_inline
+void Timer::getTimers(Int64& real, Int64& virt, Int64& prof)
 {
-  //
-  //	We let the OS timers run continuously and just sample them.
-  //
-  //	It would be nice to keep track of cycles for correct handling of
-  //	very long time intervals, but this seems hard without introducing
-  //	race conditions; so we just ignore all timer interrupts.
-  //
-  signal(SIGALRM, SIG_IGN);
-  signal(SIGVTALRM, SIG_IGN);
-  signal(SIGPROF, SIG_IGN);
-  static itimerval init = { {CYCLE_LENGTH, 0}, {CYCLE_LENGTH, 0} };
-  setitimer(ITIMER_REAL, &init, 0);
-  setitimer(ITIMER_VIRTUAL, &init, 0);
-  setitimer(ITIMER_PROF, &init, 0);
-  osTimersStarted = true;
+  // Get the current process kernel and user time (in time units of 100ns)
+  HANDLE currentProcess = GetCurrentProcess();
+  FILETIME creation, exit, kernel, user;
+  ULARGE_INTEGER large;
+  GetProcessTimes(currentProcess, &creation, &exit, &kernel, &user);
+
+  large.u.LowPart = kernel.dwLowDateTime;
+  large.u.HighPart = kernel.dwHighDateTime;
+
+  // Virtual time is user time
+  virt = large.QuadPart;
+  // Profiler time is the sum of user and kernel times
+  prof = large.QuadPart;
+
+  large.u.LowPart = user.dwLowDateTime;
+  large.u.HighPart = user.dwHighDateTime;
+
+  prof += large.QuadPart;
+
+  // Get real time from the interrupt time (100ms)
+  LARGE_INTEGER counter, frequency;
+  QueryPerformanceCounter(&counter);
+  QueryPerformanceFrequency(&frequency);
+
+  real = (10000000 * counter.QuadPart) / frequency.QuadPart;
 }
 
 Timer::Timer(bool startRunning)
@@ -73,12 +80,8 @@ Timer::Timer(bool startRunning)
   valid = true;
   if (startRunning)
     {
-      if (!osTimersStarted)
-	startOsTimers();
       running = true;
-      getitimer(ITIMER_REAL, &realStartTime);
-      getitimer(ITIMER_VIRTUAL, &virtStartTime);
-      getitimer(ITIMER_PROF, &profStartTime);
+      getTimers(realStartTime, virtStartTime, profStartTime);
     }
 }
 
@@ -87,15 +90,11 @@ Timer::start()
 {
   if (!running && valid)
     {
-      if (!osTimersStarted)
-	startOsTimers();
       //
       //	We get new start times.
       //
       running = true;
-      getitimer(ITIMER_REAL, &realStartTime);
-      getitimer(ITIMER_VIRTUAL, &virtStartTime);
-      getitimer(ITIMER_PROF, &profStartTime);
+      getTimers(realStartTime, virtStartTime, profStartTime);
     }
   else
     valid = false;
@@ -109,12 +108,10 @@ Timer::stop()
       //
       //	We accumulate the microseconds since last start().
       //
-      itimerval realStopTime;
-      itimerval virtStopTime;
-      itimerval profStopTime;
-      getitimer(ITIMER_PROF, &profStopTime);
-      getitimer(ITIMER_VIRTUAL, &virtStopTime);
-      getitimer(ITIMER_REAL, &realStopTime);
+      Int64 realStopTime;
+      Int64 virtStopTime;
+      Int64 profStopTime;
+      getTimers(realStopTime, virtStopTime, profStopTime);
       running = false;
       realAcc += calculateMicroseconds(realStartTime, realStopTime);
       virtAcc += calculateMicroseconds(virtStartTime, virtStopTime);
@@ -137,12 +134,10 @@ Timer::getTimes(Int64& real, Int64& virt, Int64& prof) const
       prof = profAcc;
       if (running)
 	{
-	  itimerval realStopTime;
-	  itimerval virtStopTime;
-	  itimerval profStopTime;
-	  getitimer(ITIMER_PROF, &profStopTime);
-	  getitimer(ITIMER_VIRTUAL, &virtStopTime);
-	  getitimer(ITIMER_REAL, &realStopTime);
+	  Int64 realStopTime;
+	  Int64 virtStopTime;
+	  Int64 profStopTime;
+         getTimers(realStopTime, virtStopTime, profStopTime);
 	  real += calculateMicroseconds(realStartTime, realStopTime);
 	  virt += calculateMicroseconds(virtStartTime, virtStopTime);
 	  prof += calculateMicroseconds(profStartTime, profStopTime);

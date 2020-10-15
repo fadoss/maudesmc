@@ -116,7 +116,7 @@ main(int argc, char* argv[])
 	    {
 	      char *endptr;
 	      double m = strtod(s, &endptr);
-	      if (endptr > s && isfinite(m) && m >= 0.0 && m <= 1e6)
+	      if (endptr > s && std::isfinite(m) && m >= 0.0 && m <= 1e6)
 		PigPug::setDepthBoundMultiplier(m);
 	      else
 		{
@@ -211,7 +211,7 @@ main(int argc, char* argv[])
     }
   Tty::setEscapeSequencesAllowed(ansiColor);
 
-  bool inputIsTerminal = (isatty(STDIN_FILENO) == 1);
+  bool inputIsTerminal = (isatty(STDIN_FILENO) != 0);
   if (useTecla == UNDECIDED)
     {
       //

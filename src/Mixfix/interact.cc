@@ -25,6 +25,8 @@
 //
 #include <signal.h>
 
+#define SIGSTKSZ 16384
+
 bool UserLevelRewritingContext::interactiveFlag = true;
 bool UserLevelRewritingContext::ctrlC_Flag = false;
 bool UserLevelRewritingContext::infoFlag = false;
@@ -78,29 +80,8 @@ UserLevelRewritingContext::setHandlers(bool handleCtrlC)
 {
   if (interactiveFlag && handleCtrlC)
     {
-      static struct sigaction ctrlC_Handler;
-      ctrlC_Handler.sa_handler = interruptHandler;
-#ifdef SA_INTERRUPT
-      //
-      //	Avoid old BSD semantics which automatically restarts
-      //	interrupted system calls.
-      //
-      ctrlC_Handler.sa_flags = SA_INTERRUPT;
-#endif
-      sigaction(SIGINT, &ctrlC_Handler, 0);
+      signal(SIGINT, interruptHandler);
     }
-  //
-  //	We want to have requests for info to be minimally disruptive
-  //	so we request system calls that are interrrupted be restarted.
-  //
-  static struct sigaction sigInfoHandler;
-  sigInfoHandler.sa_handler = infoHandler;
-  sigInfoHandler.sa_flags = SA_RESTART;
-#ifdef SIGINFO
-  sigaction(SIGINFO, &sigInfoHandler, 0);
-#else
-  sigaction(SIGUSR1, &sigInfoHandler, 0);
-#endif
 
 #ifdef NO_ASSERT
   //
@@ -109,7 +90,6 @@ UserLevelRewritingContext::setHandlers(bool handleCtrlC)
   //	non-portable semantics of signal().
   //
   BddUser::setErrorHandler(internalErrorHandler);  // BuDDy detects misuse of BDDs
-  signal(SIGBUS, internalErrorHandler);  // misaligned memory access or nonexistent real memeory
   signal(SIGILL, internalErrorHandler);  // illegal instruction
 
 #ifdef USE_LIBSIGSEGV

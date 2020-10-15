@@ -23,14 +23,15 @@
 //
 //	Main socket manipulation code.
 //
+
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <arpa/inet.h>
+#include <winsock2.h>
+#include <wininet.h>
 #include <errno.h>
+
+#define socklen_t int
 
 bool
 SocketManagerSymbol::getPort(DagNode* portArg, int& port)
@@ -80,16 +81,14 @@ SocketManagerSymbol::setNonblockingFlag(int fd,
   //	We also set the close-on-execute file descriptor flag so this file
   //	descriptor is not leaked after a fork() and exec family call.
   //
-  int flags = fcntl(fd, F_GETFL);
-  if (flags != 1 && fcntl(fd, F_SETFL, flags | O_NONBLOCK) != -1)
-    {
-      int flags2 = fcntl(fd, F_GETFD);
-      if (flags2 != -1 && fcntl(fd, F_SETFD, flags2 | FD_CLOEXEC) != -1)
-	return true;
-    }
+  u_long iMode = 1;
+
+  if (ioctlsocket(fd, FIONBIO, &iMode) == NO_ERROR
+      && SetHandleInformation((HANDLE) (uintptr_t) fd, HANDLE_FLAG_INHERIT, 0))
+    return true;
 
   const char* errText = strerror(errno);
-  DebugAdvisory("unexpected fcntl() error " << errText);
+  DebugAdvisory("unexpected ioctlsocket() or SetHandleInformation() error " << errText);
   close(fd);
   errorReply(errText, message, context);
   return false;
@@ -216,7 +215,7 @@ SocketManagerSymbol::createServerTcpSocket(FreeDagNode* message, ObjectSystemRew
 	//	of this socket.
 	//
 	int value = 1;
-	if (setsockopt(fd, SOL_SOCKET,  SO_REUSEADDR,  &value, sizeof(value)) == -1)
+	if (setsockopt(fd, SOL_SOCKET,  SO_REUSEADDR,  (const char*) &value, sizeof(value)) == -1)
 	  {
 	    const char* errText = strerror(errno);
 	    DebugAdvisory("setsockopt(SO_REUSEADDR) failed: " << errText);
@@ -342,7 +341,7 @@ SocketManagerSymbol::send(FreeDagNode* message, ObjectSystemRewritingContext& co
 	      //	to close the write side of the socket and cause
 	      //	an EOF condition for the reader.
 	      //
-	      if (shutdown(socketId, SHUT_WR) == 0)
+	      if (shutdown(socketId, SD_BOTH) == 0)
 		{
 		  DebugInfo("shutdown() succeeded for " << socketId);
 		  asp->readOnly = true;

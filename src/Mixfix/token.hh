@@ -333,7 +333,7 @@ inline bool
 Token::containsUnderscore() const
 {
   // might want to cache this as a flag in specialProperties
-  return index(name(), '_') != 0;
+  return strchr(name(), '_') != 0;
 }
 
 inline int

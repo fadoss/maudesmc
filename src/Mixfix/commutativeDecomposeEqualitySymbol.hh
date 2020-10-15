@@ -56,7 +56,7 @@ public:
   bool domainSortAlwaysLeqThan(Sort* sort, int argNr);
 
 private:
-  typedef multiset<DagNode*, DagNode::LessThan> DagNodeMultiset;
+  typedef std::multiset<DagNode*, DagNode::LessThan> DagNodeMultiset;
 
   static bool isEquationallyStable(Symbol* s);
   static bool hasImmediateSubterm(DagNode* bigger, DagNode* smaller);

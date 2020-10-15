@@ -34,14 +34,14 @@
 inline int
 PointerMap::hash(const void* pointer)
 {
-  int i = reinterpret_cast<long>(pointer);
+  int i = reinterpret_cast<uintptr_t>(pointer);
   return (i >> NR_PTR_LOSE_BITS) ^ (i >> (2 * NR_PTR_LOSE_BITS));
 }
 
 inline int
 PointerMap::hash2(const void* pointer)  // 2nd hash function must always return an odd value
 {
-  int i = reinterpret_cast<long>(pointer);
+  int i = reinterpret_cast<uintptr_t>(pointer);
   return ((i >> NR_PTR_LOSE_BITS) ^ (i >> (WORD_SIZE / 2))) | 1;
 }
 
