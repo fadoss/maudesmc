@@ -1,3 +1,121 @@
+2021-02-19  Steven Eker  <eker2@eker10>
+
+	* unificationProblem.hh (class UnificationProblem): delete
+	destructiveUpdates data member; update decl for ctor
+
+	* unificationProblem.cc (UnificationProblem::UnificationProblem):
+	removed destructiveUpdates argument
+
+	* irredundantUnificationProblem.cc: don't pass a
+	destructiveUpdates argument
+
+	* unificationProblem.cc
+	(UnificationProblem::findOrderSortedUnifiers): use new
+	freeVariables semantics
+	(UnificationProblem::bindFreeVariables): make new variables and do
+	instantiation of orginal bindings if destructiveUpdates == false
+	(UnificationProblem::UnificationProblem): force destructiveUpdates
+	= false because they produce denormalized unifiers
+	(UnificationProblem::bindFreeVariables): get name for new variable
+	from old variable
+	(UnificationProblem::bindFreeVariables): delete the code for the
+	destructiveUpdate case
+
+	* unificationProblem.hh (class UnificationProblem): data member
+	freeVariables becomes a NatSet rather than a Vector<int>
+
+	* irredundantUnificationProblem.cc
+	(IrredundantUnificationProblem::IrredundantUnificationProblem):
+	pass destructiveUpdates = false to UnificationProblem
+
+	* unificationProblem.cc
+	(UnificationProblem::UnificationProblem): take and set
+	destructiveUpdates flag
+
+	* unificationProblem.hh (class UnificationProblem): update ctor
+	decl
+	(class UnificationProblem): added data member destructiveUpdates
+
+	* unificationProblem.cc (UnificationProblem::bindFreeVariables):
+	index -> newSortIndex
+
+2021-02-18  Steven Eker  <eker2@eker10>
+
+	* irredundantUnificationProblem.cc
+	(IrredundantUnificationProblem::findNextUnifier): fix off-by-error
+	in call to UnifierFilter
+
+2020-12-11  Steven Eker  <eker2@eker10>
+
+	* narrowingSearchState2.cc
+	(NarrowingSearchState2::NarrowingSearchState2): pass
+	maintainInvariants = false to instantiate()
+
+	* narrowingSearchState3.cc
+	(NarrowingSearchState3::makeAccumulatedSubstitution): pass
+	maintainInvariants = true to instantiate()
+
+	* narrowingSequenceSearch3.cc
+	(NarrowingSequenceSearch3::NarrowingSequenceSearch3): pass
+	maintainInvariants = false to instantiate(); comment out hack to
+	compute sorts
+	(NarrowingSequenceSearch3::findNextUnifier): pass
+	maintainInvariants = false to instantiate() (2 places)
+
+	* narrowingSequenceSearch.cc
+	(NarrowingSequenceSearch::NarrowingSequenceSearch): pass
+	maintainInvariants = false to instantiate()
+
+	* narrowingUnificationProblem.cc
+	(NarrowingUnificationProblem::bindFreeVariables): pass
+	maintainInvariants = true to instantiate()
+
+	* unificationProblem.cc
+	(UnificationProblem::findOrderSortedUnifiers): pass
+	maintainInvariants = true to instantiate()
+
+	* variantMatchingProblem.cc
+	(VariantMatchingProblem::findNextMatcher): pass maintainInvariants
+	= true to instantiate()
+
+	* variantNarrowingSearchState.cc
+	(VariantNarrowingSearchState::findNextVariant): pass
+	maintainInvariants = false to instantiate() (2 places)
+
+	* variantSearch.cc: pass maintainInvariants = false to
+	instantiate()
+
+2020-12-10  Steven Eker  <eker2@eker10>
+
+	* narrowingSequenceSearch3.hh (class NarrowingSequenceSearch3):
+	added data member nrStatesExpanded
+
+	* narrowingSequenceSearch3.cc
+	(NarrowingSequenceSearch3::NarrowingSequenceSearch3): initialize
+	nrStatesExpanded
+	(NarrowingSequenceSearch3::findNextInterestingState): increment
+	nrStatesExpanded everytime we try to expand a state; output this
+	number in a Verbose() message
+
+	* narrowingFolder.cc (NarrowingFolder::getNextSurvivingState):
+	removed Verbose() since we can't be sure of number of surviving
+	state - this is because cleanGraph() will erase states that
+	have been expanded if we're not keeping a history
+
+	* narrowingSequenceSearch3.cc
+	(NarrowingSequenceSearch3::findNextInterestingState): fix
+	Verbose() for total number of states seen so that it executes if
+	we stop because of depth; include initial state in count
+
+2020-12-03  Steven Eker  <eker2@eker10>
+
+	* narrowingSequenceSearch3.cc: added hack to compute sorts in
+	goal; probably we should fix this by having a flag to
+	instantiate() to say whether sorts are expected and should be
+	maintained for ground dags
+
+===================================Maude132===========================================
+
 2020-10-05  Steven Eker  <eker2@eker10>
 
 	* variantSearch.cc: fill out problemOkay
