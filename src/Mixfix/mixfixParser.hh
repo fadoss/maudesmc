@@ -172,7 +172,8 @@ public:
   void makeSearchCommand(Term*& initial,
 			 int& searchType,
 			 Term*& target,
-			 Vector<ConditionFragment*>& condition);
+			 Vector<ConditionFragment*>& condition,
+			 StrategyExpression*& strategy);
   void makeGetVariantsCommand(Term*& initial, Vector<Term*>& constraint);
   void makeVariantUnifyOrMatchCommand(Vector<Term*>& lhs,
 				      Vector<Term*>& rhs,

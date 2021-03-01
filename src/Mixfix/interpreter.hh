@@ -211,6 +211,10 @@ public:
   void showSearchPathLabels(int stateNr);
   void showSearchGraph();
 
+  void showStrategySearchPath(StrategySequenceSearch* state, int stateNr);
+  void showStrategySearchPathLabels(StrategySequenceSearch* state,int stateNr);
+  void showStrategySearchGraph(StrategySequenceSearch* state);
+
   void loop(const Vector<Token>& subject);
   void contLoop(const Vector<Token>& input);
 
@@ -271,11 +275,17 @@ private:
   bool contLoop2(const Vector<Token>& input);
   void doLoop(CacheableRewritingContext* context, VisibleModule* module);
   void searchCont(Int64 limit, bool debug);
+  void strategySearchCont(Int64 limit, bool debug);
   void sRewriteCont(Int64 limit, bool debug);
   void dsRewriteCont(Int64 limit, bool debug);
   void doSearching(Timer& timer,
 		   VisibleModule* module,
 		   RewriteSequenceSearch* state,
+		   Int64 solutionCount,
+		   Int64 limit);
+  void doStrategySearching(Timer& timer,
+		   VisibleModule* module,
+		   StrategySequenceSearch* state,
 		   Int64 solutionCount,
 		   Int64 limit);
   void doNarrowing(Timer& timer,
@@ -330,6 +340,7 @@ private:
 			 bool depthSearch);
   void printDecisionTime(const Timer& timer);
   void printSearchTiming(const Timer& timer,  RewriteSequenceSearch* state);
+  void printSearchTiming(const Timer& timer,  StrategySequenceSearch* state);
   void doMatching(Timer& timer,
 		  VisibleModule* module,
 		  MatchSearchState* state,
@@ -348,6 +359,7 @@ private:
 			       int searchType,
 			       Term* target,				     
 			       const Vector<ConditionFragment*>& condition,
+			       StrategyExpression* strategy,
 			       MixfixModule* module);
 
   ofstream* xmlLog;
