@@ -391,7 +391,8 @@ StrategyModelCheckerSymbol::eqRewrite(DagNode* subject, RewritingContext& contex
   bool result = mc.findCounterexample();
   int nrSystemStates = system.systemStates->getNrStates();
   Verbose("StrategyModelCheckerSymbol: Examined " << nrSystemStates <<
-  " system state" << pluralize(nrSystemStates) << '.');
+  " system state" << pluralize(nrSystemStates) << " (" <<
+  system.systemStates->getNrRealStates() << " real).");
   // Outputs the model checking information for analysis with extern tools
   if (const char* mcfile = getenv("MAUDE_SMC_OUTPUT"))
     fullDump(mcfile, d->getArgument(0), d->getArgument(1), result,
@@ -428,9 +429,12 @@ StrategyModelCheckerSymbol::SystemAutomaton::checkProposition(int stateNr, int p
   // To reduce properties only once per term instead of once per automaton
   // state, we introduce (another) proposition cache.
   //
+
+  #ifndef NO_SMC_2NDCACHE
   PropositionCache::const_iterator cached = propositionCache.find(make_pair(stateDag, propositionIndex));
   if (cached != propositionCache.end())
     return cached->second;
+  #endif
 
   Vector<DagNode*> args(2);
   args[0] = stateDag;
@@ -441,7 +445,9 @@ StrategyModelCheckerSymbol::SystemAutomaton::checkProposition(int stateNr, int p
   bool result = trueTerm->equal(testContext->root());
   parentContext->addInCount(*testContext);
   delete testContext;
+  #ifndef NO_SMC_2NDCACHE
   propositionCache[make_pair(stateDag, propositionIndex)] = result;
+  #endif
   return result;
 }
 

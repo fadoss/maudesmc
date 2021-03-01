@@ -156,7 +156,7 @@ CallProcess::run(StrategicSearch& searchObject)
       // since this would get rewrites out of the opacity.
       (getOwner()->getOwner() == 0 || getOwner()->getOwner()->getTransitionGraph() == 0);
 
-      StrategicTask* callTask = new CallTask(searchObject,
+      CallTask* callTask = new CallTask(searchObject,
 		subjectDagIndex,
 		strategy,
 		sdef->getRhs(),
@@ -165,9 +165,9 @@ CallProcess::run(StrategicSearch& searchObject)
 		optimizedCall ? static_cast<StrategicExecution*>(getOwner()) : this,
 		this);
 
-      // Informs the model checker about the new tail call
-      if (transitionGraph != 0 && tailCall)
-	transitionGraph->onStrategyCall(callTask, cid);
+      // If no process has been created, we should remove the call task
+      if (callTask->isExhausted())
+	callTask->executionsExhausted(this);
 
       // Other solutions may be available
       return StrategicExecution::SURVIVE;

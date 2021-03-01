@@ -74,7 +74,7 @@ ModelCheckerSubtermTask::ModelCheckerSubtermTask(StrategicSearch &searchObject,
   for (size_t i = 0; i < nrSubterms; i++)
     {
       DagNode* variable = subpatterns[i]->term2Dag(true);
-      subterms[i] = variable->instantiate(subst);
+      subterms[i] = variable->instantiate(subst, true);
     }
 
   StrategicTask::pending = pending;

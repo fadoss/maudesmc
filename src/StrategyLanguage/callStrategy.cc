@@ -149,6 +149,11 @@ CallStrategy::decompose(StrategicSearch& searchObject, DecompositionProcess* rem
       if (isTail && !isOpaque)
 	{
 	  remainder->pushStrategy(searchObject, definition->getRhs());
+	  // Avoid cycling on strategy definitions like st := st
+	  if (transitionGraph != 0
+	      && !transitionGraph->onCheckpoint(remainder->getDagIndex(), remainder,
+						remainder->getPending(), remainder))
+	    return StrategicExecution::DIE;
 	  return StrategicExecution::SURVIVE;
 	}
 
@@ -168,6 +173,9 @@ CallStrategy::decompose(StrategicSearch& searchObject, DecompositionProcess* rem
 	{
 	  transitionGraph->getContextGroup(remainder->getOwner());
 	  transitionGraph->onStrategyCall(callTask, VariableBindingsManager::EMPTY_CONTEXT);
+	  // Since this is a opaque call, the cycle prevention mechanism of the model
+	  // checker does not have to take care about recursive calls, so we do not call
+	  // onCheckPoint
 	}
 
       return StrategicExecution::DIE;
