@@ -60,7 +60,7 @@ struct TaskInfo
 
 inline
 TaskInfo::TaskInfo(StrategicTask* task)
- : parent(0),
+ : parent(this),
    rootTask(task),
    varContext(VariableBindingsManager::EMPTY_CONTEXT),
    usersCount(1)

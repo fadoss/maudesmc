@@ -47,9 +47,16 @@ public:
   virtual Survival executionSucceeded(int resultIndex, StrategicProcess* insertionPoint);
   virtual Survival executionsExhausted(StrategicProcess* insertionPoint);
 
+  bool isExhausted();
+
 private:
   StrategicSearch& searchObject;
   RewriteStrategy* callee;
 };
+
+inline bool
+CallTask::isExhausted() {
+  return getDummyExecution()->getNextSlave() == getDummyExecution();
+}
 
 #endif

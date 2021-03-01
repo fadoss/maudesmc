@@ -90,6 +90,7 @@ public:
   ~StrategyTransitionGraph();
 
   int getNrStates() const;
+  int getNrRealStates() const;
   int getNextState(int stateNr, int index);
   DagNode* getStateDag(int stateNr) const;
   const ArcMap& getStateFwdArcs(int stateNr) const;

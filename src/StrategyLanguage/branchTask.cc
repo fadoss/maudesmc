@@ -84,12 +84,12 @@ BranchTask::executionSucceeded(int resultIndex, StrategicProcess* insertionPoint
       return DIE;
     case BranchStrategy::IDLE:
       {
-	(void) new DecompositionProcess(startIndex, pending, this, insertionPoint);
+	resumeOwner(startIndex, pending, insertionPoint);
 	return DIE;
       }
     case BranchStrategy::PASS_THRU:
       {
-	(void) new DecompositionProcess(resultIndex, pending, this, insertionPoint);
+	resumeOwner(resultIndex, pending, insertionPoint);
 	break;
       }
     case BranchStrategy::NEW_STRATEGY:
@@ -108,14 +108,16 @@ BranchTask::executionSucceeded(int resultIndex, StrategicProcess* insertionPoint
 	//	Do not iterate if we have already iterated from this term. We check this
 	//	by looking for the stack position of e ! in the seen set of the parent task.
 	//
-	if (getOwner()->alreadySeen(resultIndex, iterationCheckpoint))
+	StrategyTransitionGraph* transitionGraph = getTransitionGraph();
+	if ((transitionGraph == 0 && getOwner()->alreadySeen(resultIndex, iterationCheckpoint)) ||
+	    // onCheckpoint may create a substate in the current branch task for the
+	    // iterationCheckpoint instead of in the new branch
+	    (transitionGraph != 0 && !transitionGraph->onCheckpoint(resultIndex,
+	      this, iterationCheckpoint, insertionPoint)))
 	  return SURVIVE;
 	//
 	//	We set up another branch task on the new result and we stay alive to
 	//	process any new results.
-	//
-	// 	A checkpoint can be set here for the model checker to manage infinite
-	//  	traces with the exclamation sign operator. But it is not direct.
 	//
 	(void) new BranchTask(strategyStackManager,
 				this,
