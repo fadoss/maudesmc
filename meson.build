@@ -90,6 +90,14 @@ foreach header : systemHeaders
 endforeach
 
 #
+## Check for functions
+#
+
+if cxx.has_function('ppoll', prefix: '#include <poll.h>')
+	conf.set('HAVE_PPOLL', 1, description: 'use ppoll()')
+endif
+
+#
 ## Check for libraries
 #
 
@@ -418,10 +426,17 @@ tokenizer = custom_target('tokenizer',
 	command: [flex, '-Pzz', '-p', '-p', '-o', '@OUTPUT@', '@INPUT@']
 )
 
+deserializer = custom_target('deserializer',
+	input: 'src/Mixfix/deserializer.ll',
+	output: '@BASENAME@.cc',
+	command: [flex, '-Pxx', '-p', '-p', '-o', '@OUTPUT@', '@INPUT@']
+)
+
 mixfix_generators = [
 	surfacecc,
 	lexer,
-	tokenizer
+	tokenizer,
+	deserializer
 ]
 
 mixfix = static_library('mixfix', mixfix_source, mixfix_generators, include_directories: mixfix_includes)
@@ -1132,6 +1147,7 @@ install_data(
 	'src/Main/metaInterpreter.maude',
 	'src/Main/model-checker.maude',
 	'src/Main/prelude.maude',
+	'src/Main/process.maude',
 	'src/Main/smt.maude',
 	'src/Main/socket.maude',
 	'src/Main/term-order.maude',
