@@ -106,7 +106,7 @@ TimeManagerSymbol::getDateAndTime(FreeDagNode* message, ObjectSystemRewritingCon
     {
       time_t secs = seconds;  // need to pass pointer to time_t
       tm result;
-      if (gmtime_r(&secs, &result))
+      if (gmtime_s(&result, &secs))
 	{ 
 	  Vector<DagNode*> reply(6);
 	  DagNode* target = message->getArgument(1);

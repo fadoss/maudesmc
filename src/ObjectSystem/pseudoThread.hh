@@ -137,7 +137,7 @@ public:
   virtual void doWrite(int fd);  // a write is possible
   virtual void doError(int fd);   // a error happened
   virtual void doHungUp(int fd);  // the other end of a socket was closed when wanting to do a write (for some OS, when wanting to do a read)
-  virtual void doCallback();  // notBefore time reached for a requested call back
+  virtual void doCallback(long clientData);  // notBefore time reached for a requested call back
 
 private:
   enum Values
@@ -163,8 +163,6 @@ private:
     pid_t pid;
     bool exited;
   };
-
-  typedef priority_queue<CallbackRequest> CallbackQueue;
 
   static bool processCallbacks(int& returnValue, timespec& wait);
   static int processFds(const timespec* waitPointer);
