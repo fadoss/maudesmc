@@ -469,7 +469,10 @@ MaudePINSModule::readAtomicProps(const char* apspec) {
 
 inline void
 MaudePINSModule::readOpaqueStrats(const char* opaquestr, set<int> &opaques) {
-	string opaqueList = popt_opaques == nullptr ? "" : popt_opaques;
+	if (opaquestr == nullptr)
+		return;
+
+	string opaqueList = opaquestr;
 
 	size_t lastStart = 0;
 	size_t commaPos = opaqueList.find(',');
@@ -477,7 +480,7 @@ MaudePINSModule::readOpaqueStrats(const char* opaquestr, set<int> &opaques) {
 	while (commaPos != string::npos) {
 		opaques.insert(Token::encode(opaqueList.substr(lastStart, commaPos - lastStart).c_str()));
 		lastStart = commaPos+1;
-		opaqueList.find(',', lastStart);
+		commaPos = opaqueList.find(',', lastStart);
 	}
 
 	if (lastStart != opaqueList.size())
@@ -587,15 +590,25 @@ at_exit() {
 	// Print the number of states and rewrites at exit
 	if (maudem.graph != nullptr || maudem.sgraph != nullptr)
 	{
-		size_t nrStates = maudem.graph != nullptr
-			? maudem.graph->getNrStates()
-			: maudem.sgraph->getNrStates();
 		RewritingContext* graphContext = maudem.graph != nullptr
 			? maudem.graph->getContext()
 			: maudem.sgraph->getContext();
 		maudem.context->addInCount(*graphContext);
-		Printf(infoShort, "%s: %li system states explored, %li rewrites\n",
-		       pins_plugin_name, nrStates, maudem.context->getTotalCount());
+		if (maudem.graph != nullptr)
+		{
+			Printf(infoShort, "%s: %li system states explored, %li rewrites\n",
+			       pins_plugin_name,
+			       maudem.graph->getNrStates(),
+			       maudem.context->getTotalCount());
+		}
+		else
+		{
+			Printf(infoShort, "%s: %li system states explored (%li real), %li rewrites\n",
+			       pins_plugin_name,
+			       maudem.sgraph->getNrStates(),
+			       maudem.sgraph->getNrRealStates(),
+			       maudem.context->getTotalCount());
+		}
 	}
 	// Print the number of rewrites only (initialization error)
 	else if (maudem.context != nullptr)
