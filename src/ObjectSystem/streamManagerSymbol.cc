@@ -314,7 +314,8 @@ StreamManagerSymbol::cancelGetLine(FreeDagNode* message, ObjectSystemRewritingCo
 	  //
 	  //	Child is still reading from stdin; try to kill it.
 	  //
-	  if (kill(p->second.childPid, SIGTERM) == 0)
+	  HANDLE pHandle = OpenProcess(PROCESS_TERMINATE, false, p->second.childPid);
+	  if (TerminateProcess(pHandle, 1))
 	    {
 	      //
 	      //	Killed it; wait for exit.
@@ -338,6 +339,7 @@ StreamManagerSymbol::cancelGetLine(FreeDagNode* message, ObjectSystemRewritingCo
 	      //
 	      pendingGetLines.erase(p);
 	    }
+          CloseHandle(pHandle);
 	}
       //
       //	If there wasn't a getLine() in progress in our current context,
@@ -382,39 +384,9 @@ StreamManagerSymbol::makeNonblockingPipe(int pair[2],
 					 ObjectSystemRewritingContext& context)
 {
   //
-  //	We create a pipe where the read end will not block. Also we
-  //	close the read end on execute so that the file descriptor will
-  //	not leak into future children that execute a new binary.
+  //	Process communication is not supported in this Windows port.
   //
-  const char* errText;
-  if (pipe(pair) != -1)
-    {
-      //
-      //	Nonblocking is done by modifying the file status flags.
-      //
-      int flags = fcntl(pair[READ_END], F_GETFL);
-      if (flags != -1 && fcntl(pair[READ_END], F_SETFL, flags | O_NONBLOCK) != -1)
-	{
-	  //
-	  //	Close on execute is done by modifying the file descriptor flags.
-	  //
-	  int flags2 = fcntl(pair[READ_END], F_GETFD);
-	  if (flags2 != -1 && fcntl(pair[READ_END], F_SETFD, flags2 | FD_CLOEXEC) != -1)
-	    return true;
-	}
-      errText = strerror(errno);  // close() is allowed to change errno
-      //
-      //	Must not leak file descriptors.
-      //
-      close(pair[READ_END]);
-      close(pair[WRITE_END]);
-    }
-  else
-    errText = strerror(errno);
-  //
-  //	One of the system calls failed. Return error message.
-  //
-  errorReply(errText, message, context);
+  errorReply("Non-blocking getLine is not supported in this Windows port.", message, context);
   return false;
 }
 
@@ -437,153 +409,6 @@ StreamManagerSymbol::nonblockingGetLine(FreeDagNode* message,
   int resultReturnPipe[2];
   if (!makeNonblockingPipe(resultReturnPipe, message, context))
     return;
-  //
-  //	Because when we fork() we will have copies of the any buffered
-  //	cout characters in two processes, we need to make sure nothing is buffered.
-  //
-  cout << flush;
-  //
-  //	fork() a child to do the getLine() without blocking the parent
-  //	process.
-  //
-  pid_t pid = fork();
-  if (pid == -1)
-    {
-      const char* errText = strerror(errno);
-      //
-      //	Must not leak file descriptors.
-      //
-      close(resultReturnPipe[READ_END]);
-      close(resultReturnPipe[WRITE_END]);
-      errorReply(errText, message, context);
-      return;
-    }
-
-  if (pid == 0)
-    {
-      //
-      //	We are the child.
-      //
-      close(resultReturnPipe[READ_END]);
-      DagNode* promptArg = message->getArgument(2);
-      Rope prompt = safeCast(StringDagNode*, promptArg)->getValue();
-      if (ioManager.usingTecla())
-	{
-	  //
-	  //	It's possible that a control-C arrived before the
-	  //	fork() or will arrive before Tecla is ready to respond
-	  //	by aborting the line.
-	  //
-	  //	Note that since Tecla has already installed its handlers
-	  //	it's not safe to mess with sigaction()
-	  //
-	  //	To handle this we first block the signal.
-	  //
-	  sigset_t blockSet;
-	  sigemptyset(&blockSet);
-	  sigaddset(&blockSet, SIGINT);
-	  sigprocmask(SIG_BLOCK, &blockSet, 0);
-	}
-      else
-	{
-	  //
-	  //	Not using Tecla so if we get a SIGINT (^C from the user)
-	  //	or a SIGTERM from the parent we want to move to a new
-	  //	line and exit.
-	  //
-	  static struct sigaction signalHandler;
-	  signalHandler.sa_handler = interruptHandler;
-	  sigaction(SIGINT, &signalHandler, 0);
-	  sigaction(SIGTERM, &signalHandler, 0);
-	}
-      //
-      //	Check if we've already caught a control-C.
-      //
-      if (context.interruptSeen())
-      	exit(0);
-      //
-      //	Tecla is initialized so that it unblocks the SIGINT once
-      //	it is ready to deal with it.
-      //
-      //	There is no need to unblock it ourselves after Tecla
-      //	returns because we're going to exit() anyway.
-      //
-      //	Now we can read a line. We treat \\\n as indicating an incomplete line.
-      //
-      Rope line;
-      for (;;)
-	{
-	  Rope partial = ioManager.getLineFromStdin(prompt);
-	  if (partial.empty())
-	    break;  // ^D
-	  auto nrChars = partial.length();
-	  if (nrChars > 1 && partial[nrChars - 2] == '\\')
-	    {
-	      line += partial.substr(0, nrChars - 2);  // remove \\\n
-	      prompt = "> ";
-	    }
-	  else
-	    {
-	      line += partial;
-	      break;
-	    }
-	}
-      //
-      //	Then we need to write the line to the pipe.
-      //
-      char* charArray = line.makeZeroTerminatedString();
-      ssize_t nrUnsent = line.length();
-      char* p = charArray;
-      while (nrUnsent > 0)
-	{
-	  ssize_t n;
-	  do
-	    n = ::write(resultReturnPipe[WRITE_END], p, nrUnsent);
-	  while (n == -1 && errno == EINTR);
-	  Assert(n != -1, "unexpected write failure: " << strerror(errno));
-	  p += n;
-	  nrUnsent -= n;
-	}
-      //
-      //	No need to
-      //	  delete [] charArray;
-      //	or
-      //	  close(resultReturnPipe[WRITE_END]);
-      //	because we're terminating.
-      //
-      exit(0);
-    }
-  //
-  //	We are the parent.
-  //
-  close(resultReturnPipe[WRITE_END]);
-  //
-  //	Because the child will be accessing the terminal we must
-  //	not access it ourselves until the child exits.
-  //
-  IO_Manager::setStdinOwner(pid);
-  //
-  //	We assume that reading a line will necessarily move stdout to a new line
-  //	so we need to reset the line wrapping in our process.
-  //
-  ioManager.resetStdoutWrapping();
-  //
-  //	Set up asynchronous read of pipe.
-  //	We record the information in a map from the read file descriptor
-  //	to a PendingGetLine struct.
-  //
-  int pipeFd = resultReturnPipe[READ_END];
-  PendingGetLine& p = pendingGetLines[pipeFd];
-  p.lastGetLineMessage.setNode(message);
-  p.objectContext = &context;
-  p.childPid = pid;
-  wantTo(READ, pipeFd);
-  //
-  //	Because the pending getLine() is not associated with an ephemeral
-  //	external object that will clean it up when the context is destructed
-  //	we need to request a callback for the manager itself.
-  //
-  context.requestCleanUpOnDestruction(this);
 }
 
 void

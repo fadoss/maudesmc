@@ -163,8 +163,6 @@ private:
     pid_t pid;
   };
 
-  typedef priority_queue<CallbackRequest> CallbackQueue;
-
   static bool processCallbacks(int& returnValue, timespec& wait);
   static int processFds(const timespec* waitPointer);
   static void link(int fd);
