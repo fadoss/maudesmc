@@ -86,7 +86,8 @@ public:
   StrategyTransitionGraph(RewritingContext* initial,
 			  StrategyExpression* strategy,
 			  const set<int> &opaqueIds,
-			  bool biasedMatchrew = false);
+			  bool biasedMatchrew = false,
+			  bool makeSelfLoops = true);
   ~StrategyTransitionGraph();
 
   int getNrStates() const;
@@ -95,6 +96,7 @@ public:
   DagNode* getStateDag(int stateNr) const;
   const ArcMap& getStateFwdArcs(int stateNr) const;
   StrategyExpression* getStrategyContinuation(int stateNr) const;
+  int getRealStateNr(int stateNr) const;
   bool isSolutionState(int stateNr) const;
 
   //
@@ -260,6 +262,7 @@ private:
   StrategyExpression* strategy;
   set<int> opaqueStrategies;
   bool biasedMatchrew;
+  bool avoidSelfLoops;
 
   // The states of the graph
   Vector<State*> *seen;
@@ -301,6 +304,12 @@ inline StrategyExpression*
 StrategyTransitionGraph::getStrategyContinuation(int stateNr) const
 {
   return top((*seen)[stateNr]->stackId);
+}
+
+inline int
+StrategyTransitionGraph::getRealStateNr(int stateNr) const
+{
+  return (*seen)[stateNr]->stateNr;
 }
 
 inline const StrategyTransitionGraph::ArcMap&

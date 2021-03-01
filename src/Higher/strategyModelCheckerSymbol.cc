@@ -485,7 +485,7 @@ void StrategyModelCheckerSymbol::fullDump(const char* outputFile, DagNode* initi
 
       int cycleSize = cycle.size();
       writeInt(file, cycleSize);
-      for (int j : path)
+      for (int j : cycle)
 	writeInt(file, j);
     }
 
