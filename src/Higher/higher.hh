@@ -35,6 +35,7 @@ class MatchSearchState;
 class CacheableState;
 class SequenceSearch;
 class RewriteSequenceSearch;
+class StrategySequenceSearch;
 
 class StateTransitionGraph3;
 class StateTransitionGraph;

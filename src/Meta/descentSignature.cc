@@ -49,6 +49,8 @@
   MACRO(metaSearchPath, 7)
   MACRO(metaNarrow, 6)
   MACRO(metaNarrow2, 6)
+  MACRO(metaStrategySearch, 9)
+  MACRO(metaStrategySearchPath, 9)
   MACRO(metaSortLeq, 3)
   MACRO(metaSameKind, 3)
   MACRO(metaLesserSorts, 2)

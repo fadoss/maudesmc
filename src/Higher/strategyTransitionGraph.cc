@@ -60,9 +60,10 @@
 StrategyTransitionGraph::StrategyTransitionGraph(RewritingContext* initial,
 						 StrategyExpression* strategy,
 						 const set<int> &opaqueIds,
-						 bool biasedMatchrew)
+						 bool biasedMatchrew,
+						 bool makeSelfLoops)
   : StrategicSearch(initial, strategy), initial(initial), strategy(strategy),
-    opaqueStrategies(opaqueIds), biasedMatchrew(biasedMatchrew),  currentSubgraph(0)
+    opaqueStrategies(opaqueIds), biasedMatchrew(biasedMatchrew), avoidSelfLoops(!makeSelfLoops),  currentSubgraph(0)
 {
   // Creates the initial state with the initial decomposition process
   DecompositionProcess* firstProcess =
@@ -222,6 +223,9 @@ StrategyTransitionGraph::getNextState(int stateNr, int index)
 
 int StrategyTransitionGraph::makeSelfLoop(Substate* substate, int dagNode)
 {
+  if (avoidSelfLoops)
+    return 0;
+
   int nextState;
   //
   // If the substate is a state, is fully explored and does not have any
@@ -721,6 +725,10 @@ size_t StrategyTransitionGraph::Substate::importDependency(list<State::Dependenc
 	}
     }
   iter->alreadyImported = nrSuccessors;
+
+  // Import solution mark
+  if (!hasSolution && dependency->hasSolution)
+    hasSolution = true;
 
   // If the dependency will not provide solutions anymore, we remove it
   if (dependency->nextProcess == 0 && dependency->dependencies.empty())
