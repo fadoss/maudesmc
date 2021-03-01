@@ -40,7 +40,8 @@ TimeManagerSymbol::getTimeSinceEpoch(FreeDagNode* message, ObjectSystemRewriting
   DebugSave(r, clock_gettime(CLOCK_REALTIME, &timeValue));
   Assert(r == 0, "clock_gettime() failed: " << strerror(errno));
 
-  mpz_class nanoSeconds(timeValue.tv_sec);
+  mpz_class nanoSeconds;
+  mpz_import(nanoSeconds.get_mpz_t(), 1, 1, sizeof(timeValue.tv_sec), 0, 0, &timeValue.tv_sec);
   nanoSeconds *= BILLION;
   nanoSeconds += timeValue.tv_nsec;
 
@@ -98,7 +99,7 @@ TimeManagerSymbol::getDateAndTime(FreeDagNode* message, ObjectSystemRewritingCon
     {
       time_t secs = seconds;  // need to pass pointer to time_t
       tm result;
-      if (gmtime_r(&secs, &result))
+      if (gmtime_s(&result, &secs))
 	{ 
 	  Vector<DagNode*> reply(6);
 	  DagNode* target = message->getArgument(1);
