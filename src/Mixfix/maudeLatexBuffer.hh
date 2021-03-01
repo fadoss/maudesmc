@@ -90,6 +90,7 @@ public:
 		      int searchType,
 		      Term* target,
 		      const Vector<ConditionFragment*>& condition,
+		      StrategyExpression* strategy,
 		      int variantFlags,
 		      int64_t limit,
 		      int64_t depth,
@@ -140,6 +141,20 @@ public:
 			       bool showTiming,
 			       bool showBreakdown);
   void generateSearchResult(RewriteSequenceSearch* state,
+			    int64_t solutionNr,
+			    int64_t cpuTime,
+			    int64_t realTime,
+			    bool showStats,
+			    bool showTiming,
+			    bool showBreakdown);
+  void generateSearchNonResult(StrategySequenceSearch* state,
+			       const string& message,
+			       int64_t cpuTime,
+			       int64_t realTime,
+			       bool showStats,
+			       bool showTiming,
+			       bool showBreakdown);
+  void generateSearchResult(StrategySequenceSearch* state,
 			    int64_t solutionNr,
 			    int64_t cpuTime,
 			    int64_t realTime,

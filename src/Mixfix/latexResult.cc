@@ -243,6 +243,42 @@ MaudeLatexBuffer::generateSearchResult(RewriteSequenceSearch* state,
 }
 
 void
+MaudeLatexBuffer::generateSearchNonResult(StrategySequenceSearch* state,
+					  const string& message,
+					  int64_t cpuTime,
+					  int64_t realTime,
+					  bool showStats,
+					  bool showTiming,
+					  bool showBreakdown)
+{
+  if (needNewline)
+    output << "\\newline";
+  output << "\\par\\maudeResponse{" << message << "}\n";
+  if (showStats)
+    generateStats(*(state->getContext()), cpuTime, realTime, showTiming, showBreakdown, state->getNrStates());
+  needNewline = false;
+}
+
+void
+MaudeLatexBuffer::generateSearchResult(StrategySequenceSearch* state,
+				       int64_t solutionNr,
+				       int64_t cpuTime,
+				       int64_t realTime,
+				       bool showStats,
+				       bool showTiming,
+				       bool showBreakdown)
+{
+  if (needNewline)
+    output << "\\newline";
+  output << "\\par\\maudeResponse{Solution}\\maudeSpace\\maudeNumber{" << solutionNr <<
+    "}\\maudeSpace\\maudePunctuation{(}\\maudeResponse{state}\\maudeSpace\\maudeNumber{" <<
+    state->getStateNr() << "}\\maudePunctuation{)}\n";
+  if (showStats)
+    generateStats(*(state->getContext()), cpuTime, realTime, showTiming, showBreakdown, state->getNrStates());
+  needNewline = true;
+}
+
+void
 MaudeLatexBuffer::generateSearchPath(const RewriteSequenceSearch* graph,
 				     const Vector<int>& steps,
 				     int stateNr,

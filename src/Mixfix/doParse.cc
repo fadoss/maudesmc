@@ -216,7 +216,8 @@ MixfixModule::parseSearchCommand(const Vector<Token>& bubble,
 				 Vector<Term*>& initial,
 				 int& searchType,
 				 Term*& target,
-				 Vector<ConditionFragment*>& condition)
+				 Vector<ConditionFragment*>& condition,
+				 StrategyExpression*& strategy)
 {
   makeGrammar(true);
   int r = parseSentence(bubble, SEARCH_COMMAND);
@@ -231,7 +232,7 @@ MixfixModule::parseSearchCommand(const Vector<Token>& bubble,
       IssueWarning(LineNumber(bubble[0].lineNumber()) <<
 		   ": multiple distinct parses for command.");
     }
-  parser->makeSearchCommand(initial, searchType, target, condition);
+  parser->makeSearchCommand(initial, searchType, target, condition, strategy);
   return true;
 }
 

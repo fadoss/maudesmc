@@ -525,6 +525,14 @@ eq 'metaPrettyPrint['M:Module, 'T:Term, 'P:PrintOptionSet] = 'metaPrettyPrint[
 eq 'metaPrettyPrint['M:Module, 'VS:VariableSet, 'T:Term, 'P:PrintOptionSet] =
     'metaPrettyPrint['M:Module, 'VS:VariableSet, 'T:Term, 'P:PrintOptionSet,
     'none.EmptyQidSet] [none] .
+eq 'metaStrategySearch['M:Module, 'T1:Term, 'T2:Term, 'C:Condition, 'Q:Qid,
+    'S:Strategy, 'B:Bound, 'N:Nat] = 'metaStrategySearch['M:Module, 'T1:Term,
+    'T2:Term, 'C:Condition, 'Q:Qid, 'S:Strategy, 'none.EmptyQidSet, 'B:Bound,
+    'N:Nat] [none] .
+eq 'metaStrategySearchPath['M:Module, 'T1:Term, 'T2:Term, 'C:Condition, 'Q:Qid,
+    'S:Strategy, 'B:Bound, 'N:Nat] = 'metaStrategySearchPath['M:Module,
+    'T1:Term, 'T2:Term, 'C:Condition, 'Q:Qid, 'S:Strategy, 'none.EmptyQidSet,
+    'B:Bound, 'N:Nat] [none] .
 eq 'metaVariantDisjointUnify['M:Module, 'U:UnificationProblem, 'TL:TermList,
     'Q:Qid, 'N:Nat] = 'metaVariantDisjointUnify['M:Module,
     'U:UnificationProblem, 'TL:TermList, 'Q:Qid, 'none.VariantOptionSet,

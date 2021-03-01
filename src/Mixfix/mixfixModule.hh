@@ -187,7 +187,8 @@ public:
 			  Vector<Term*>& initial,
 			  int& searchType,
 			  Term*& target,
-			  Vector<ConditionFragment*>& condition);
+			  Vector<ConditionFragment*>& condition,
+			  StrategyExpression*& strategy);
   bool parseMatchCommand(const Vector<Token>& bubble,
 			 Term*& pattern,
 			 Term*& subject,
