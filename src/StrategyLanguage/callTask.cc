@@ -57,17 +57,37 @@ CallTask::CallTask(StrategicSearch& searchObject,
     searchObject(searchObject),
     callee(callee)
 {
-  (void) new DecompositionProcess(startIndex,
-				  searchObject.push(StrategyStackManager::EMPTY_STACK, strategy),
-				  getDummyExecution(),
-				  insertionPoint);
+  StrategyTransitionGraph* transitionGraph = getTransitionGraph();
+
+  // The pending state within the call
+  int nextPending = searchObject.push(StrategyStackManager::EMPTY_STACK, strategy);
+
+  // When model checking and doing a tail call, whether the current execution
+  // point has been visited is checked with onCheckpoint after onStrategyCall.
+  // If visited, this task will be inmediately destroyed outside, but since
+  // onStrategyCall may create a substate with a decomposition process on its
+  // own, we must call it once the task has been created.
+  bool shouldContinue = transitionGraph == 0 || pending != StrategyStackManager::EMPTY_STACK;
+
+  if (!shouldContinue)
+    {
+      transitionGraph->onStrategyCall(this, varBinds);
+      shouldContinue = transitionGraph->onCheckpoint(startIndex, getDummyExecution(), nextPending, insertionPoint);
+    }
+
+  // When we are not model checking, this is not a tail call, or onCheckPoint
+  // allow us to continue, we create a decomposition process for the call
+  if (shouldContinue)
+    (void) new DecompositionProcess(startIndex,
+				    nextPending,
+				    getDummyExecution(),
+				    insertionPoint);
 
   StrategicTask::pending = pending;
 
   //
   // When running an opaque strategy, model checking is disabled inside
   //
-  StrategyTransitionGraph* transitionGraph = getTransitionGraph();
   if (transitionGraph != 0 && callee != nullptr && transitionGraph->isOpaque(callee->id()))
     setTransitionGraph(0);
   // Otherwise, callee is set to nullptr because the information is not needed and we

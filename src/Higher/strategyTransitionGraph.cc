@@ -385,8 +385,7 @@ void StrategyTransitionGraph::commitState(int dagNode,
 	    if (completeDag == NONE)
 	      return;
 
-	    enclosing = enclosing == enclosing->getEnclosingSubtermTask()
-			  ? 0 : enclosing->getEnclosingSubtermTask();
+	    enclosing = enclosing->getOwner()->getEnclosingSubtermTask();
 	  }
       }
 
@@ -427,7 +426,8 @@ void StrategyTransitionGraph::commitState(int dagNode,
 	    }
 	  // The process is exhausted without solutions
 	  else if (currentSubstate->nextProcess == 0
-		    && currentSubstate->dependencies.empty())
+		   && currentSubstate->dependencies.empty()
+		   && currentSubstate->nextStates.empty())
 	    {
 	      currentSubstate->free();
 	      seen->contractTo(nextStateNr);
@@ -480,8 +480,7 @@ int StrategyTransitionGraph::newState(int dagNode,
 	completeDag = enclosing->onCommitState(completeDag, stackId,
 					       initialProcess, transition);
 
-	enclosing = enclosing == enclosing->getEnclosingSubtermTask()
-		      ? 0 : enclosing->getEnclosingSubtermTask();
+	enclosing = enclosing->getOwner()->getEnclosingSubtermTask();
       }
   }
 
@@ -1062,4 +1061,16 @@ void StrategyTransitionGraph::dotDump(ostream& s) const
   ostream::pos_type currentPosition = s.tellp();
   s.seekp(resourceTable);
   writeInt(s, currentPosition);
+}
+
+int StrategyTransitionGraph::getNrRealStates() const
+{
+  int nrSeen = seen->size();
+  int nrStates = 0;
+
+  for (int i = 0; i < nrSeen; i++)
+    if ((*seen)[i]->stateNr == i)
+      nrStates++;
+
+  return nrStates;
 }
