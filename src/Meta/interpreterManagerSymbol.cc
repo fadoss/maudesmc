@@ -24,7 +24,7 @@
 //      Implementation for class InterpreterManagerSymbol.
 //
 #include <sys/types.h>
-#include <sys/wait.h>
+//#include <sys/wait.h>
 #include <sstream>
 
 //      utility stuff
@@ -387,34 +387,10 @@ InterpreterManagerSymbol::deleteInterpreter(DagNode* interpreterArg)
 	      else
 		{
 		  IssueAdvisory("its a remote interpreter " << interpreterArg);
-		  RemoteInterpreterMap::iterator i = remoteInterpreters.find(interpreterId);
-		  if (i != remoteInterpreters.end())
-		    {
-		      DebugInfo("deleted remote interpreter " << interpreterArg);
-		      {
-			int fd = i->second.ioSocket;
-			DebugInfo("closing i/o socket " << fd);
-			close(fd);
-			clearFlags(fd);
-		      }
-		      {
-			int fd = i->second.errSocket;
-			DebugInfo("closing error socket " << fd);
-			close(fd);
-			clearFlags(fd);
-		      }
-		      int childPid = i->second.processId;
-		      cancelChildExitCallback(childPid);
-		      DebugInfo("terminating process " << i->second.processId);
-		      kill(childPid, SIGTERM);
-		      //
-		      //	Wait for child we just terminated to avoid a zombie.
-		      //
-		      waitpid(i->second.processId, 0, 0);
-		      delete i->second.charArray;
-		      remoteInterpreters.erase(i);
-		      return true;
-		    }
+		  //
+		  // Remote interpreters are not supported on Windows.
+		  //
+		  return true;
 		}
 	    }
 	}

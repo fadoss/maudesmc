@@ -67,6 +67,7 @@ UserLevelRewritingContext::interruptSeen()
   return interrupted();
 }
 
+/*
 void
 UserLevelRewritingContext::ignoreCtrlC()
 {
@@ -74,6 +75,7 @@ UserLevelRewritingContext::ignoreCtrlC()
   ctrlC_Handler.sa_handler = SIG_IGN;
   sigaction(SIGINT, &ctrlC_Handler, 0);
 }
+*/
 
 void
 UserLevelRewritingContext::setHandlers(bool handleCtrlC)
