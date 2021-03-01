@@ -65,8 +65,10 @@ private:
     DagNode* trueTerm;
     StrategyTransitionGraph* systemStates;
 
+    #ifndef NO_SMC_2NDCACHE
     typedef std::map<std::pair<DagNode*,int>, bool> PropositionCache;
     mutable PropositionCache propositionCache;
+    #endif
   };
 
   void dump(const StrategyTransitionGraph& states, const list<int>& path);
