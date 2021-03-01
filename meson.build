@@ -90,6 +90,14 @@ foreach header : systemHeaders
 endforeach
 
 #
+## Check for functions
+#
+
+if cxx.has_function('ppoll', prefix: '#include <poll.h>')
+	conf.set('HAVE_PPOLL', 1, description: 'use ppoll()')
+endif
+
+#
 ## Check for libraries
 #
 
@@ -1084,6 +1092,7 @@ libmaude = shared_library('maude',
 )
 
 libmaude_includes = include_directories(
+	'src/AU_Theory',
 	'src/BuiltIn',
 	'src/Core',
 	'src/FreeTheory',
@@ -1105,6 +1114,7 @@ libmaude_includes = include_directories(
 	'ltsmod',
 )
 
+# Dependency for other Meson projects using this library
 libmaude_dep = declare_dependency(
 	include_directories: libmaude_includes,
 	link_with: libmaude
@@ -1141,6 +1151,7 @@ install_data(
 	'src/Main/metaInterpreter.maude',
 	'src/Main/model-checker.maude',
 	'src/Main/prelude.maude',
+	'src/Main/prng.maude',
 	'src/Main/process.maude',
 	'src/Main/smt.maude',
 	'src/Main/socket.maude',
