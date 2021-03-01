@@ -344,6 +344,7 @@ MaudeLatexBuffer::generateSearch(bool showCommand,
 				 int searchType,
 				 Term* target,
 				 const Vector<ConditionFragment*>& condition,
+				 StrategyExpression* strategy,
 				 int variantFlags,
 				 int64_t limit,
 				 int64_t depth,
@@ -409,6 +410,10 @@ MaudeLatexBuffer::generateSearch(bool showCommand,
       output << " such that ";
       MixfixModule::printCondition(output, condition, commentSettings);
     }
+  if (strategy != 0)
+    {
+      output << " using " << strategy;
+    }
   endComment();
   //
   //	Print latex version of command.
@@ -465,6 +470,11 @@ MaudeLatexBuffer::generateSearch(bool showCommand,
 	{
 	  output << "\\maudeSpace\\maudeKeyword{such that}\\maudeSpace";
 	  VisibleModule::latexPrintCondition(output, condition);
+	}
+      if (strategy != 0)
+        {
+	  output << "\\maudeSpace\\maudeKeyword{using}\\maudeSpace";
+          safeCastNonNull<const VisibleModule*>(module)->latexPrintStrategy(output, strategy);
 	}
       output << "$\\maudeEndCommand\n";
     }

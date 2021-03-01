@@ -383,7 +383,8 @@ void
 MixfixParser::makeSearchCommand(Vector<Term*>& initial,
 				int& searchType,
 				Term*& target,
-				Vector<ConditionFragment*>& condition)
+				Vector<ConditionFragment*>& condition,
+				StrategyExpression*& strategy)
 {
   Assert(nrParses > 0, "no parses");
   int node = ROOT_NODE;
@@ -397,8 +398,15 @@ MixfixParser::makeSearchCommand(Vector<Term*>& initial,
   searchType = actions[parser.getProductionNumber(arrowType)].data;
   target = makeTerm(parser.getChild(searchPair, 2));
 
-  if (actions[parser.getProductionNumber(node)].action == CONDITIONAL_COMMAND)
+  bool conditionalCommand = actions[parser.getProductionNumber(node)].action == CONDITIONAL_COMMAND;
+
+  if (conditionalCommand)
     makeCondition(parser.getChild(node, 2), condition);
+
+  // Using clause with a strategy
+  if (parser.getNumberOfChildren(node) == 4 ||
+      (!conditionalCommand && parser.getNumberOfChildren(node) == 2))
+    strategy = makeStrategy(parser.getChild(node, conditionalCommand ? 3 : 1));
 }
 
 void

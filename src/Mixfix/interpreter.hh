@@ -198,6 +198,10 @@ public:
   void showFrontierStates();
   void showMostGeneralStates();
 
+  void showStrategySearchPath(StrategySequenceSearch* state, int stateNr);
+  void showStrategySearchPathLabels(StrategySequenceSearch* state,int stateNr);
+  void showStrategySearchGraph(StrategySequenceSearch* state);
+
   void loop(const Vector<Token>& subject);
   void contLoop(const Vector<Token>& input);
 
@@ -264,11 +268,17 @@ private:
   bool contLoop2(const Vector<Token>& input);
   void doLoop(CacheableRewritingContext* context, VisibleModule* module);
   void searchCont(Int64 limit, bool debug);
+  void strategySearchCont(Int64 limit, bool debug);
   void sRewriteCont(Int64 limit, bool debug);
   void dsRewriteCont(Int64 limit, bool debug);
   void doSearching(Timer& timer,
 		   VisibleModule* module,
 		   RewriteSequenceSearch* state,
+		   Int64 solutionCount,
+		   Int64 limit);
+  void doStrategySearching(Timer& timer,
+		   VisibleModule* module,
+		   StrategySequenceSearch* state,
 		   Int64 solutionCount,
 		   Int64 limit);
   void doNarrowing(Timer& timer,
@@ -339,6 +349,7 @@ private:
 			       int searchType,
 			       Term* target,				     
 			       const Vector<ConditionFragment*>& condition,
+			       StrategyExpression* strategy,
 			       MixfixModule* module);
   void showNarrowingSearchPath(int stateNr, bool showRule, NarrowingSequenceSearch3* savedNarrowingSequence) const;
 

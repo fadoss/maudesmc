@@ -259,6 +259,21 @@ MixfixModule::makeComplexProductions()
   rhs[2] = TERM_LIST;
   rhs[3] = irreducible;
   parser->insertProduction(VARIANT_MATCH_COMMAND, rhs, 0, gatherAnyAnyAny, MixfixParser::MAKE_TERM_LIST);
+
+  rhs.resize(3);
+  rhs[0] = SEARCH_PAIR;
+  rhs[1] = usingToken;
+  rhs[2] = STRATEGY_EXPRESSION;
+  parser->insertProduction(SEARCH_COMMAND, rhs, 0, gatherAnyAny);
+
+  rhs.resize(5);
+  rhs[1] = SUCH_THAT;
+  rhs[2] = RULE_CONDITION;
+  rhs[3] = usingToken;
+  rhs[4] = STRATEGY_EXPRESSION;
+  parser->insertProduction(SEARCH_COMMAND, rhs, 0, gatherAny4,
+			   MixfixParser::CONDITIONAL_COMMAND);
+
   //
   //	Hetrogeneous term lists.
   //	<term list> ::= <term>
