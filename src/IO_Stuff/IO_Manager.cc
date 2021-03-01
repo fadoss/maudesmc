@@ -55,7 +55,9 @@
 #include "autoWrapBuffer.hh"
 #include "IO_Manager.hh"
 
+#if LIBRARY_BUILD != _LB_EXECUTABLE
 pid_t IO_Manager::stdinOwner = 0;
+#endif
 
 #if LIBRARY_BUILD != _LB_EXECUTABLE
 IO_Manager::IO_Manager()
