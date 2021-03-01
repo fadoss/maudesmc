@@ -71,6 +71,25 @@ IO_Manager::IO_Manager()
   bufferEnd = 0;
   bufferSize = 0;
   buffer = 0;
+
+  DWORD mode;
+  HANDLE handle;
+
+  handle = GetStdHandle(STD_OUTPUT_HANDLE);
+
+  if (GetConsoleMode(handle, &mode))
+    {
+      mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+      SetConsoleMode(handle, mode);
+    }
+
+  handle = GetStdHandle(STD_ERROR_HANDLE);
+
+  if (GetConsoleMode(handle, &mode))
+    {
+      mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+      SetConsoleMode(handle, mode);
+    }
 }
 #endif
 
