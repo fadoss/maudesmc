@@ -47,9 +47,11 @@
 
 ObjectSystemRewritingContext::~ObjectSystemRewritingContext()
 {
-  //DebugAdvisory("~ObjectSystemRewritingContext() called; " << externalObjects.size() << " external objects");
+  DebugEnter(externalObjects.size() << " external objects");
   for (auto& i : externalObjects)
     i.second->cleanUp(i.first);
+  for (auto& i : managersNeedingCleanUp)
+    i->cleanUpManager(*this);
 }
 
 void
@@ -183,15 +185,6 @@ ObjectSystemRewritingContext::externalRewrite()
       //
       //	eventLoop() will have restored signal mask to normalSet.
       //
-      if (r & PseudoThread::NOTHING_PENDING)
-	{
-	  //
-	  //	There were no external events pending and therefore no
-	  //	callbacks were made. Since there are no local rewrites
-	  //	available, we're done.
-	  //
-	  break;
-	}
       if (r & PseudoThread::INTERRUPTED)
 	{
 	  //
@@ -219,6 +212,14 @@ ObjectSystemRewritingContext::externalRewrite()
 	  //
 	  if (!interleave())
 	    break;
+	}
+      else if (r & PseudoThread::NOTHING_PENDING)
+	{
+	  //
+	  //	There were no external events pending and no events were
+	  //	handles. Since there are no local rewrites available, we're done.
+	  //
+	  break;
 	}
     }
 }

@@ -1,3 +1,170 @@
+2021-06-08  Steven Eker  <eker2@eker10>
+
+	* wordLevel-normalCase.cc
+	(WordLevel::expandAssignmentsToFixedPointNormalCase): added
+	comment explained why expanding to fixed point is needed
+
+2021-06-01  Steven Eker  <eker2@eker10>
+
+	* pigPug.hh (class PigPug): changed depthBoundMultiplier from int
+	to double
+	(PigPug::setDepthBoundMultiplier): take double
+
+2021-05-26  Steven Eker  <eker2@eker10>
+
+	* pigPug.hh (class PigPug): deleted decl for tightenConstraints()
+
+	* pigPug-extract.cc (PigPug::extractUnifier): don't call
+	tightenConstraints() since duplicates work that will be done by
+	WordLevel::checkAssignmentNormalCase() in the next WordLevel for
+	variables that are not eliminated
+	(PigPug::tightenConstraints): deleted
+
+2021-05-25  Steven Eker  <eker2@eker10>
+
+	* wordLevel.hh (class WordLevel): deleted decl for
+	checkAssignmentsToFixedPointNormalCase(); updated decl for
+	checkAssignmentsNormalCase()
+
+	* wordLevel-normalCase.cc (WordLevel::checkAssignmentsNormalCase):
+	return true or false because we're no longer iterating to fixed
+	point
+	(WordLevel::checkAssignmentsToFixedPointNormalCase): deleted
+	(WordLevel::expandAssignmentsToFixedPointNormalCase): use
+	checkAssignmentsNormalCase() rather than
+	checkAssignmentsToFixedPointNormalCase()
+
+2021-05-21  Steven Eker  <eker2@eker10>
+
+	* wordLevel-normalCase.cc
+	(WordLevel::expandAssignmentsToFixedPointNormalCase): call
+	checkAssignmentsToFixedPointNormalCase() after expansion rather
+	than before expansion to make sure any rhs variables assigned
+	empty have been removed before we check assignments against
+	constraints
+	(WordLevel::reallyExpandAssignmentNormalCase): don't call
+	checkAssignmentNormalCase() or
+	checkAssignmentsToFixedPointNormalCase() - we wait until partial
+	solution is fully exanded before we consider constraint
+	propagation
+
+2021-05-19  Steven Eker  <eker2@eker10>
+
+	* wordLevel-normalCase.cc (WordLevel::expandAssignmentNormalCase):
+	fix bug where we were calling reallyExpandAssignmentCollapseCase()
+	rather than reallyExpandAssignmentNormalCase()
+	(WordLevel::checkAssignmentNormalCase): add comment to explain why
+	we need to handle empty assignment
+
+2021-05-18  Steven Eker  <eker2@eker10>
+
+	* pigPug.hh (class PigPug): added DEFAULT_DEPTH_BOUND_MULTIPLIER =
+	1 to enum SpecialValues
+	(PigPug::setDepthBoundMultiplier): added
+
+	* pigPug.cc: added def for depthBoundMultiplier
+	(PigPug::PigPug): use depthBoundMultiplier
+
+	* pigPug.hh (class PigPug): added static data member
+	depthBoundMultiplier
+
+2021-05-13  Steven Eker  <eker2@eker10>
+
+	* wordLevel.cc (WordLevel::makeNewLevel): restructured if
+	statement
+
+===================================Maude136===================================
+
+2021-03-16  Steven Eker  <eker2@eker10>
+
+	* rope.cc: use use range-based for loop
+
+2021-03-15  Steven Eker  <eker2@eker10>
+
+	* mpzGcdInit.cc (MpzSystem::swapVariables): use range-based for
+	loop
+	(MpzSystem::initializeGcd): use range-based for loop
+
+	* intContejeanDevie.cc (IntSystem::scalerProduct): made loop ref
+	const
+	(IntSystem::initialize): made loop ref const
+	(IntSystem::findNextMinimalSolution): made loop ref const (3
+	places)
+
+	* mpzContejeanDevie.cc (MpzSystem::scalerProduct): made loop ref
+	const
+	(MpzSystem::initialize): made loop ref const
+	(MpzSystem::findNextMinimalSolution): made loop ref const (3
+	places)
+
+	* intSystem.cc (IntSystem::initializeUpperBounds): use range-based
+	for loop
+
+	* mpzSystem.cc (MpzSystem::initializeUpperBounds): use range-based
+	for loop
+
+	* mpzGcdBasedSolver.cc (MpzSystem::updateResidues): use
+	range-based for loop
+	(MpzSystem::fillOutStackEntry): use range-based for loop
+	(MpzSystem::fillOutLastEntry): use range-based for loop
+	(MpzSystem::solveDiagonal): use range-based for loop (2 places)
+
+	* mpzGcdInit.cc (MpzSystem::computeSumBound): use range-based for
+	loop (2 places)
+	(MpzSystem::initializeGcd): use range-based for loop (2 places)
+
+	* mpzSystem.cc (MpzSystem::dumpEqns): use range-based for loop (2
+	places)
+	(MpzSystem::minimal): use range-based for loop
+
+	* intSystem.cc (IntSystem::minimal): make iterator variable ref
+	const
+	(IntSystem::dumpEqns): make iterator ref const
+
+	* mpzSystem.cc (MpzSystem::greaterEqual): use range-based for loop
+	(MpzSystem::minimal): use range-based for loop
+
+	* mpzContejeanDevie.cc (MpzSystem::initialize): use range-based
+	for loop (2 places)
+	(MpzSystem::findNextMinimalSolution): use range-based for loop (3
+	places)
+
+	* intContejeanDevie.cc (IntSystem::initialize): use range-based
+	for loop
+
+	* mpzContejeanDevie.cc (MpzSystem::scalerProduct): use range-based
+	for loop
+
+	* intContejeanDevie.cc (IntSystem::findNextMinimalSolution): use
+	range-based for loop (additional place)
+
+2021-03-11  Steven Eker  <eker2@eker10>
+
+	* intContejeanDevie.cc (IntSystem::isZero): use range-based for
+	loop
+	(IntSystem::scalerProduct): use range-based for loop
+	(IntSystem::initialize): use range-based for loop
+	(IntSystem::findNextMinimalSolution): use range-based for loop (2
+	places)
+
+	* intSystem.cc (IntSystem::greaterEqual): use range-based for loop
+	(IntSystem::dumpEqns): use range-based for loop (2 places)
+	(IntSystem::minimal): use range-based for loop
+
+	* graph.cc (Graph::colorNode): use range-based for loop (2 places)
+	(Graph::visit): use range-based for loop
+
+===================================Maude135===================================
+
+2021-03-03  Steven Eker  <eker2@eker10>
+
+	* timeStuff.hh: added operator<()
+	(timespecSubtract): added reference based version
+	(timespecCompare): deleted
+	(timespecSubtract): deleted pointer based version
+
+===================================Maude133===================================
+
 2021-02-18  Steven Eker  <eker2@eker10>
 
 	* wordLevel-simplifyEquations.cc (WordLevel::simplifyEquation):

@@ -1,3 +1,516 @@
+2021-06-08  Steven Eker  <eker2@eker10>
+
+	* directoryOutcomes.cc
+	(DirectoryManagerSymbol::gotDirectoryEntryReply): fix bug where
+	reply was length 3 rather than 4
+
+2021-04-28  Steven Eker  <eker2@eker10>
+
+	* directoryManagerSymbol.hh (class DirectoryManagerSymbol): added
+	decl for removeDirectory()
+
+	* directoryManagerSymbol.cc
+	(DirectoryManagerSymbol::handleManagerMessage): use
+	removeDirectory()
+
+	* directoryActions.cc (DirectoryManagerSymbol::removeDirectory):
+	added
+
+	* directoryManagerSymbol.hh (class DirectoryManagerSymbol): added
+	decl for makeDirectory()
+
+	* directoryActions.cc (DirectoryManagerSymbol::makeDirectory):
+	added
+
+	* directoryManagerSymbol.cc
+	(DirectoryManagerSymbol::handleManagerMessage): use makeDirectory()
+
+	* directoryManagerSymbol.hh (class DirectoryManagerSymbol): remove
+	dummy cleanUp() implementation
+
+	* directoryActions.cc (DirectoryManagerSymbol::getDirectoryEntry):
+	handle other cases
+	(DirectoryManagerSymbol::handleSymbolicLink): added
+	(DirectoryManagerSymbol::cleanUp): added
+
+	* directoryManagerSymbol.hh (class DirectoryManagerSymbol):
+	updated decl for getOpenDirectory()
+
+	* directoryActions.cc (DirectoryManagerSymbol::getOpenDirectory):
+	pass back OpenDirectory* rather than DIR*
+	(DirectoryManagerSymbol::getDirectoryEntry): use new
+	getOpenDirectory() semantics
+	(DirectoryManagerSymbol::closeDirectory): use new
+	getOpenDirectory() semantics
+	(DirectoryManagerSymbol::openDirectory): store path with trailing
+	/ so we can get path to whatever we find in directory
+
+	* directoryManagerSymbol.hh (class DirectoryManagerSymbol): added
+	struct OpenDirectory; DirectoryMap now maps to OpenDirectory
+	rather than DIR*
+
+2021-04-27  Steven Eker  <eker2@eker10>
+
+	* objectSystem.hh: added DirectoryManagerSymbol and
+	TimeManagerSymbol
+
+	* directoryManagerSymbol.cc
+	(DirectoryManagerSymbol::handleMessage): use getDirectoryEntry()
+	and closeDirectory()
+	(DirectoryManagerSymbol::handleManagerMessage): use
+	openDirectory()
+
+	* directoryManagerSymbol.hh (class DirectoryManagerSymbol): added
+	decls for getOpenDirectory(), openDirectory(),
+	getDirectoryEntry(), closeDirectory(), errorReply(),
+	openedDirectoryReply(), gotDirectoryEntryReply()
+
+	* directoryOutcomes.cc: created
+
+	* directoryActions.cc: created
+
+	* directorySignature.cc: endOfDirectoryEntrySymbol ->
+	endOfDirectorySymbol; getDirectoryEntryMsg needs to be a
+	FreeSymbol
+
+	* directoryManagerSymbol.cc: created
+
+2021-04-26  Steven Eker  <eker2@eker10>
+
+	* directorySignature.cc: created
+
+	* directoryManagerSymbol.hh: created
+
+2021-04-21  Steven Eker  <eker2@eker10>
+
+	* fileActions.cc (FileManagerSymbol::makeLink): get Bad link name
+	and Bad target file name error replies the right way around
+
+2021-04-20  Steven Eker  <eker2@eker10>
+
+	* fileActions.cc (FileManagerSymbol::makeLink): implmented
+
+	* fileSignature.cc: added hardSymbol, symbolicSymbol
+
+	* fileManagerSymbol.hh (class FileManagerSymbol): added decl for
+	makeLink()
+
+	* fileActions.cc (FileManagerSymbol::makeLink): added stub
+
+	* fileManagerSymbol.cc (FileManagerSymbol::handleManagerMessage):
+	handle makeLinkMsg
+
+	* fileSignature.cc: fix bug where closedFileMsg was specified as
+	having 3 arguments; added makeLinkMsg/madeLinkMsg
+
+===================================Maude136===========================================
+
+2021-04-08  Steven Eker  <eker2@eker10>
+
+	* streamManagerSymbol.cc
+	(StreamManagerSymbol::nonblockingGetLine): use interrupt Hander
+	for SIGINT and SIGTERM in the non-tecla case
+
+	* streamManagerSymbol.hh (class StreamManagerSymbol): added decl
+	for interruptHandler()
+
+	* streamManagerSymbol.cc
+	(StreamManagerSymbol::nonblockingGetLine): restore default SIGINT
+	handling if tecla is not being used
+	(StreamManagerSymbol::interruptHandler): added
+
+2021-04-07  Steven Eker  <eker2@eker10>
+
+	* streamManagerSymbol.cc (StreamManagerSymbol::cleanUpManager):
+	added
+	(StreamManagerSymbol::nonblockingGetLine): call
+	requestCleanUpOnDestruction(
+	(StreamManagerSymbol::cleanUpManager): replace DebugAlways() with
+	DebugInfo()
+
+	* streamManagerSymbol.hh (class StreamManagerSymbol): added decl
+	for cleanUpManager()
+
+	* objectSystemRewritingContext.hh
+	(ObjectSystemRewritingContext::requestCleanUpOnDestruction): added
+
+	* objectSystemRewritingContext.cc (~ObjectSystemRewritingContext):
+	call cleanUpManager() on each ExternalObjectManagerSymbol that has
+	requested a clean up callback
+
+	* objectSystemRewritingContext.hh (class
+	ObjectSystemRewritingContext): added typedef ManagerSet and data
+	member managersNeedingCleanUp
+
+	* externalObjectManagerSymbol.cc
+	(ExternalObjectManagerSymbol::cleanUpManager): added
+
+	* externalObjectManagerSymbol.hh (class
+	ExternalObjectManagerSymbol): added decl for cleanUpManager()
+
+	* streamManagerSymbol.cc
+	(StreamManagerSymbol::handleManagerMessage): added DebugEnter()
+
+	* streamManagerSymbol.hh (class StreamManagerSymbol): updated decl
+	for finishUp()
+	(class StreamManagerSymbol): deleted data members
+	lastGetLineMessage, objectContext, incomingText, childPid, pipeFd
+
+	* streamManagerSymbol.cc
+	(StreamManagerSymbol::StreamManagerSymbol): don't init
+	objectContext, childPid, pipeFd
+
+	* objectSystemRewritingContext.cc (ObjectSystemRewritingContext):
+	changed DebugEntry() to DebugEnter()
+
+	* streamManagerSymbol.hh (class StreamManagerSymbol): deleted decl
+	for clearVariables(); added decl for findPendingGetLine()
+
+	* streamManagerSymbol.cc
+	(StreamManagerSymbol::nonblockingGetLine): fill out entry in
+	pendingGetLines()
+	(StreamManagerSymbol::doHungUp): check pendingGetLines rather than
+	objectContext
+	(StreamManagerSymbol::doHungUp): pass PendingGetLineMap::iterator
+	rather than in to finishUp()
+	(StreamManagerSymbol::clearVariables): deleted
+	(StreamManagerSymbol::doRead): use pendingGetLines; pass
+	PendingGetLineMap::iterator to finishUp()
+	(StreamManagerSymbol::findPendingGetLine): added
+	(StreamManagerSymbol::cancelGetLine): rewritten to use
+	pendingGetLines
+
+	* streamManagerSymbol.hh (class StreamManagerSymbol): added struct
+	PendingGetLine, typedef PendingGetLineMap and data member
+	pendingGetLines
+
+2021-04-06  Steven Eker  <eker2@eker10>
+
+	* objectSystemRewritingContext.cc (ObjectSystemRewritingContext):
+	replaced commented out DebugAdvisory() with DebugEntry()
+
+2021-04-05  Steven Eker  <eker2@eker10>
+
+	* timeActions.cc (TimeManagerSymbol::stopTimer): don't produce a
+	reply if the timer is already stopped
+
+2021-04-02  Steven Eker  <eker2@eker10>
+
+	* streamManagerSymbol.cc (StreamManagerSymbol::getLine): check
+	IO_Manager::safeToAccessStdin() before accessing stdin
+	(StreamManagerSymbol::write): check
+	IO_Manager::safeToAccessStdout()/IO_Manager::safeToAccessStderr()
+
+2021-03-31  Steven Eker  <eker2@eker10>
+
+	* streamManagerSymbol.cc (StreamManagerSymbol::clearVariables):
+	added
+	(StreamManagerSymbol::finishUp): use clearVariables()
+	(StreamManagerSymbol::cancelGetLine): added
+	(StreamManagerSymbol::StreamManagerSymbol): initialize
+	objectContext, childPid, pipeFd
+	(StreamManagerSymbol::handleManagerMessage): handle
+	cancelGetLineMsg
+
+	* streamManagerSymbol.hh (class StreamManagerSymbol): added data
+	members childPid and pipeFd
+
+	* streamManagerSymbol.cc
+	(StreamManagerSymbol::nonblockingGetLine): use errorReply()
+	(StreamManagerSymbol::makeNonblockingPipe): use errorReply()
+	(StreamManagerSymbol::getLine): use errorReply()
+	(StreamManagerSymbol::write): use use errorReply() (2 places)
+
+	* streamManagerSymbol.hh (class StreamManagerSymbol): added decl
+	for errorReply()
+
+	* streamManagerSymbol.cc (StreamManagerSymbol::errorReply): added
+
+	* streamSignature.cc: added cancelGetLineMsg, canceledGetLineMsg,
+	streamErrorMsg
+
+2021-03-30  Steven Eker  <eker2@eker10>
+
+	* streamManagerSymbol.cc
+	(StreamManagerSymbol::nonblockingGetLine): call
+	resetStdoutWrapping()
+
+2021-03-29  Steven Eker  <eker2@eker10>
+
+	* streamManagerSymbol.cc
+	(StreamManagerSymbol::nonblockingGetLine): use usingTecla()
+	(StreamManagerSymbol::nonblockingGetLine): call setStdinOwner() as
+	a static function
+	(StreamManagerSymbol::nonblockingGetLine): call setStdinOwner() as
+	a static function
+
+2021-03-26  Steven Eker  <eker2@eker10>
+
+	* streamManagerSymbol.cc
+	(StreamManagerSymbol::nonblockingGetLine): block SIGINT before
+	testing interruptSeen() so we don't miss one
+
+2021-03-24  Steven Eker  <eker2@eker10>
+
+	* streamManagerSymbol.hh (class StreamManagerSymbol): deleted data
+	member childPid
+
+	* streamManagerSymbol.cc (StreamManagerSymbol::doRead):
+	reorganized nested if statements
+	(StreamManagerSymbol::nonblockingGetLine): handle the case that a
+	control-C arrives before tecla installs its own handler
+	(StreamManagerSymbol::nonblockingGetLine): call setStdinOwner()
+	(StreamManagerSymbol::finishUp): use waitUntilSafeToAccessStdin()
+	to wait for child to exit
+	(StreamManagerSymbol::nonblockingGetLine): use while() loop so we
+	don't end up write()ing 0 characters
+	(StreamManagerSymbol::nonblockingGetLine): don't record childPid
+
+	* streamManagerSymbol.hh (class StreamManagerSymbol): deleted data
+	member readEnd
+
+	* streamManagerSymbol.cc
+	(StreamManagerSymbol::nonblockingGetLine): no need to save readEnd
+
+	* streamManagerSymbol.hh (class StreamManagerSymbol): updated decl
+	for finishUp()
+
+	* streamManagerSymbol.cc
+	(StreamManagerSymbol::nonblockingGetLine): use
+	makeNonblockingPipe(); check for fork() failure
+	(StreamManagerSymbol::nonblockingGetLine): rearrange the outer
+	loop so we don't write() 0 characters
+	(StreamManagerSymbol::finishUp): added
+	(StreamManagerSymbol::doHungUp): added
+	(StreamManagerSymbol::doHungUp, StreamManagerSymbol::doRead): pass
+	fd to finishUp
+	(StreamManagerSymbol::finishUp): take fd argument
+
+	* streamManagerSymbol.hh (class StreamManagerSymbol): added decl
+	for makeNonblockingPipe()
+
+	* streamManagerSymbol.cc
+	(ProcessManagerSymbol::makeNonblockingPipe): added
+
+	* processActions.cc (ProcessManagerSymbol::makeCloseOnExitPipe):
+	use WRITE_END
+	(ProcessManagerSymbol::makeCloseOnExitPipe)
+	(ProcessManagerSymbol::makeNonblockingSocketPair): added comments
+	about which set of flags is being modified
+
+	* streamManagerSymbol.cc (StreamManagerSymbol::doRead): use
+	childPid
+	(StreamManagerSymbol::nonblockingGetLine): set up asynchronous
+	read of pipe
+
+	* streamManagerSymbol.hh (class StreamManagerSymbol): pid data
+	member renamed to childPid
+
+2021-03-23  Steven Eker  <eker2@eker10>
+
+	* streamManagerSymbol.hh (class StreamManagerSymbol): added decl
+	for doRead()
+
+	* streamManagerSymbol.cc (StreamManagerSymbol::getLine): use
+	nonblockingGetLine()
+	(StreamManagerSymbol::doRead): added
+
+	* streamManagerSymbol.hh (class StreamManagerSymbol): added decl
+	for nonblockingGetLine()
+
+	* streamManagerSymbol.cc
+	(StreamManagerSymbol::nonblockingGetLine): added
+
+	* processActions.cc (ProcessManagerSymbol::makeCloseOnExitPipe):
+	use READ_END, WRITE_END
+	(ProcessManagerSymbol::createProcess): use READ_END, WRITE_END
+
+	* socketManagerSymbol.hh (class SocketManagerSymbol): delete enum
+	Sizes now that we get READ_BUFFER_SIZE from PseudoThread
+
+	* streamManagerSymbol.hh (class StreamManagerSymbol): derive from
+	PseudoThread
+
+	* pseudoThread.hh (class PseudoThread): moved enum Communications
+	here
+
+2021-03-22  Steven Eker  <eker2@eker10>
+
+	* streamManagerSymbol.cc (StreamManagerSymbol::getLine): rewritten
+	to do getLineFromStdin() in a separate process if stdin is a
+	terminal
+
+2021-03-09  Steven Eker  <eker2@eker10>
+
+	* timeActions.cc (TimeManagerSymbol::deleteTimer): fix bug where
+	we were not deleting the timer from the context which would cause
+	a subsequent crash when the context was deleted
+
+===================================Maude135===========================================
+
+2021-03-08  Steven Eker  <eker2@eker10>
+
+	* timeActions.cc (TimeManagerSymbol::makeDate): fix off-by-one in
+	day of the month
+
+2021-03-05  Steven Eker  <eker2@eker10>
+
+	* timeActions.cc (TimeManagerSymbol::startTimer): insist that
+	nanoseconds > 0
+	(TimeManagerSymbol::deleteTimer): added DebugInfo()
+
+2021-03-04  Steven Eker  <eker2@eker10>
+
+	* timeManagerSymbol.hh (class TimeManagerSymbol): added decls for
+	stopTimer(), deleteTimer()
+
+	* timeActions.cc (TimeManagerSymbol::stopTimer): added
+	(TimeManagerSymbol::deleteTimer): added
+
+	* timeManagerSymbol.cc (TimeManagerSymbol::handleMessage): handle
+	stopTimerMsg and deleteTimerMsg
+
+	* timeActions.cc (TimeManagerSymbol::createTimer): clear
+	callbackRequestTime
+
+	* timeManagerSymbol.cc (TimeManagerSymbol::doCallback): handle
+	periodic mode
+
+	* timeActions.cc (TimeManagerSymbol::startTimer): use
+	callbackRequestTime rather than callbackTime
+
+	* timeManagerSymbol.hh (class TimeManagerSymbol): replace
+	callbackTime with callbackRequestTime in struct Timer
+
+	* timeManagerSymbol.cc (TimeManagerSymbol::cleanUp): implemented
+
+	* timeManagerSymbol.hh (class TimeManagerSymbol): added decl for
+	getTimer()
+
+	* timeActions.cc (TimeManagerSymbol::getTimer): added
+
+	* pseudoThread.cc (PseudoThread::eventLoop): clear block flag if
+	we handled an event to ensure we exit
+	(PseudoThread::eventLoop): restructured
+	(PseudoThread::eventLoop): added DebugInfo()s
+
+	* objectSystemRewritingContext.cc
+	(ObjectSystemRewritingContext::externalRewrite): only break on
+	NOTHING_PENDING if not EVENT_HANDLED
+
+	* pseudoThread.cc (PseudoThread::eventLoop): && not & for
+	callbacksPending && block
+
+2021-03-03  Steven Eker  <eker2@eker10>
+
+	* timeManagerSymbol.hh (class TimeManagerSymbol): added decl for
+	doCallback()
+
+	* timeManagerSymbol.cc (TimeManagerSymbol::handleMessage): handle
+	startTimerMsg
+	(TimeManagerSymbol::doCallback): added
+
+	* timeManagerSymbol.hh (class TimeManagerSymbol): added decls for
+	getMode(), startTimer()
+
+	* timeActions.cc (TimeManagerSymbol::startTimer): added
+	(TimeManagerSymbol::getMode): added
+
+	* timeManagerSymbol.hh (class TimeManagerSymbol): added decls for
+	findUnusedId(), createdTimerReply(), createTimer()
+
+	* timeActions.cc (TimeManagerSymbol::findUnusedId)
+	(TimeManagerSymbol::createdTimerReply)
+	(TimeManagerSymbol::createTimer): added
+
+	* timeManagerSymbol.cc (TimeManagerSymbol::handleManagerMessage):
+	handle createTimerMsg
+
+	* timeManagerSymbol.hh (class TimeManagerSymbol): added struct
+	Timer, typedef TimerMap, data member timerMap
+
+	* pseudoThread.hh (class PseudoThread): added decl for
+	cancelCallback()
+
+	* pseudoThread.cc (PseudoThread::eventLoop): check callbackMap and
+	use new processCallbacks() semantics
+	(PseudoThread::cancelCallback): added
+
+	* pseudoThread.hh (class PseudoThread): new struct
+	CallbackRequest; added typedef CallbackMap; deleted typedef
+	CallbackQueue; added typedef CallbackHandle
+	(class PseudoThread): updated decl for requestCallback()
+	(class PseudoThread): updated decl for processCallbacks()
+	(class PseudoThread): added static data member callbackMap;
+	deleted static data member callBackQueue
+	(class PseudoThread): updated decl for doCallback()
+	(PseudoThread::CallbackRequest::CallbackRequest): rewritten
+	(PseudoThread::CallbackRequest::operator): deleted
+
+	* pseudoThread.cc (PseudoThread::requestCallback): rewritten
+	(PseudoThread::processCallbacks): rewritten
+	(PseudoThread::doCallback): now takes clientData argument
+
+2021-03-02  Steven Eker  <eker2@eker10>
+
+	* timeActions.cc (TimeManagerSymbol::getTimeSinceEpoch): use
+	clock_gettime() rather then gettimeofday()
+
+	* timeSignature.cc: added createTimerMsg, createdTimerMsg,
+	startTimerMsg, startedTimerMsg, timeOutMsg, deleteTimerMsg,
+	deletedTimerMsg, stopTimerMsg, stoppedTimerMsg
+
+	* timeActions.cc (TimeManagerSymbol::getDateAndTime): use
+	getScaledSignedInt64() to avoid wrap-around of nanoseconds in
+	extreme situations
+	(TimeManagerSymbol::getLocalDateAndTime): ditto
+	(TimeManagerSymbol::makeDate): do the year addition on bignums to
+	avoid wrapping in edge cases
+
+	* timeManagerSymbol.hh (class TimeManagerSymbol): added BILLION to
+	enum Special
+
+	* timeActions.cc (TimeManagerSymbol::getLocalDateAndTime): added
+	(TimeManagerSymbol::makeTimeZoneInfo): added
+
+	* timeManagerSymbol.cc (TimeManagerSymbol::handleManagerMessage):
+	handle getDateAndTimeMsg
+
+	* timeSignature.cc: added getLocalDateAndTimeMsg,
+	gotLocalDateAndTimeMsg
+
+	* timeManagerSymbol.hh (class TimeManagerSymbol): deleted decl for
+	getTimeZone(); added decls for makeDate(), makeTime()
+
+	* timeActions.cc (TimeManagerSymbol::makeTime): added
+	(TimeManagerSymbol::makeDate): added
+
+	* timeManagerSymbol.hh (class TimeManagerSymbol): added enum
+	Special
+
+	* timeActions.cc (TimeManagerSymbol::getDateAndTime): rewritten
+	for new convention
+	(TimeManagerSymbol::getTimeZone): deleted
+
+	* timeSignature.cc: added dateSymbol, timeSymbol,
+	timeZoneInfoSymbol; deleted dateAndTimeSymbol, utcSymbol,
+	localSymbol
+
+2021-03-01  Steven Eker  <eker2@eker10>
+
+	* timeSignature.cc: created
+
+	* timeManagerSymbol.cc: created
+
+	* timeManagerSymbol.hh: created
+
+	* timeActions.cc: created
+
+	* fileManagerSymbol.cc (FileManagerSymbol::handleManagerMessage):
+	restrutured if statement
+
+===================================Maude134===========================================
+
 2021-02-17  Steven Eker  <eker2@eker10>
 
 	* remainder.cc (ConfigSymbol::Remainder::markReachableNodes): use

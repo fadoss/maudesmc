@@ -133,7 +133,9 @@
 #include "socketManagerSymbol.hh"
 #include "fileManagerSymbol.hh"
 #include "streamManagerSymbol.hh"
+#include "directoryManagerSymbol.hh"
 #include "processManagerSymbol.hh"
+#include "timeManagerSymbol.hh"
 
 //	strategy language class definitions
 #include "trivialStrategy.hh"

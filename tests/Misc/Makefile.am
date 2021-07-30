@@ -1,5 +1,7 @@
 TESTS = \
+	directoryTest \
 	fileTest \
+	timeTest \
 	view \
 	parameterizedView \
 	mapToParameterTheory \
@@ -34,7 +36,9 @@ TESTS = \
 	rot13
 
 MAUDE_FILES = \
+	directoryTest.maude \
 	fileTest.maude \
+	timeTest.maude \
 	view.maude \
 	parameterizedView.maude \
 	mapToParameterTheory.maude \
@@ -69,7 +73,9 @@ MAUDE_FILES = \
 	rot13.maude
 
 RESULT_FILES = \
+	directoryTest.expected \
 	fileTest.expected \
+	timeTest.expected \
 	view.expected \
 	parameterizedView.expected \
 	mapToParameterTheory.expected \
