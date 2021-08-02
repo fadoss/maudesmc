@@ -181,14 +181,17 @@ StrategyTransitionGraph::getNextState(int stateNr, int index)
 	  // is already in the dependency stack, and rearranging the dependencies in
 	  // the positive case
 	  const size_t nrDependencies = dependencyStack.size();
-	  dependencyStack.push_back(currentSubstate);
 	  for (size_t loop = 0; loop < nrDependencies; loop++)
 	    if (nextDependency == dependencyStack[loop])
-	    {
-	      solveCyclicDependency(dependencyStack, loop);
-	      dependencyStack.resize(loop);
-	      break;
-	    }
+	      {
+		solveCyclicDependency(dependencyStack, loop);
+		dependencyStack.resize(loop);
+		break;
+	      }
+
+	  // If no cycle has been removed, the current substate is pushed
+	  if (dependencyStack.size() == nrDependencies)
+	    dependencyStack.push_back(currentSubstate);
 
 	  currentSubstate = nextDependency;
 	  nrNextStates += currentSubstate->importDependencies();
@@ -420,6 +423,11 @@ void StrategyTransitionGraph::commitState(int dagNode,
 	      seen->contractTo(nextStateNr);
 	      nextStateNr = currentSubstate->stateNr;
 	      (*seen)[nextStateNr]->referenceCount--;
+	      // When states are absorbed nrNextState grows by the
+	      // number of successors of the absorbed state, but these
+	      // successors do not belong to the current state in this case,
+	      // so we have to remove them.
+	      nrNextStates -= currentSubstate->nextStates.size();
 	    }
 	  // If a solution has been reached
 	  else if (solutionIndex != NONE && !currentSubstate->hasSolution)
@@ -790,7 +798,7 @@ void StrategyTransitionGraph::solveCyclicDependency(const vector<Substate*> &dep
       for (auto& dep : dependencies)
 	{
 	  if (std::find(currentDependencies.begin(), currentDependencies.end(), dep)
-	       != currentDependencies.end())
+	       == currentDependencies.end())
 	    {
 	      dep.dependee->referenceCount++;
 	      currentDependencies.push_back(dep);
