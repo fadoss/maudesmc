@@ -46,33 +46,7 @@ DirectoryManagerSymbol::openDirectory(FreeDagNode* message, ObjectSystemRewritin
   Assert(message->getArgument(0)->symbol() == this, "misdirected message");
   if (allowDir)
     {
-      DagNode* pathArg = message->getArgument(2);
-      if (pathArg->symbol() == stringSymbol)
-	{
-	  const Rope& path = safeCast(StringDagNode*, pathArg)->getValue();
-	  char* pathStr = path.makeZeroTerminatedString();
-
-	  DIR* dp = opendir(pathStr);
-	  delete [] pathStr;
-	  if (dp)
-	    {
-	      int fd = dirfd(dp);
-	      openedDirectoryReply(fd, message, context);
-	      OpenDirectory& od = openDirectories[fd];
-	      od.path = path;
-	      if (path[path.length() - 1] != '/')
-		od.path += '/';
-	      od.dir = dp;
-	    }
-	  else
-	    {
-	      const char* errText = strerror(errno);
-	      DebugAdvisory("unexpected opendir() error: " << errText);
-	      errorReply(errText, message, context);
-	    }
-	}
-      else
-	errorReply("Bad directory name.", message, context);
+      errorReply("Not supported in this Windows port.", message, context);
     }
   else
     {
@@ -92,7 +66,7 @@ DirectoryManagerSymbol::makeDirectory(FreeDagNode* message, ObjectSystemRewritin
 	{
 	  const Rope& path = safeCast(StringDagNode*, pathArg)->getValue();
 	  char* pathStr = path.makeZeroTerminatedString();
-	  int result = mkdir(pathStr, 0777);
+	  int result = mkdir(pathStr);
 	  delete [] pathStr;
 	  if (result == 0)
 	    trivialReply(madeDirectoryMsg, message, context);
@@ -143,148 +117,13 @@ DirectoryManagerSymbol::handleSymbolicLink(Rope path,
 					   FreeDagNode* message,
 					   ObjectSystemRewritingContext& context)
 {
-  char* pathStr = path.makeZeroTerminatedString();
-  char buffer[PATH_MAX + 1];
-  ssize_t nrBytes = readlink(pathStr, buffer, PATH_MAX);
-  delete [] pathStr;
-  if (nrBytes == -1)
-    {
-      const char* errText = strerror(errno);
-      DebugAdvisory("unexpected readlink() error: " << errText);
-      errorReply(errText, message, context);
-      return;
-    }
-  buffer[nrBytes] = '\0';
-  Vector<DagNode*> arg(1);
-  arg[0] = new StringDagNode(stringSymbol, buffer);
-  DagNode* d = symbolicLinkEntrySymbol->makeDagNode(arg);
-  gotDirectoryEntryReply(name, d, message, context);
+  errorReply("Not supported in this Windows port.", message, context);
 }
 
 void
 DirectoryManagerSymbol::getDirectoryEntry(FreeDagNode* message, ObjectSystemRewritingContext& context)
 {
-  DagNode* directoryName = message->getArgument(0);
-  int fd;
-  OpenDirectory* odp;
-  getOpenDirectory(directoryName, fd, odp);
-
-  errno = 0;
-  struct dirent* entry = readdir(odp->dir);
-  if (entry == 0)
-    {
-      Assert(errno == 0, "readdir() returned " << strerror(errno));
-      gotDirectoryEntryReply("", endOfDirectorySymbol->makeDagNode(), message, context);
-    }
-  else
-    {
-      Symbol* typeSymbol = 0;
-      switch (entry->d_type)
-	{
-	case DT_BLK:
-	  {
-	    typeSymbol = blockDeviceEntrySymbol;
-	    break;
-	  }
-	case DT_CHR:
-	  {
-	    typeSymbol = charDeviceEntrySymbol;
-	    break;
-	  }
-	case DT_DIR:
-	  {
-	    typeSymbol = directoryEntrySymbol;
-	    break;
-	  }
-	case DT_FIFO:
-	  {
-	    typeSymbol = pipeEntrySymbol;
-	    break;
-	  }
-	case DT_LNK:
-	  {
-	    handleSymbolicLink(odp->path + entry->d_name, entry->d_name, message, context);
-	    return;
-	  }
-	case DT_REG:
-	  {
-	    typeSymbol = fileEntrySymbol;
-	    break;
-	  }
-	case DT_SOCK:
-	  {
-	    typeSymbol = directoryEntrySymbol;
-	    break;
-	  }
-	case DT_UNKNOWN:
-	  {
-	    //
-	    //	readdir() does not guarantee the file type will be obtained; it depends on the file system.
-	    //	Here we fall back to trying to get the answer from from an lstat() system call on the file.
-	    //	We use lstat() rather than stat() just in case the file is a symbolic link because we want
-	    //	to report that information.
-	    //
-	    Rope path(odp->path + entry->d_name);
-	    char* pathStr = path.makeZeroTerminatedString();
-	    struct stat statBuffer;
-	    int result = lstat(pathStr, &statBuffer);
-	    delete [] pathStr;
-	    if (result == -1)
-	      {
-		//
-		//	Maybe file disappeared in the meantime.
-		//
-		const char* errText = strerror(errno);
-		DebugAdvisory("unexpected lstat() error: " << errText);
-		errorReply(errText, message, context);
-	        return;
-	      }
-	    switch (statBuffer.st_mode & S_IFMT)
-	      {
-	      case S_IFIFO:
-		{
-		  typeSymbol = pipeEntrySymbol;
-		  break;
-		}
-	      case S_IFCHR:
-		{
-		  typeSymbol = charDeviceEntrySymbol;
-		  break;
-		}
-	      case S_IFDIR:
-		{
-		  typeSymbol = directoryEntrySymbol;
-		  break;
-		}
-	      case S_IFBLK:
-		{
-		  typeSymbol = blockDeviceEntrySymbol;
-		  break;
-		}
-	      case S_IFREG:
-		{
-		  typeSymbol = fileEntrySymbol;
-		  break;
-		}
-	      case S_IFSOCK:
-		{
-		  typeSymbol = socketEntrySymbol;
-		  break;
-		}
-	      case S_IFLNK:
-		{
-		  handleSymbolicLink(path, entry->d_name, message, context);
-		  return;
-		}
-	      default:
-		{
-		  CantHappen("bad st_mode " << statBuffer.st_mode);
-		}
-	      }
-	  }
-	}
-      gotDirectoryEntryReply(entry->d_name, typeSymbol->makeDagNode(), message, context);
-    }
+ errorReply("Not supported in this Windows port.", message, context);
 }
 
 void
