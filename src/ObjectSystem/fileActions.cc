@@ -26,6 +26,8 @@ extern IO_Manager ioManager;  // HACK
 //	Main file manipulation code.
 //
 #include <errno.h>
+#include <windows.h>
+#include <sys/stat.h>
 
 void
 FileManagerSymbol::getOpenFile(DagNode* fileArg, int& fd, OpenFile*& ofp)
@@ -168,8 +170,14 @@ FileManagerSymbol::makeLink(FreeDagNode* message, ObjectSystemRewritingContext& 
 	      const Rope& linkName = safeCast(StringDagNode*, linkNameArg)->getValue();
 	      char* linkNameStr = linkName.makeZeroTerminatedString();
 
-	      int result = symbolic ? link(targetStr, linkNameStr) :
-		symlink(targetStr, linkNameStr);
+	      // Check whether it is a file or directory link
+	      DWORD flag = 0;
+	      struct stat statbuf;
+	      if (stat(targetStr, &statbuf) == 0 && (statbuf.st_mode & S_IFMT) == S_IFDIR)
+	         flag = SYMBOLIC_LINK_FLAG_DIRECTORY;
+
+	      int result = symbolic ? CreateHardLinkA(targetStr, linkNameStr, NULL) :
+		CreateSymbolicLinkA(targetStr, linkNameStr, flag);
 	      if (result == 0)
 		trivialReply(madeLinkMsg, message, context);
 	      else
