@@ -64,6 +64,7 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include <list>
 
 namespace std {
   template<class T, class Container>
@@ -74,10 +75,6 @@ namespace std {
   class map;
   template<class T, class Allocator>
   class vector;
-  namespace __cxx11 {
-    template<class T, class Allocator>
-    class list;
-  }
   template<class T, class Container>
   class queue;
   template<class T, class Container>
@@ -90,8 +87,6 @@ namespace std {
   class unordered_map;
   template<class Key, class Hash, class KeyEqual, class Allocator>
   class unordered_set;
-
-  using __cxx11::list;
 }
 
 using std::ostream;
