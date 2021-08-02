@@ -619,6 +619,74 @@ MixfixModule::makeStrategyLanguageProductions()
     parser->insertProduction(STRATEGY_EXPRESSION, rhs, STRAT_REW_PREC, gatherAnyAny, MixfixParser::MAKE_REW, UNBOUNDED);
   }
   {
+
+    //
+    //	<choice pair> = <term> : <strategy expression>
+    //	<choice list> = <choice pair> , <choice list>
+    //	<choice list> = <choice pair>
+    //
+    Vector<int> rhs(3);
+    rhs[0] = TERM;
+    rhs[1] = colon;
+    rhs[2] = STRATEGY_EXPRESSION;
+    Vector<int> gather(2);
+    gather[0] = ANY;
+    gather[1] = STRAT_USING_PREC - 1;  // require strategy be tightly bound to avoid certain ambiguities
+    parser->insertProduction(CHOICE_PAIR, rhs, 0, gather, MixfixParser::MAKE_CHOICE_PAIR);
+    rhs[0] = CHOICE_PAIR;
+    rhs[1] = comma;
+    rhs[2] = CHOICE_LIST;
+    parser->insertProduction(CHOICE_LIST, rhs, 0, gatherAnyAny, MixfixParser::MAKE_CHOICE_LIST);
+    rhs.resize(1);
+    parser->insertProduction(CHOICE_LIST, rhs, 0, gatherAny, MixfixParser::PASS_THRU);
+  }
+  {
+    //
+    //	<strategy expression> = choice(<choice list>)
+    //
+    Vector<int> rhs(4);
+
+    rhs[0] = choice;
+    rhs[1] = leftParen;
+    rhs[2] = CHOICE_LIST;
+    rhs[3] = rightParen;
+    parser->insertProduction(STRATEGY_EXPRESSION, rhs, 0, gatherAny, MixfixParser::MAKE_CHOICE);
+  }
+  {
+    //
+    //	<distribution name> = some constants defined in sampleStrategy.hh
+    //
+
+    for (int i = 0; i < SampleStrategy::NUM_DISTRIBUTIONS; i++)
+    {
+      rhs[0] = Token::encode(SampleStrategy::getName((SampleStrategy::Distribution) i));
+      parser->insertProduction(DISTRIBUTION_NAME, rhs, 0, emptyGather,
+			       MixfixParser::MAKE_DISTRIBUTION_NAME, i);
+    }
+  }
+  {
+    //
+    //	<strategy expression> = sample <variable> := <identifier>(<term list>) in <strategy expression>
+    //
+    Vector<int> rhs(9);
+    Vector<int> gather(4);
+
+    rhs[0] = sample;
+    rhs[1] = TERM;
+    gather[0] = ANY;
+    rhs[2] = assign;
+    rhs[3] = DISTRIBUTION_NAME;
+    gather[1] = ANY;
+    rhs[4] = leftParen;
+    rhs[5] = TERM_LIST;
+    gather[2] = ANY;
+    rhs[6] = rightParen;
+    rhs[7] = in;
+    rhs[8] = STRATEGY_EXPRESSION;
+    gather[3] = ANY;
+    parser->insertProduction(STRATEGY_EXPRESSION, rhs, STRAT_REW_PREC, gather, MixfixParser::MAKE_SAMPLE);
+  }
+  {
     //
     //	<strategy expression> = ( <strategy expression> )
     //

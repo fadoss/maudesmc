@@ -77,7 +77,7 @@ DecompositionProcess::run(StrategicSearch& searchObject)
 
   // When model checking, the seen sets are not used but custom seen tables
   // managed by the model checker itself
-  if (getOwner()->getTransitionGraph() == 0 && getOwner()->alreadySeen(dagIndex, pending))
+  if (searchObject.getSkipSeenStates() && getOwner()->getTransitionGraph() == 0 && getOwner()->alreadySeen(dagIndex, pending))
     {
       DebugAdvisory("we've already been here: " << searchObject.getCanonical(dagIndex) <<
 		    ", " << pending);

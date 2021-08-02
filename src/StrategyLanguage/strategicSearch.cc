@@ -48,7 +48,8 @@ StrategicSearch::StrategicSearch(RewritingContext* initial, StrategyExpression* 
     strategy(strategy),
     initial(initial),
     exhausted(false),
-    solutionIndex(NONE)
+    solutionIndex(NONE),
+    skipSeenStates(true)
 {
   Assert(initial != 0, "null context");
   Assert(initial->root() != 0, "null root");
