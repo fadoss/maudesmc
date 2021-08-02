@@ -243,45 +243,9 @@ MetaLevel::downStratExpr(DagNode* metaStrategy,
       Vector<Term*> subpatterns;
       Vector<StrategyExpression*> substrats;
 
-      // The 3rd argument may be a list of using pairs or only one of them
-      FreeDagNode* usingPair = dynamic_cast<FreeDagNode*>(f->getArgument(2));
-
-      bool ok = false;
-
-      if (usingPair != 0)	// it is a single pair
-	{
-	  if (Term* var = downTerm(usingPair->getArgument(0), m))
-	    {
-	      subpatterns.append(var);
-	      if (StrategyExpression* strat = downStratExpr(usingPair->getArgument(1), m))
-		{
-		  substrats.append(strat);
-		  ok = true;
-		}
-	    }
-	}
-      else
-	{
-	  ok = true;
-
-	  for (DagArgumentIterator i(f->getArgument(2)); ok && i.valid(); i.next())
-	    {
-	      usingPair = static_cast<FreeDagNode*>(i.argument());
-	      if (Term* var = downTerm(usingPair->getArgument(0), m))
-		{
-		  subpatterns.append(var);
-		  if (StrategyExpression* strat = downStratExpr(usingPair->getArgument(1), m))
-		    substrats.append(strat);
-		  else
-		    ok = false;
-		}
-	      else
-		ok = false;
-	    }
-	}
-
       Term* pattern;
-      if (ok && (pattern = downTerm(f->getArgument(0), m)))
+      if (downTermStrategyList(f->getArgument(2), m, subpatterns, substrats)
+	  && (pattern = downTerm(f->getArgument(0), m)))
 	{
 	  int depth = mc == matchrewStratSymbol ? -1 :
 	    (mc == xmatchrewStratSymbol ? 0 : UNBOUNDED);
@@ -293,13 +257,6 @@ MetaLevel::downStratExpr(DagNode* metaStrategy,
 	  else
 	    pattern->deepSelfDestruct();
 	}
-
-      // In case something has gone wrong, the already constructed
-      // components are freed
-      for (Term* t : subpatterns)
-	t->deepSelfDestruct();
-      for (StrategyExpression* s : substrats)
-	delete s;
     }
   else if (mc == callStratSymbol)
     {
@@ -309,8 +266,111 @@ MetaLevel::downStratExpr(DagNode* metaStrategy,
       if (downStratCall(metaStrategy, m, strat, callTerm))
 	return new CallStrategy(strat, callTerm);
     }
+  else if (mc == choiceStratSymbol)
+    {
+      Vector<Term*> weights;
+      Vector<StrategyExpression*> strats;
+      FreeDagNode* f = static_cast<FreeDagNode*>(metaStrategy);
+
+      if (downTermStrategyList(f->getArgument(0), m, weights, strats))
+	return new ChoiceStrategy(weights, strats);
+    }
+  else if (mc == sampleStratSymbol)
+    {
+      SampleStrategy::Distribution distrib = SampleStrategy::NUM_DISTRIBUTIONS;
+      Vector<Term*> args;
+      FreeDagNode* f = static_cast<FreeDagNode*>(metaStrategy);
+
+      if (f->getArgument(1)->symbol() == metaTermSymbol)
+	{
+	  FreeDagNode* d = static_cast<FreeDagNode*>(f->getArgument(1));
+	  int id;
+
+	  if (downQid(d->getArgument(0), id) && downTermList(d->getArgument(1), m, args))
+	    {
+	      const char* name = Token::name(id);
+
+	      // Find the distribution by its name (not efficient, but there are few)
+	      for (int i = 0; i < SampleStrategy::NUM_DISTRIBUTIONS; i++)
+		{
+		  SampleStrategy::Distribution cd = (SampleStrategy::Distribution) i;
+
+		  if (strcmp(name, SampleStrategy::getName(cd)) == 0)
+		    distrib = cd;
+		}
+
+	      if (distrib != SampleStrategy::NUM_DISTRIBUTIONS)
+		{
+		  if (Term* variable = downTerm(f->getArgument(0), m))
+		    {
+		      if (StrategyExpression* strategy = downStratExpr(f->getArgument(2), m))
+			  return new SampleStrategy(variable, distrib, args, strategy);
+		      variable->deepSelfDestruct();
+		    }
+		}
+	      else
+		IssueWarning("bad probabilistic distribution in " << QUOTE(f->getArgument(1)) << ".");
+	      // Destruct the argument terms in case of error
+	      for (Term* arg : args)
+		arg->deepSelfDestruct();
+	    }
+	}
+    }
 
   return 0;
+}
+
+bool
+MetaLevel::downTermStrategyList(DagNode* metaList,
+				MixfixModule* m,
+				Vector<Term*>& terms,
+				Vector<StrategyExpression*>& strats)
+{
+  bool ok = true;
+  FreeDagNode* pair = dynamic_cast<FreeDagNode*>(metaList);
+
+  if (pair != 0)	// it is a single pair
+    {
+      if (Term* term = downTerm(pair->getArgument(0), m))
+	{
+	  terms.append(term);
+	  if (StrategyExpression* strat = downStratExpr(pair->getArgument(1), m))
+	      strats.append(strat);
+	  else
+	    ok = false;
+	}
+      else
+        ok = false;
+    }
+  else
+    {
+      for (DagArgumentIterator i(metaList); ok && i.valid(); i.next())
+	{
+	  pair = static_cast<FreeDagNode*>(i.argument());
+	  if (Term* term = downTerm(pair->getArgument(0), m))
+	    {
+	      terms.append(term);
+	      if (StrategyExpression* strat = downStratExpr(pair->getArgument(1), m))
+		strats.append(strat);
+	      else
+		ok = false;
+	    }
+	  else
+	    ok = false;
+	}
+    }
+
+  // In case something has gone wrong, the already constructed
+  // components are freed
+  if (!ok)
+    {
+      for (Term* t : terms)
+	t->deepSelfDestruct();
+      for (StrategyExpression* s : strats)
+	delete s;
+    }
+
+  return ok;
 }
 
 bool

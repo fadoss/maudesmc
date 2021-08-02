@@ -83,8 +83,12 @@
      MACRO(notStratSymbol, FreeSymbol, 0, 1)
      MACRO(testStratSymbol, FreeSymbol, 0, 1)
      MACRO(tryStratSymbol, FreeSymbol, 0, 1)
+     MACRO(choiceStratSymbol, FreeSymbol, 0, 1)
+     MACRO(sampleStratSymbol, FreeSymbol, 0, 3)
      MACRO(usingStratSymbol, FreeSymbol, 0, 2)
      MACRO(usingListStratSymbol, Symbol, SymbolType::ASSOC | SymbolType::COMM, 2)
+     MACRO(choiceEntrySymbol, FreeSymbol, 0, 2)
+     MACRO(choiceMapSymbol, Symbol, SymbolType::ASSOC | SymbolType::COMM, 2)
      MACRO(emptyStratListSymbol, Symbol, 0, 0)
      MACRO(stratListSymbol, Symbol, SymbolType::ASSOC, 2)
      //

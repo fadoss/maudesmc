@@ -90,6 +90,8 @@
 #include "applicationStrategy.hh"
 #include "branchStrategy.hh"
 #include "callStrategy.hh"
+#include "choiceStrategy.hh"
+#include "sampleStrategy.hh"
 #include "concatenationStrategy.hh"
 #include "iterationStrategy.hh"
 #include "oneStrategy.hh"
@@ -544,6 +546,18 @@ MaudemlBuffer::generate(StrategyExpression* strat)
       for (ArgumentIterator it(*callTerm); it.valid(); it.next())
 	generate(it.argument());
     }
+  else if (ChoiceStrategy* ce = dynamic_cast<ChoiceStrategy*>(strat))
+    {
+      attributePair("type", "choice");
+      const Vector<StrategyExpression*>& strategies = ce->getStrategies();
+      const Vector<CachedDag>& weights = ce->getWeights();
+      size_t nrStrategies = strategies.size();
+      for (size_t i = 0; i < nrStrategies; ++i)
+	{
+	  generate(weights[i].getTerm());
+	  generate(strategies[i]);
+	}
+    }
   else if (ConcatenationStrategy* ce = dynamic_cast<ConcatenationStrategy*>(strat))
     {
       attributePair("type", "concatenation");
@@ -561,7 +575,15 @@ MaudemlBuffer::generate(StrategyExpression* strat)
       attributePair("type", "one");
       generate(oe->getStrategy());
     }
-
+  else if (SampleStrategy* se = dynamic_cast<SampleStrategy*>(strat))
+    {
+      attributePair("type", "sample");
+      attributePair("distribution", SampleStrategy::getName(se->getDistribution()));
+      generate(se->getVariable());
+      for (const CachedDag &term : se->getArguments())
+	generate(term.getTerm());
+      generate(se->getStrategy());
+    }
   else if (SubtermStrategy* se = dynamic_cast<SubtermStrategy*>(strat))
     {
       attributePair("type", "subterm");

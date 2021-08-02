@@ -238,6 +238,41 @@ VisibleModule::latexPrintStrategy(ostream& s, StrategyExpression* strategy, int 
     }
   else if (CallStrategy* t = dynamic_cast<CallStrategy*>(strategy))
     latexPrintStrategyTerm(s, t->getStrategy(), t->getTerm());
+  else if (ChoiceStrategy* c = dynamic_cast<ChoiceStrategy*>(strategy))
+    {
+      const Vector<StrategyExpression*>& strategies = c->getStrategies();
+      const Vector<CachedDag>& weights = c->getWeights();
+      s << "\\maudeKeyword{choice}\\maudeLeftParen";
+      Index nrStrategies = strategies.size();
+      for (Index i = 0; i < nrStrategies; ++i)
+	{
+	  if (i != 0)
+	    s << "\\maudeComma\\maudeSpace";
+	  latexPrettyPrint(s, weights[i].getTerm());
+	  s << "\\maudeSpace\\maudeColon\\maudeSpace";
+	  (void) latexPrintStrategy(s, strategies[i], UNBOUNDED);
+	}
+      s << "\\maudeRightParen";
+    }
+  else if (SampleStrategy* e = dynamic_cast<SampleStrategy*>(strategy))
+    {
+      needParen = requiredPrec < STRAT_REW_PREC;
+      if (needParen)
+	s << "\\maudeLeftParen";
+      s << "\\maudeKeyword{sample}\\maudeSpace";
+      latexPrettyPrint(s, e->getVariable());
+      cout << "\\maudeSpace\\maudeAssign\\maudeKeyword{" << SampleStrategy::getName(e->getDistribution()) << "}\\maudeLeftParen";
+      const Vector<CachedDag>& args = e->getArguments();
+      Index nrArguments = args.size();
+      for (Index i = 0; i < nrArguments; ++i)
+	{
+	  if (i != 0)
+	    s << "\\maudeComma\\maudeSpace";
+	  latexPrettyPrint(s, args[i].getTerm());
+	}
+      s << "\\maudeRightParen\\maudeSpace\\maudeKeyword{in}\\maudeSpace";
+      (void) latexPrintStrategy(s, e->getStrategy(), UNBOUNDED);
+    }
   if (needParen)
     {
       s << "\\maudeRightParen";

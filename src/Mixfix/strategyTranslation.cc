@@ -64,6 +64,8 @@
 #include "testStrategy.hh"
 #include "subtermStrategy.hh"
 #include "oneStrategy.hh"
+#include "choiceStrategy.hh"
+#include "sampleStrategy.hh"
 
 //	higuer language classes
 #include "assignmentConditionFragment.hh"
@@ -198,6 +200,36 @@ ImportModule::deepCopyStrategyExpression(ImportTranslation* importTranslation,
     }
   else if (OneStrategy* os = dynamic_cast<OneStrategy*>(original))
     return new OneStrategy(deepCopyStrategyExpression(importTranslation, os->getStrategy()));
+
+  else if (ChoiceStrategy* cs = dynamic_cast<ChoiceStrategy*>(original))
+    {
+      const Vector<StrategyExpression*>& strategies = cs->getStrategies();
+      const Vector<CachedDag>& weights = cs->getWeights();
+
+      Vector<StrategyExpression*> strategiesCopy(strategies.size());
+      Vector<Term*> weightsCopy(strategies.size());
+
+      for (size_t i = 0; i < strategies.size(); i++)
+	{
+	  strategiesCopy[i] = deepCopyStrategyExpression(importTranslation, strategies[i]);
+	  weightsCopy[i] = weights[i].getTerm()->deepCopy(importTranslation);
+	}
+
+      return new ChoiceStrategy(weightsCopy, strategiesCopy);
+    }
+  else if (SampleStrategy* ss = dynamic_cast<SampleStrategy*>(original))
+    {
+      const Vector<CachedDag>& args = ss->getArguments();
+      Vector<Term*> argsCopy(args.size());
+
+      for (size_t i = 0; i < args.size(); i++)
+	argsCopy[i] = args[i].getTerm()->deepCopy(importTranslation);
+
+      return new SampleStrategy(ss->getVariable()->deepCopy(importTranslation),
+				ss->getDistribution(),
+				argsCopy,
+				deepCopyStrategyExpression(importTranslation, ss->getStrategy()));
+    }
 
   CantHappen("unknown strategy expression");
   return 0;

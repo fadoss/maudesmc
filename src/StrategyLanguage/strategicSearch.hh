@@ -51,6 +51,9 @@ public:
   DagNode* lastSolution() const;
   RewritingContext* getContext();
 
+  bool getSkipSeenStates() const;
+  void setSkipSeenStates(bool value);
+
 private:
   //
   //	Virtual in StrategicTask.
@@ -64,6 +67,7 @@ protected:
   RewritingContext* initial;
   bool exhausted;
   int solutionIndex;
+  bool skipSeenStates;
 };
 
 inline DagNode*
@@ -76,6 +80,16 @@ inline RewritingContext*
 StrategicSearch::getContext()
 {
   return initial;
+}
+
+inline bool
+StrategicSearch::getSkipSeenStates() const {
+  return skipSeenStates;
+}
+
+inline void
+StrategicSearch::setSkipSeenStates(bool value) {
+  skipSeenStates = value;
 }
 
 #endif
