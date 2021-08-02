@@ -42,6 +42,7 @@ public:
   bool eqRewrite(DagNode* subject, RewritingContext& context);
 
   static void setGlobalSeed(mt19937::result_type value);
+  static mt19937::result_type getGlobalSeed();
 
 private:
   static mt19937::result_type globalSeed;
@@ -55,6 +56,12 @@ inline void
 RandomOpSymbol::setGlobalSeed(mt19937::result_type value)
 {
   globalSeed = value;
+}
+
+inline mt19937::result_type
+RandomOpSymbol::getGlobalSeed()
+{
+  return globalSeed;
 }
 
 #endif

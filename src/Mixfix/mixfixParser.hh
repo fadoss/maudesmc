@@ -114,11 +114,16 @@ public:
     MAKE_TEST,
     MAKE_REW,
     MAKE_ONE,
+    MAKE_CHOICE,
+    MAKE_SAMPLE,
+    MAKE_DISTRIBUTION_NAME,
     MAKE_STRATEGY_LIST,
 
     MAKE_SUBSTITUTION,
     MAKE_USING_PAIR,
     MAKE_USING_LIST,
+    MAKE_CHOICE_PAIR,
+    MAKE_CHOICE_LIST,
     //
     // Strategy module actions
     //
@@ -243,8 +248,15 @@ private:
 			 const Vector<Sort*>& printSorts);
   void makeTermList(int node, Vector<Term*>& termList);
   void makeStrategyList(int node, Vector<StrategyExpression*>& strategies);
-  void appendUsingPair(int node, Vector<Term*>& terms, Vector<StrategyExpression*>& strategies);
-  void makeUsingList(int node, Vector<Term*>& terms, Vector<StrategyExpression*>& strategies);
+  void appendTermStrategyPair(int node,
+			      Vector<Term*>& terms,
+			      Vector<StrategyExpression*>& strategies,
+			      short action);
+  void makeTermStrategyList(int node,
+			    Vector<Term*>& terms,
+			    Vector<StrategyExpression*>& strategies,
+			    short pairAction,
+			    short listAction);
   int translateSpecialToken(int code);
 
   MixfixModule& client;

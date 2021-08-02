@@ -150,6 +150,8 @@
 #include "subtermStrategy.hh"
 #include "callStrategy.hh"
 #include "oneStrategy.hh"
+#include "choiceStrategy.hh"
+#include "sampleStrategy.hh"
 
 //	metalevel class definitions
 #include "metaLevelOpSymbol.hh"

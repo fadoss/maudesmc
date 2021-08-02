@@ -869,6 +869,46 @@ MixfixModule::prettyPrint(Vector<int>& buffer,
 	  buffer.append(rightParen);
 	}
     }
+  else if (ChoiceStrategy* c = dynamic_cast<ChoiceStrategy*>(expr))
+    {
+      const Vector<StrategyExpression*>& strategies = c->getStrategies();
+      const Vector<CachedDag>& weights = c->getWeights();
+      int nrStrategies = strategies.size();
+      buffer.append(choice);
+      buffer.append(leftParen);
+      for (int i = 0;;)
+	{
+	  prettyPrint(buffer, printSettings, weights[i].getTerm(), UNBOUNDED, UNBOUNDED, 0, UNBOUNDED, 0, false);
+	  buffer.append(colon);
+	  prettyPrint(buffer, printSettings, strategies[i], UNBOUNDED);
+	  if (++i == nrStrategies)
+	    break;
+	  buffer.append(comma);
+	}
+      buffer.append(rightParen);
+    }
+  else if (SampleStrategy* s = dynamic_cast<SampleStrategy*>(expr))
+    {
+      buffer.append(sample);
+      prettyPrint(buffer, printSettings, s->getVariable(), UNBOUNDED, UNBOUNDED, 0, UNBOUNDED, 0, false);
+      buffer.append(assign);
+
+      const Vector<CachedDag>& arguments = s->getArguments();
+      size_t numArgs = arguments.size();
+      buffer.append(Token::encode(SampleStrategy::getName(s->getDistribution())));
+      buffer.append(leftParen);
+      for (int i = 0;;)
+	{
+	  prettyPrint(buffer, printSettings, arguments[i].getTerm(), UNBOUNDED, UNBOUNDED, 0, UNBOUNDED, 0, false);
+	  if (++i == numArgs)
+	    break;
+	  buffer.append(comma);
+	}
+      buffer.append(rightParen);
+
+      buffer.append(in);
+      prettyPrint(buffer, printSettings, s->getStrategy(), UNBOUNDED);
+    }
   if (needParen)
     buffer.append(rightParen);
 }
