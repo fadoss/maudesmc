@@ -38,6 +38,9 @@ if get_option('enable-compiler')
 	conf.set('ANNOTATED', 1, description: 'annotate compiler output')
 endif
 
+# Add a macro to tell that the probabilistic strategy language is being used
+conf.set('WITH_PROBABILISTIC_SLANG', 1, description: 'the probabilistic strategy language is included')
+
 cxx = meson.get_compiler('cpp')
 
 #
@@ -219,6 +222,9 @@ strategylanguage_includes = include_directories(
 	'src/Interface',
 	'src/Variable',
 	'src/Core',
+	'src/S_Theory',
+	'src/NA_Theory',
+	'src/BuiltIn',
 	'src/Higher',
 	'src/FullCompiler',
 )
@@ -234,6 +240,8 @@ strategylanguage_source = [
 	'src/StrategyLanguage/testStrategy.cc',
 	'src/StrategyLanguage/subtermStrategy.cc',
 	'src/StrategyLanguage/callStrategy.cc',
+	'src/StrategyLanguage/choiceStrategy.cc',
+	'src/StrategyLanguage/sampleStrategy.cc',
 	'src/StrategyLanguage/strategicExecution.cc',
 	'src/StrategyLanguage/strategicTask.cc',
 	'src/StrategyLanguage/branchTask.cc',
@@ -1175,4 +1183,36 @@ if get_option('with-ltsmin').enabled()
 		install_rpath: rpath_value,
 		install: true
 	)
+endif
+
+#
+## The simulator tool
+
+if get_option('with-simaude').enabled()
+	popt = dependency('popt', static: 'popt' in staticLibs)
+
+	simaude_source = [
+		'simaude/simaude.cc',
+		'simaude/strategicSimulation.cc',
+		'simaude/maudeStuff.cc',
+	]
+
+	simaude_dependencies = [
+		libmaude_dep,
+		popt
+	]
+
+	if host_machine.system() == 'linux'
+		dl = cxx.find_library('dl')
+		simaude_dependencies += [dl]
+	endif
+
+	executable('simaude',
+		simaude_source,
+		dependencies: simaude_dependencies,
+		override_options: ['cpp_std=c++17'],
+		install_rpath: rpath_value,
+		install: true
+	)
+
 endif

@@ -360,6 +360,10 @@ public:
 			     Vector<StrategyExpression*>& toExprs);
 
   StrategyExpression* downStratExpr(DagNode* metaStrategy, MixfixModule* m);
+  bool downTermStrategyList(DagNode* metaList,
+			    MixfixModule* m,
+			    Vector<Term*>& terms,
+			    Vector<StrategyExpression*>& strats);
 
   bool downSearchType(DagNode* arg, SequenceSearch::SearchType& searchType);
   bool downFoldType(DagNode* arg, bool& foldType);

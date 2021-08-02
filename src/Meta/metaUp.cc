@@ -1473,6 +1473,50 @@ MetaLevel::upStratExpr(const StrategyExpression* expr,
   else if (const CallStrategy* e = dynamic_cast<const CallStrategy*>(expr))
     return upCallStrat(e->getStrategy()->id(), e->getTerm(), m, qidMap);
 
+  else if (const ChoiceStrategy* e = dynamic_cast<const ChoiceStrategy*>(expr))
+    {
+      const Vector<StrategyExpression*>& strats = e->getStrategies();
+      const Vector<CachedDag>& weights = e->getWeights();
+      args.resize(1);
+
+      int nrStrats = strats.size();
+
+      Vector<DagNode*> args2(nrStrats);
+      Vector<DagNode*> args3(2);
+
+      for (int i = 0; i < nrStrats; i++)
+	{
+	  args3[0] = upTerm(weights[i].getTerm(), m, qidMap);
+	  args3[1] = upStratExpr(strats[i], m, qidMap);
+
+	  args2[i] = choiceEntrySymbol->makeDagNode(args3);
+	}
+
+      args[0] = nrStrats == 1 ? args2[0] : choiceMapSymbol->makeDagNode(args2);
+
+      return choiceStratSymbol->makeDagNode(args);
+    }
+  else if (const SampleStrategy* e = dynamic_cast<const SampleStrategy*>(expr))
+    {
+      const Vector<CachedDag>& dargs = e->getArguments();
+      size_t nrArgs = dargs.size();
+      args.resize(3);
+
+      Vector<DagNode*> args2(2);
+      Vector<DagNode*> args3(nrArgs);
+
+      for (size_t i = 0; i < nrArgs; i++)
+	args3[i] = upTerm(dargs[i].getTerm(), m, qidMap);
+
+      args2[0] = upQid(Token::encode(SampleStrategy::getName(e->getDistribution())), qidMap);
+      args2[1] = nrArgs == 1 ? args3[0] : metaArgSymbol->makeDagNode(args3);
+
+      args[0] = upTerm(e->getVariable(), m, qidMap);
+      args[1] = metaTermSymbol->makeDagNode(args2);
+      args[2] = upStratExpr(e->getStrategy(), m, qidMap);
+
+      return sampleStratSymbol->makeDagNode(args);
+    }
   else
     {
       CantHappen("bad strategy");

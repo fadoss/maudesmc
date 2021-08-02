@@ -6,6 +6,9 @@ libstrategyLanguage_a_CPPFLAGS = \
 	-I$(top_srcdir)/src/Variable \
 	-I$(top_srcdir)/src/Core \
 	-I$(top_srcdir)/src/Higher \
+	-I$(top_srcdir)/src/S_Theory \
+	-I$(top_srcdir)/src/NA_Theory \
+	-I$(top_srcdir)/src/BuiltIn \
 	-I$(top_srcdir)/src/FullCompiler
 
 libstrategyLanguage_a_SOURCES = \
@@ -19,6 +22,8 @@ libstrategyLanguage_a_SOURCES = \
 	testStrategy.cc \
 	subtermStrategy.cc \
 	callStrategy.cc \
+	choiceStrategy.cc \
+	sampleStrategy.cc \
 	strategicExecution.cc \
 	strategicTask.cc \
 	branchTask.cc \
@@ -54,6 +59,8 @@ noinst_HEADERS = \
 	testStrategy.hh \
 	subtermStrategy.hh \
 	callStrategy.hh \
+	choiceStrategy.hh \
+	sampleStrategy.hh \
 	strategicExecution.hh \
 	strategicTask.hh \
 	branchTask.hh \

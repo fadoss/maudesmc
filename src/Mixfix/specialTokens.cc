@@ -127,6 +127,9 @@
   MACRO(matchrew, "matchrew")
   MACRO(xmatchrew, "xmatchrew")
   MACRO(amatchrew, "amatchrew")
+  MACRO(choice, "choice");
+  MACRO(sample, "sample");
+  MACRO(in, "in");
   MACRO(by, "by")
   MACRO(irreducible, "irreducible")
   MACRO(ellipsis, "...")

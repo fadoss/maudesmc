@@ -1761,8 +1761,9 @@ fmod META-STRATEGY is
   protecting META-CONDITION .
 
 *** strategies
-  sorts UsingPair UsingPairSet .
+  sorts UsingPair UsingPairSet ChoiceEntry ChoiceMap .
   subsort UsingPair < UsingPairSet .
+  subsort ChoiceEntry < ChoiceMap .
   sorts RuleApplication CallStrategy Strategy StrategyList .
   subsort RuleApplication CallStrategy < Strategy < StrategyList .
 
@@ -1785,6 +1786,10 @@ fmod META-STRATEGY is
   op _[[_]] : Qid TermList -> CallStrategy [ctor prec 21] .
   op one : Strategy -> Strategy [ctor] .
 
+*** probabilistic operators
+  op choice : ChoiceMap -> Strategy [ctor] .
+  op sample_:=_in_ : Variable Term Strategy -> Strategy [ctor] .
+
 *** derived operators (defined as constructors)
   op _* : Strategy -> Strategy [ctor] .
   op _! : Strategy -> Strategy [ctor] .
@@ -1797,6 +1802,8 @@ fmod META-STRATEGY is
   op _,_ : StrategyList StrategyList -> StrategyList [ctor assoc id: empty] .
   op _using_ : Variable Strategy -> UsingPair [ctor prec 21] .
   op _,_ : UsingPairSet UsingPairSet -> UsingPairSet [ctor assoc comm prec 61] .
+  op _:_ : Term Strategy -> ChoiceEntry [ctor prec 21] .
+  op _,_ : ChoiceMap ChoiceMap -> ChoiceMap [ctor assoc comm prec 61] .
   eq U:UsingPair, U:UsingPair = U:UsingPair .
 endfm
 
@@ -2541,8 +2548,12 @@ fmod META-LEVEL is
 	op-hook notStratSymbol		(not : Strategy ~> Strategy)
 	op-hook testStratSymbol		(test : Strategy ~> Strategy)
 	op-hook tryStratSymbol		(try : Strategy ~> Strategy)
+	op-hook choiceStratSymbol	(choice : ChoiceMap ~> Strategy)
+	op-hook sampleStratSymbol	(sample_:=_in_ : Variable Term Strategy ~> Strategy)
 	op-hook usingStratSymbol	(_using_ : Variable Strategy ~> UsingPair)
 	op-hook usingListStratSymbol 	(_,_ : UsingPairSet UsingPairSet ~> UsingPairSet)
+	op-hook choiceEntrySymbol	(_:_ : Term Strategy ~> ChoiceEntry)
+	op-hook choiceMapSymbol 	(_,_ : ChoiceMap ChoiceMap ~> ChoiceMap)
 	op-hook emptyStratListSymbol 	(empty : ~> StrategyList)
 	op-hook stratListSymbol		(_,_ : StrategyList StrategyList ~> StrategyList)
 

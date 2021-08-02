@@ -98,6 +98,9 @@
 #include "subtermStrategy.hh"
 #include "testStrategy.hh"
 #include "unionStrategy.hh"
+#include "choiceStrategy.hh"
+#include "weightedSubtermStrategy.hh"
+#include "sampleStrategy.hh"
 
 //	SMT class definitions
 #include "SMT_RewriteSequenceSearch.hh"
