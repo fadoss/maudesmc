@@ -182,6 +182,10 @@ public:
   void printModuleExpression(ostream& s, bool parameterBrackets) const;
   string latexModuleExpression(bool parameterBrackets = false) const;
 
+  static void deepCopyCondition(ImportTranslation* importTranslation,
+				const Vector<ConditionFragment*>& original,
+				Vector<ConditionFragment*>& copy);
+
 private:
   enum Phase
   {
@@ -196,10 +200,6 @@ private:
 
   static Sort* localSort(ImportModule* copy, Renaming* renaming, const Sort* sort);
   static Sort* localSort2(ImportModule* copy, Renaming* renaming, const Sort* sort);
-
-  static void deepCopyCondition(ImportTranslation* importTranslation,
-				const Vector<ConditionFragment*>& original,
-				Vector<ConditionFragment*>& copy);
 
   static void instantiateCondition(const Vector<ConditionFragment*>& original,
 				   Vector<ConditionFragment*>& copy,
