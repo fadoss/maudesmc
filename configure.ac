@@ -407,7 +407,6 @@ AC_CONFIG_FILES([Makefile
 		 tests/ResolvedBugs/Makefile
 		 tests/StrategyLanguage/Makefile
 		 tests/ObjectOriented/Makefile
-		 doc/Makefile
 ])
 
 AC_OUTPUT
