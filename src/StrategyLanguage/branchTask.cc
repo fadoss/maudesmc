@@ -40,7 +40,7 @@
 #include "branchTask.hh"
 #include "decompositionProcess.hh"
 
-BranchTask::BranchTask(StrategyStackManager& strategyStackManager,
+BranchTask::BranchTask(StrategicSearch& strategicSearch,
 		       StrategicExecution* sibling,
 		       int startIndex,
 		       StrategyExpression* initialStrategy,
@@ -52,7 +52,7 @@ BranchTask::BranchTask(StrategyStackManager& strategyStackManager,
 		       StrategyStackManager::StackId iterationCheckpoint,
 		       StrategicProcess* insertionPoint)
   : StrategicTask(sibling),
-    strategyStackManager(strategyStackManager),
+    strategicSearch(strategicSearch),
     startIndex(startIndex),
     iterationCheckpoint(iterationCheckpoint),
     initialStrategy(initialStrategy),
@@ -63,7 +63,7 @@ BranchTask::BranchTask(StrategyStackManager& strategyStackManager,
 {
   success = false;
   (void) new DecompositionProcess(startIndex,
-				  strategyStackManager.push(StrategyStackManager::EMPTY_STACK, initialStrategy),
+				  strategicSearch.push(StrategyStackManager::EMPTY_STACK, initialStrategy),
 				  getDummyExecution(),
 				  insertionPoint);
 
@@ -98,7 +98,7 @@ BranchTask::executionSucceeded(int resultIndex, StrategicProcess* insertionPoint
 	//	Start a new process that applies the success strategy followed by the pending
 	//	strategies to the result. It will report to our owner.
 	//
-	StrategyStackManager::StackId newPending = strategyStackManager.push(pending, successStrategy);
+	StrategyStackManager::StackId newPending = strategicSearch.push(pending, successStrategy);
 	resumeOwner(resultIndex, newPending, insertionPoint);
 	break;
       }
@@ -109,7 +109,7 @@ BranchTask::executionSucceeded(int resultIndex, StrategicProcess* insertionPoint
 	//	by looking for the stack position of e ! in the seen set of the parent task.
 	//
 	StrategyTransitionGraph* transitionGraph = getTransitionGraph();
-	if ((transitionGraph == 0 && getOwner()->alreadySeen(resultIndex, iterationCheckpoint)) ||
+	if ((strategicSearch.getSkipSeenStates() && transitionGraph == 0 && getOwner()->alreadySeen(resultIndex, iterationCheckpoint)) ||
 	    // onCheckpoint may create a substate in the current branch task for the
 	    // iterationCheckpoint instead of in the new branch
 	    (transitionGraph != 0 && !transitionGraph->onCheckpoint(resultIndex,
@@ -119,7 +119,7 @@ BranchTask::executionSucceeded(int resultIndex, StrategicProcess* insertionPoint
 	//	We set up another branch task on the new result and we stay alive to
 	//	process any new results.
 	//
-	(void) new BranchTask(strategyStackManager,
+	(void) new BranchTask(strategicSearch,
 				this,
 				resultIndex,
 				initialStrategy,
@@ -161,7 +161,7 @@ BranchTask::executionsExhausted(StrategicProcess* insertionPoint)
 	    //	Start a new process that applies the failure strategy followed by the pending
 	    //	strategies to the original term. It will report to our owner.
 	    //
-	    StrategyStackManager::StackId newPending = strategyStackManager.push(pending, failureStrategy);
+	    StrategyStackManager::StackId newPending = strategicSearch.push(pending, failureStrategy);
 	    resumeOwner(startIndex, newPending, insertionPoint);
 	    break;
 	  }
