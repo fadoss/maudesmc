@@ -299,7 +299,7 @@ fmod STRATEGY-MODEL-CHECKER is
 	 )] .
 
   *** simplified interfaces
-  var S : State .
+  var S : [State] .
   var F : [Formula] .
   var Q : Qid .
   var QL : QidList .
