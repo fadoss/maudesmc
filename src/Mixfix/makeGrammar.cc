@@ -617,6 +617,46 @@ MixfixModule::makeStrategyLanguageProductions()
     parser->insertProduction(STRATEGY_EXPRESSION, rhs, STRAT_REW_PREC, gatherAnyAny, MixfixParser::MAKE_REW, 0);
     rhs[0] = amatchrew;
     parser->insertProduction(STRATEGY_EXPRESSION, rhs, STRAT_REW_PREC, gatherAnyAny, MixfixParser::MAKE_REW, UNBOUNDED);
+
+    //
+    //	<strategy expression> = (/x/a)matchrew <term> such that <condition> with weight <weight> by <using list>
+    //
+    //	and the same for the case without condition
+    //
+    rhs.resize(9);
+    Vector<int> gatherAny5(5);
+    gatherAny5[0] = ANY;
+    gatherAny5[1] = ANY;
+    gatherAny5[2] = ANY;
+    gatherAny5[3] = ANY;
+    gatherAny5[4] = ANY;
+
+    rhs[0] = matchrew;
+    rhs[1] = TERM;
+    rhs[2] = SUCH_THAT;
+    rhs[3] = CONDITION;
+    rhs[4] = with;
+    rhs[5] = weight;
+    rhs[6] = TERM;
+    rhs[7] = by;
+    rhs[8] = USING_LIST;
+    parser->insertProduction(STRATEGY_EXPRESSION, rhs, STRAT_REW_PREC, gatherAny5, MixfixParser::MAKE_WREW, -1);
+    rhs[0] = xmatchrew;
+    parser->insertProduction(STRATEGY_EXPRESSION, rhs, STRAT_REW_PREC, gatherAny5, MixfixParser::MAKE_WREW, 0);
+    rhs[0] = amatchrew;
+    parser->insertProduction(STRATEGY_EXPRESSION, rhs, STRAT_REW_PREC, gatherAny5, MixfixParser::MAKE_WREW, UNBOUNDED);
+    rhs.resize(7);
+    rhs[0] = matchrew;
+    rhs[2] = with;
+    rhs[3] = weight;
+    rhs[4] = TERM;
+    rhs[5] = by;
+    rhs[6] = USING_LIST;
+    parser->insertProduction(STRATEGY_EXPRESSION, rhs, STRAT_REW_PREC, gatherAnyAnyAny, MixfixParser::MAKE_WREW, -1);
+    rhs[0] = xmatchrew;
+    parser->insertProduction(STRATEGY_EXPRESSION, rhs, STRAT_REW_PREC, gatherAnyAnyAny, MixfixParser::MAKE_WREW, 0);
+    rhs[0] = amatchrew;
+    parser->insertProduction(STRATEGY_EXPRESSION, rhs, STRAT_REW_PREC, gatherAnyAnyAny, MixfixParser::MAKE_WREW, UNBOUNDED);
   }
   {
 

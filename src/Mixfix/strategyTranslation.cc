@@ -66,6 +66,7 @@
 #include "oneStrategy.hh"
 #include "choiceStrategy.hh"
 #include "sampleStrategy.hh"
+#include "weightedSubtermStrategy.hh"
 
 //	higuer language classes
 #include "assignmentConditionFragment.hh"
@@ -191,6 +192,14 @@ ImportModule::deepCopyStrategyExpression(ImportTranslation* importTranslation,
 	}
 
       deepCopyCondition(importTranslation, mrs->getCondition(), conditionCopy);
+
+      if (WeightedSubtermStrategy* wmrs = dynamic_cast<WeightedSubtermStrategy*>(mrs))
+	return new WeightedSubtermStrategy(mrs->getPatternTerm()->deepCopy(importTranslation),
+					   mrs->getDepth(),
+					   conditionCopy,
+					   patternsCopy,
+					   strategiesCopy,
+					   wmrs->getWeight()->deepCopy(importTranslation));
 
       return new SubtermStrategy(mrs->getPatternTerm()->deepCopy(importTranslation),
 				 mrs->getDepth(),
@@ -423,6 +432,14 @@ ImportModule::instantiateExpression(StrategyExpression* original,
 
 	instantiateCondition(mrs->getCondition(), conditionCopy, conditionSubs, translation);
       }
+
+      if (WeightedSubtermStrategy* wmrs = dynamic_cast<WeightedSubtermStrategy*>(mrs))
+	return new WeightedSubtermStrategy(mrs->getPatternTerm()->deepCopy(translation),
+					   mrs->getDepth(),
+					   conditionCopy,
+					   patternsCopy,
+					   strategiesCopy,
+					   wmrs->getWeight()->deepCopy(translation));
 
       return new SubtermStrategy(mrs->getPatternTerm()->deepCopy(translation),
 				 mrs->getDepth(),

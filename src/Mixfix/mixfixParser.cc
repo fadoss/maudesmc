@@ -99,6 +99,7 @@
 #include "sampleStrategy.hh"
 #include "choiceStrategy.hh"
 #include "sampleStrategy.hh"
+#include "weightedSubtermStrategy.hh"
 
 //	front end class definitions
 #include "mixfixModule.hh"

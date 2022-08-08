@@ -94,6 +94,14 @@ public:
   DagNode* instantiate(ContextId ctx, DagNode* original) const;
 
   //
+  // Instantiates a DAG node in a context with additional variables.
+  //
+  DagNode* instantiate(ContextId ctx,
+		       const Substitution &extra,
+		       const Vector<int> &contextSpec,
+		       DagNode* original) const;
+
+  //
   // Builds a pair of vectors of variables and values to set the initial
   // substitution in SearchState and its subtypes. An index translation
   // maps indices in the search pattern (vinfo) to indices in the given
