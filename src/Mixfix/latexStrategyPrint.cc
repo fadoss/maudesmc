@@ -225,6 +225,11 @@ VisibleModule::latexPrintStrategy(ostream& s, StrategyExpression* strategy, int 
 	  s << "\\maudeSpace\\maudeKeyword{such that}\\maudeSpace";
 	  latexPrintCondition(s, condition);
 	}
+      if (WeightedSubtermStrategy* wt = dynamic_cast<WeightedSubtermStrategy*>(t))
+	{
+	  s << "\\maudeKeyword{with}\\maudeSpace\\maudeKeyword{weight}\\maudeSpace";
+	  latexPrettyPrint(s, wt->getWeight());
+	}
       const Vector<Term*>& subterms = t->getSubterms();
       const Vector<StrategyExpression*>& strategies = t->getStrategies();
       Index nrSubterms = subterms.size();

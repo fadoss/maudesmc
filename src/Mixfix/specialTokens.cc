@@ -129,6 +129,8 @@
   MACRO(amatchrew, "amatchrew")
   MACRO(choice, "choice");
   MACRO(sample, "sample");
+  MACRO(with, "with")
+  MACRO(weight, "weight")
   MACRO(in, "in");
   MACRO(by, "by")
   MACRO(irreducible, "irreducible")

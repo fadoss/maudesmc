@@ -49,6 +49,7 @@ typedef StrategicExecution::Survival Survival;
 ModelCheckerSubtermTask::ModelCheckerSubtermTask(StrategicSearch &searchObject,
 	SubtermStrategy* strategy,
 	shared_ptr<MatchSearchState> searchState,
+	Substitution* otherSubstitution,
 	ExtensionInfo * extensionInfo,
 	MatchSearchState::PositionIndex searchPosition,
 	StrategyStackManager::StackId pending,
@@ -66,7 +67,9 @@ ModelCheckerSubtermTask::ModelCheckerSubtermTask(StrategicSearch &searchObject,
   Assert(strategy, "null strategy");
 
   // Uses the substitution from the search to instantiate the subpatterns
-  Substitution &subst = *searchState->getContext();
+  // or otherSubstitution if not null
+  Substitution &subst = *(otherSubstitution ? otherSubstitution
+					    : searchState->getContext());
   const Vector<Term *> &subpatterns = strategy->getSubterms();
 
   size_t nrSubterms = strategy->getStrategies().size();
@@ -77,6 +80,7 @@ ModelCheckerSubtermTask::ModelCheckerSubtermTask(StrategicSearch &searchObject,
       subterms[i] = variable->instantiate(subst, true);
     }
 
+  delete otherSubstitution;
   StrategicTask::pending = pending;
   setEnclosingSubtermTask(this);
 }

@@ -152,6 +152,7 @@
 #include "oneStrategy.hh"
 #include "choiceStrategy.hh"
 #include "sampleStrategy.hh"
+#include "weightedSubtermStrategy.hh"
 
 //	metalevel class definitions
 #include "metaLevelOpSymbol.hh"

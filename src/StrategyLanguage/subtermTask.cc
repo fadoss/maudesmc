@@ -207,6 +207,7 @@ SubtermTask::RemainingProcess::run(StrategicSearch&)
 SubtermTask::SubtermTask(StrategicSearch& searchObject,
 			 SubtermStrategy* strategy,
 			 shared_ptr<MatchSearchState> searchState,
+			 Substitution* otherSubstitution,
 			 ExtensionInfo* extensionInfo,
 			 MatchSearchState::PositionIndex searchPosition,
 			 StrategyStackManager::StackId pending,
@@ -226,7 +227,9 @@ SubtermTask::SubtermTask(StrategicSearch& searchObject,
   Assert(getTransitionGraph() == 0, "SubtermTask used when model checking");
 
   // Uses the substitution from the search to instantiate the subpatterns
-  Substitution& subst = *searchState->getContext();
+  // or otherSubstitution if not null (for matchrew with weight)
+  Substitution& subst = *(otherSubstitution ? otherSubstitution
+					    : searchState->getContext());
 
   const Vector<StrategyExpression*>& strategies = strategy->getStrategies();
   const Vector<Term*>& subterms = strategy->getSubterms();
@@ -250,6 +253,7 @@ SubtermTask::SubtermTask(StrategicSearch& searchObject,
 				      insertionPoint);
     }
 
+  delete otherSubstitution;
   StrategicTask::pending = pending;
 }
 
