@@ -113,6 +113,7 @@ public:
     MAKE_BRANCH,
     MAKE_TEST,
     MAKE_REW,
+    MAKE_WREW,
     MAKE_ONE,
     MAKE_CHOICE,
     MAKE_SAMPLE,

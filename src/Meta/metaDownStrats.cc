@@ -236,24 +236,39 @@ MetaLevel::downStratExpr(DagNode* metaStrategy,
     }
   else if (mc == matchrewStratSymbol ||
 	   mc == xmatchrewStratSymbol ||
-	   mc == amatchrewStratSymbol)
+	   mc == amatchrewStratSymbol ||
+	   mc == matchrewWeightStratSymbol ||
+	   mc == xmatchrewWeightStratSymbol ||
+	   mc == amatchrewWeightStratSymbol)
     {
       FreeDagNode* f = static_cast<FreeDagNode*>(metaStrategy);
 
       Vector<Term*> subpatterns;
       Vector<StrategyExpression*> substrats;
 
+      bool weighted = mc == matchrewWeightStratSymbol ||
+		      mc == xmatchrewWeightStratSymbol ||
+		      mc == amatchrewWeightStratSymbol;
+
       Term* pattern;
-      if (downTermStrategyList(f->getArgument(2), m, subpatterns, substrats)
+      if (downTermStrategyList(f->getArgument(weighted ? 3 : 2), m, subpatterns, substrats)
 	  && (pattern = downTerm(f->getArgument(0), m)))
 	{
-	  int depth = mc == matchrewStratSymbol ? -1 :
-	    (mc == xmatchrewStratSymbol ? 0 : UNBOUNDED);
+	  int depth = (mc == matchrewStratSymbol || mc == matchrewWeightStratSymbol) ? -1 :
+		      ((mc == xmatchrewStratSymbol || mc == xmatchrewWeightStratSymbol) ? 0 :
+		       UNBOUNDED);
 
 	  Vector<ConditionFragment*> condition;
 	  if (downCondition(f->getArgument(1), m, condition))
-	    return new SubtermStrategy(pattern, depth, condition,
-				      subpatterns, substrats);
+	    if (weighted)
+	      {
+		if (Term* weight = downTerm(f->getArgument(2), m))
+		  return new WeightedSubtermStrategy(pattern, depth, condition,
+						     subpatterns, substrats, weight);
+	      }
+	     else
+	       return new SubtermStrategy(pattern, depth, condition,
+					 subpatterns, substrats);
 	  else
 	    pattern->deepSelfDestruct();
 	}

@@ -24,6 +24,7 @@ libstrategyLanguage_a_SOURCES = \
 	callStrategy.cc \
 	choiceStrategy.cc \
 	sampleStrategy.cc \
+	weightedSubtermStrategy.cc \
 	strategicExecution.cc \
 	strategicTask.cc \
 	branchTask.cc \
@@ -61,6 +62,7 @@ noinst_HEADERS = \
 	callStrategy.hh \
 	choiceStrategy.hh \
 	sampleStrategy.hh \
+	weightedSubtermStrategy.hh \
 	strategicExecution.hh \
 	strategicTask.hh \
 	branchTask.hh \

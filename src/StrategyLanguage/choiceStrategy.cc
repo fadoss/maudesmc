@@ -76,6 +76,39 @@ ChoiceStrategy::~ChoiceStrategy()
     delete e;
 }
 
+void
+ChoiceStrategy::getNumericalKinds(Module* mod,
+                                  ConnectedComponent*& natKind,
+                                  ConnectedComponent*& floatKind,
+                                  SuccSymbol*& succSymbol)
+{
+  // Uses the dirty trick of exploring all symbols of the module
+  // for the kinds of Nat and Float.
+
+  floatKind = nullptr;
+  natKind = nullptr;
+  succSymbol = nullptr;
+
+  const Vector<Symbol*>& symbols = mod->getSymbols();
+  size_t nrSymbols = symbols.size();
+  Symbol* wantedSymbol = nullptr;
+
+  // Find the Float kind by looking for a FloatSymbol operator
+  for (size_t i = 0; i < nrSymbols && wantedSymbol == nullptr; ++i)
+    wantedSymbol = dynamic_cast<FloatSymbol*>(symbols[i]);
+
+  if (wantedSymbol)
+    floatKind = wantedSymbol->getRangeSort()->component();
+
+  // Find the Nat kind by looking for the SuccSymbol operator
+  for (size_t i = 0; i < nrSymbols && succSymbol == nullptr; ++i)
+    succSymbol = dynamic_cast<SuccSymbol*>(symbols[i]);
+
+  if (succSymbol)
+    natKind = succSymbol->getRangeSort()->component();
+}
+
+
 bool
 ChoiceStrategy::check(VariableInfo& indices, const TermSet& boundVars)
 {
@@ -106,29 +139,11 @@ ChoiceStrategy::check(VariableInfo& indices, const TermSet& boundVars)
   // symbols of the module for the kinds of these specific sorts.
   //
   bool needsFloating = false;
-  ConnectedComponent* floatKind = nullptr;
-  ConnectedComponent* natKind = nullptr;
+  ConnectedComponent* natKind;
+  ConnectedComponent* floatKind;
 
-  {
-    const Vector<Symbol*>& symbols = weightDags[0].getTerm()->symbol()->getModule()->getSymbols();
-    size_t nrSymbols = symbols.size();
-    Symbol* wantedSymbol = nullptr;
-
-    for (size_t i = 0; i < nrSymbols && wantedSymbol == nullptr; ++i)
-      wantedSymbol = dynamic_cast<FloatSymbol*>(symbols[i]);
-
-    if (wantedSymbol) {
-      floatKind = wantedSymbol->getRangeSort()->component();
-      wantedSymbol = nullptr;
-    }
-
-    succSymbol = nullptr;
-    for (size_t i = 0; i < nrSymbols && succSymbol == nullptr; ++i)
-      succSymbol = dynamic_cast<SuccSymbol*>(symbols[i]);
-
-    if (succSymbol)
-      natKind = succSymbol->getRangeSort()->component();
-  }
+  getNumericalKinds(weightDags[0].getTerm()->symbol()->getModule(),
+                    natKind, floatKind, succSymbol);
 
   for (const CachedDag& cdag : weightDags)
     {
@@ -165,8 +180,8 @@ ChoiceStrategy::process()
     e->process();
 }
 
-inline int
-ChoiceStrategy::chooseFloating() const
+int
+ChoiceStrategy::chooseFloating(const Vector<double>& fpvalues)
 {
   if (all_of(fpvalues.begin(), fpvalues.end(), [](double f) { return f == 0; }))
     return NONE;
@@ -175,8 +190,8 @@ ChoiceStrategy::chooseFloating() const
   return discrete_distribution<int>(fpvalues.begin(), fpvalues.end())(choice_random_generator);
 }
 
-inline int
-ChoiceStrategy::chooseInteger() const
+int
+ChoiceStrategy::chooseInteger(const Vector<unsigned long>& ivalues)
 {
   unsigned long total = accumulate(ivalues.begin(), ivalues.end(), 0);
 
@@ -186,9 +201,9 @@ ChoiceStrategy::chooseInteger() const
   // Choose one strategy according to their weights using a random number
   unsigned long rnd = uniform_int_distribution<unsigned long>(0, total - 1)(choice_random_generator);
   int choice;
-  int nrStrategies = strategies.size();
+  int nrChoices = ivalues.size();
 
-  for (choice = 0; choice < nrStrategies - 1; ++choice)
+  for (choice = 0; choice < nrChoices - 1; ++choice)
     {
       if (rnd < ivalues[choice])
 	break;
@@ -197,6 +212,40 @@ ChoiceStrategy::chooseInteger() const
     }
 
   return choice;
+}
+
+bool
+ChoiceStrategy::evaluateWeight(DagNode* weight,
+			       StrategicSearch& searchObject,
+			       SuccSymbol* succSymbol,
+			       double& fvalue,
+			       unsigned long& ivalue,
+			       bool useFloating)
+{
+  // Reduce the weight term
+  RewritingContext* weightContext = searchObject.getContext()->makeSubcontext(weight);
+  weightContext->reduce();
+  searchObject.getContext()->transferCountFrom(*weightContext);
+
+  // Extract the numerical value from the node (if possible)
+  if (useFloating)
+    {
+      if (FloatDagNode* floatDag = dynamic_cast<FloatDagNode*>(weightContext->root()))
+	fvalue = floatDag->getValue();
+      else if (succSymbol->isNat(weightContext->root()))
+	fvalue = succSymbol->getNat(weightContext->root()).get_ui();
+      else
+	return false;
+    }
+  else
+    {
+      if (succSymbol->isNat(weightContext->root()))
+	ivalue = succSymbol->getNat(weightContext->root()).get_ui();
+      else
+	return false;
+    }
+
+  return true;
 }
 
 StrategicExecution::Survival
@@ -216,44 +265,28 @@ ChoiceStrategy::decompose(StrategicSearch& searchObject, DecompositionProcess* r
   // Evaluate the weights in the current variable context
   for (int i = 0; i < nrStrategies; ++i)
     {
-      // Instantiate and reduce the weight
-      DagNode* weight = weightDags[i].getTerm()->ground() ? weightDags[i].getDag()
+      DagNode* weight = weightDags[i].getTerm()->ground()
+			  ? weightDags[i].getDag()
 			  : searchObject.instantiate(vctx, weightDags[i].getDag());
 
-      RewritingContext* weightContext = searchObject.getContext()->makeSubcontext(weight);
-      weightContext->reduce();
-      searchObject.getContext()->transferCountFrom(*weightContext);
+      double fpvalue;
+      unsigned long ivalue;
 
-      // Extract the numerical value from the node (if possible)
+      if (!evaluateWeight(weight, searchObject, succSymbol, fpvalue, ivalue, ivalues.isNull()))
+	{
+	  IssueWarning(*weightDags[i].getTerm() << ": the weight " << QUOTE(weight)
+		       << " is not reduced to a number.");
+	  return StrategicExecution::DIE;
+	}
 
       if (ivalues.isNull())
-	{
-	  if (FloatDagNode* floatDag = dynamic_cast<FloatDagNode*>(weightContext->root()))
-	    fpvalues[i] = floatDag->getValue();
-	  else if (succSymbol->isNat(weightContext->root()))
-	    fpvalues[i] = succSymbol->getNat(weightContext->root()).get_ui();
-	  else
-	    {
-	      IssueWarning(*weightDags[i].getTerm() << ": the weight " << QUOTE(weightContext->root())
-	                   << " is not reduced to a number.");
-	      return StrategicExecution::DIE;
-	    }
-	}
+	fpvalues[i] = fpvalue;
       else
-	{
-	  if (succSymbol->isNat(weightContext->root()))
-	    ivalues[i] = succSymbol->getNat(weightContext->root()).get_ui();
-	  else
-	    {
-	      IssueWarning(*weightDags[i].getTerm() << ": the weight " << QUOTE(weightContext->root())
-	                   << " is not reduced to a number.");
-	      return StrategicExecution::DIE;
-	    }
-	}
+	ivalues[i] = ivalue;
     }
 
   // Make a choice
-  int choice = ivalues.isNull() ? chooseFloating() : chooseInteger();
+  int choice = ivalues.isNull() ? chooseFloating(fpvalues) : chooseInteger(ivalues);
 
   if (choice == NONE)
     return StrategicExecution::DIE;

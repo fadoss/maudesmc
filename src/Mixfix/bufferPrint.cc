@@ -833,6 +833,12 @@ MixfixModule::prettyPrint(Vector<int>& buffer,
 	  buffer.append(suchThat);
 	  prettyPrint(buffer, condition, printSettings);
 	}
+      if (WeightedSubtermStrategy* ws = dynamic_cast<WeightedSubtermStrategy*>(s))
+	{
+	  buffer.append(with);
+	  buffer.append(weight);
+	  prettyPrint(buffer, printSettings, ws->getWeight(), UNBOUNDED, UNBOUNDED, 0, UNBOUNDED, 0, false);
+	}
       const Vector<Term*>& subterms = s->getSubterms();
       const Vector<StrategyExpression*>& strategies = s->getStrategies();
 
