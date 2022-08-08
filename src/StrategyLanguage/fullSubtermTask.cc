@@ -316,6 +316,7 @@ Survival FullSubtermTask::InterleaverProcess::run(StrategicSearch& searchObject)
 FullSubtermTask::FullSubtermTask(StrategicSearch &searchObject,
 	SubtermStrategy* strategy,
 	shared_ptr<MatchSearchState> searchState,
+        Substitution* otherSubstitution,
 	ExtensionInfo * extensionInfo,
 	MatchSearchState::PositionIndex searchPosition,
 	StrategyStackManager::StackId pending,
@@ -323,8 +324,9 @@ FullSubtermTask::FullSubtermTask(StrategicSearch &searchObject,
 	StrategicExecution * sibling,
 	StrategicProcess * insertionPoint
 )
-  : ModelCheckerSubtermTask(searchObject, strategy,
-			    searchState, extensionInfo, searchPosition,
+  : ModelCheckerSubtermTask(searchObject, strategy, searchState,
+			    otherSubstitution,
+			    extensionInfo, searchPosition,
 			    pending, varBinds, sibling),
     childTasks(subterms.size())
 {

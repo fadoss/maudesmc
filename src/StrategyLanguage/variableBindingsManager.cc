@@ -172,6 +172,35 @@ VariableBindingsManager::instantiate(ContextId ctx, DagNode* original) const
   return original->instantiate(substitution, true);  // passing true for safety
 }
 
+DagNode*
+VariableBindingsManager::instantiate(ContextId ctx,
+				     const Substitution &extra,
+				     const Vector<int> &contextSpec,
+				     DagNode* original) const
+{
+  // Note: this function is not reentrant
+
+  // No variables in the context
+  if (contextSpec.empty())
+    return original;
+
+  // Prepares the substitution
+  Vector<DagNode*> dummy;
+  const Vector<DagNode*>& values = ctx >= 0 ? contextTable[ctx]->values : dummy;
+  size_t nrVars = contextSpec.length();
+
+  for (size_t i = 0; i < nrVars; i++)
+    {
+      int index = contextSpec[i];
+      substitution.bind(i, index >= 0 ? extra.value(index) : values[-index - 1]);
+    }
+
+  // Not exactly an open context
+  currentContext = NONE;
+
+  return original->instantiate(substitution, true);  // passing true for safety
+}
+
 void
 VariableBindingsManager::buildInitialSubstitution(ContextId ctx,
 						  VariableInfo& vinfo,

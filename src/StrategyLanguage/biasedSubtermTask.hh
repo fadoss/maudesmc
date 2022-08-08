@@ -46,6 +46,7 @@ public:
     StrategicSearch &searchObject,
     SubtermStrategy * strategy,
     shared_ptr<MatchSearchState> searchState,
+    Substitution* otherSubstitution,
     ExtensionInfo * extensionInfo,
     MatchSearchState::PositionIndex searchPosition,
     StrategyStackManager::StackId pending,

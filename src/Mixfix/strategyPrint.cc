@@ -218,6 +218,8 @@ MixfixModule::prettyPrint(ostream& s, StrategyExpression* strategy, int required
 	  s << " such that ";
 	  printCondition(s, condition, printSettings);
 	}
+      if (WeightedSubtermStrategy* wt = dynamic_cast<WeightedSubtermStrategy*>(t))
+	s << " with weight " << wt->getWeight();
       const Vector<Term*>& subterms = t->getSubterms();
       const Vector<StrategyExpression*>& strategies = t->getStrategies();
       int nrSubterms = subterms.size();

@@ -1460,6 +1460,23 @@ MetaLevel::upStratExpr(const StrategyExpression* expr,
 
       args[2] = nrSubs == 1 ? args2[0] : usingListStratSymbol->makeDagNode(args2);
 
+      if (const WeightedSubtermStrategy* we = dynamic_cast<const WeightedSubtermStrategy*>(e))
+	{
+	  args.expandBy(1);
+	  args[3] = args[2];
+	  args[2] = upTerm(we->getWeight(), m, qidMap);
+
+	   switch (e->getDepth())
+	     {
+	     case -1:
+	       return matchrewWeightStratSymbol->makeDagNode(args);
+	     case 0:
+	       return xmatchrewWeightStratSymbol->makeDagNode(args);
+	     default:
+	       return amatchrewWeightStratSymbol->makeDagNode(args);
+	     }
+	}
+
       switch (e->getDepth())
 	{
 	case -1:

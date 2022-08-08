@@ -1789,6 +1789,10 @@ fmod META-STRATEGY is
 *** probabilistic operators
   op choice : ChoiceMap -> Strategy [ctor] .
   op sample_:=_in_ : Variable Term Strategy -> Strategy [ctor] .
+  op matchrew_s.t._with weight_by_ : Term EqCondition Term UsingPairSet -> Strategy [ctor] .
+  op xmatchrew_s.t._with weight_by_ : Term EqCondition Term UsingPairSet -> Strategy [ctor] .
+  op amatchrew_s.t._with weight_by_ : Term EqCondition Term UsingPairSet -> Strategy [ctor] .
+
 
 *** derived operators (defined as constructors)
   op _* : Strategy -> Strategy [ctor] .
@@ -2550,6 +2554,12 @@ fmod META-LEVEL is
 	op-hook tryStratSymbol		(try : Strategy ~> Strategy)
 	op-hook choiceStratSymbol	(choice : ChoiceMap ~> Strategy)
 	op-hook sampleStratSymbol	(sample_:=_in_ : Variable Term Strategy ~> Strategy)
+	op-hook matchrewWeightStratSymbol
+		(matchrew_s.t._with weight_by_ : Term EqCondition Term UsingPairSet ~> Strategy)
+	op-hook xmatchrewWeightStratSymbol
+		(xmatchrew_s.t._with weight_by_ : Term EqCondition Term UsingPairSet ~> Strategy)
+	op-hook amatchrewWeightStratSymbol
+		(amatchrew_s.t._with weight_by_ : Term EqCondition Term UsingPairSet ~> Strategy)
 	op-hook usingStratSymbol	(_using_ : Variable Strategy ~> UsingPair)
 	op-hook usingListStratSymbol 	(_,_ : UsingPairSet UsingPairSet ~> UsingPairSet)
 	op-hook choiceEntrySymbol	(_:_ : Term Strategy ~> ChoiceEntry)

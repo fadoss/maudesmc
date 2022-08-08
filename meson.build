@@ -242,6 +242,7 @@ strategylanguage_source = [
 	'src/StrategyLanguage/callStrategy.cc',
 	'src/StrategyLanguage/choiceStrategy.cc',
 	'src/StrategyLanguage/sampleStrategy.cc',
+	'src/StrategyLanguage/weightedSubtermStrategy.cc',
 	'src/StrategyLanguage/strategicExecution.cc',
 	'src/StrategyLanguage/strategicTask.cc',
 	'src/StrategyLanguage/branchTask.cc',

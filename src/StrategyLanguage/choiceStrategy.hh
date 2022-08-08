@@ -25,6 +25,7 @@
 #define _choiceStrategy_hh_
 #include "strategyExpression.hh"
 #include "cachedDag.hh"
+#include "variableBindingsManager.hh"
 
 // Forward declaration
 class SuccSymbol;
@@ -43,15 +44,29 @@ public:
 
   StrategicExecution::Survival decompose(StrategicSearch& searchObject, DecompositionProcess* remainder);
 
+  // Obtain the numerical kinds (Float and Nat) in the given module (if defined)
+  static void getNumericalKinds(Module* mod,
+				ConnectedComponent*& natKind,
+				ConnectedComponent*& floatKind,
+				SuccSymbol*& succSymbol);
+
+  // Evaluate a weight in the given context
+  static bool evaluateWeight(DagNode* weight,
+			     StrategicSearch& searchObject,
+			     SuccSymbol* succSymbol,
+			     double& fvalue,
+			     unsigned long& ivalue,
+			     bool useFloating = true);
+
+  static int chooseInteger(const Vector<unsigned long>& ivalues);
+  static int chooseFloating(const Vector<double>& fpvalues);
+
 private:
   const Vector<StrategyExpression*> strategies;
   Vector<CachedDag> weightDags;
   Vector<unsigned long> ivalues;
   Vector<double> fpvalues;
   SuccSymbol* succSymbol;
-
-  int chooseInteger() const;
-  int chooseFloating() const;
 };
 
 inline const Vector<StrategyExpression*>&

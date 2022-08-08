@@ -48,16 +48,18 @@ typedef StrategicExecution::Survival Survival;
 
 
 BiasedSubtermTask::BiasedSubtermTask(StrategicSearch &searchObject,
-	SubtermStrategy* strategy,
-	shared_ptr<MatchSearchState> searchState,
-	ExtensionInfo * extensionInfo,
-	MatchSearchState::PositionIndex searchPosition,
-	StrategyStackManager::StackId pending,
-	VariableBindingsManager::ContextId varBinds,
-	StrategicExecution * sibling,
-	StrategicProcess * insertionPoint
+				     SubtermStrategy* strategy,
+				     shared_ptr<MatchSearchState> searchState,
+				     Substitution* otherSubstitution,
+				     ExtensionInfo * extensionInfo,
+				     MatchSearchState::PositionIndex searchPosition,
+				     StrategyStackManager::StackId pending,
+				     VariableBindingsManager::ContextId varBinds,
+				     StrategicExecution * sibling,
+				     StrategicProcess * insertionPoint
 )
   : ModelCheckerSubtermTask(searchObject, strategy, searchState,
+                            otherSubstitution,
 			    extensionInfo, searchPosition,
 			    pending, varBinds, sibling),
     currentSubterm(0)

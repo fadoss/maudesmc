@@ -41,6 +41,18 @@ public:
 
   Survival run(StrategicSearch& searchObject);
 
+  // Create a specialized subterm task (for normal execution, model checking...)
+  static void newSubtermTask(StrategicSearch& searchObject,
+			     SubtermStrategy* strategy,
+			     shared_ptr<MatchSearchState> searchState,
+			     Substitution* otherSubstitution,
+			     ExtensionInfo* extensionInfo,
+			     MatchSearchState::PositionIndex searchPosition,
+			     StrategyStackManager::StackId pending,
+			     VariableBindingsManager::ContextId varBinds,
+			     StrategicExecution* sibling,
+			     StrategicProcess* insertionPoint);
+
 private:
   // Will be shared with the matchrew tasks it will create
   shared_ptr<MatchSearchState> matchState;

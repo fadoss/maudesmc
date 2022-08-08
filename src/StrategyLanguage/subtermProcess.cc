@@ -61,6 +61,48 @@ SubtermProcess::SubtermProcess(MatchSearchState* matchState,
 {
 }
 
+void SubtermProcess::newSubtermTask(StrategicSearch& searchObject,
+				    SubtermStrategy* strategy,
+				    shared_ptr<MatchSearchState> searchState,
+				    Substitution* otherSubstitution,
+				    ExtensionInfo* extensionInfo,
+				    MatchSearchState::PositionIndex searchPosition,
+				    StrategyStackManager::StackId pending,
+				    VariableBindingsManager::ContextId varBinds,
+				    StrategicExecution* sibling,
+				    StrategicProcess* insertionPoint)
+{
+  // If we are model checking, we use a specific implementation
+  // of the matchrew operator. Otherwise, we use another one
+  // optimized for execution.
+
+  StrategyTransitionGraph* graph = sibling->getOwner()->getTransitionGraph();
+
+  if (graph != 0)
+    if (strategy->getSubterms().size() == 1 || graph->useBiasedMatchrew())
+      (void) new BiasedSubtermTask(searchObject, strategy,
+				   searchState, otherSubstitution,
+				   extensionInfo,
+				   searchPosition,
+				   pending, varBinds,
+				   sibling, insertionPoint);
+    else
+      (void) new FullSubtermTask(searchObject, strategy,
+				 searchState, otherSubstitution,
+				 extensionInfo,
+				 searchPosition,
+				 pending, varBinds,
+				 sibling, insertionPoint);
+  else
+    (void) new SubtermTask(searchObject, strategy,
+			   searchState, otherSubstitution,
+			   extensionInfo,
+			   searchPosition,
+			   pending, varBinds,
+			   sibling, insertionPoint);
+}
+
+
 StrategicExecution::Survival
 SubtermProcess::run(StrategicSearch& searchObject)
 {
@@ -88,26 +130,12 @@ SubtermProcess::run(StrategicSearch& searchObject)
 		? VariableBindingsManager::EMPTY_CONTEXT
 		: searchObject.openContext(outerBinds, *matchState->getContext(), contextSpec);
 
-      // If we are model checking, we use a specific implementation
-      // of the matchrew operator. Otherwise, we use another one
-      // optimized for execution.
-      StrategyTransitionGraph* graph = getOwner()->getTransitionGraph();
-      if (graph != 0)
-	if (strategy->getSubterms().size() == 1 || graph->useBiasedMatchrew())
-	  (void) new BiasedSubtermTask(searchObject, strategy,
-				      matchState, extensionInfo,
-				      matchState->getPositionIndex(),
-				      pending, innerBinds, this, this);
-	else
-	  (void) new FullSubtermTask(searchObject, strategy,
-				      matchState, extensionInfo,
-				      matchState->getPositionIndex(),
-				      pending, innerBinds, this, this);
-      else
-	(void) new SubtermTask(searchObject, strategy,
-			       matchState, extensionInfo,
-			       matchState->getPositionIndex(),
-			       pending, innerBinds, this, this);
+
+      // Start a new specialized subterm task
+      newSubtermTask(searchObject, strategy,
+		     matchState, nullptr, extensionInfo,
+		     matchState->getPositionIndex(),
+		     pending, innerBinds, this, this);
 
       return StrategicExecution::SURVIVE;
     }
