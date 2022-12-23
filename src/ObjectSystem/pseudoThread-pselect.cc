@@ -24,10 +24,10 @@
 //	pselect() based multiplexing of signals and events on file
 //	descriptors. This is somewhat inefficient, but POSIX compliant.
 //
-#include <sys/select.h>
+//#include <sys/select.h>
 
 int
-PseudoThread::processFds(const timespec* waitPointer, sigset_t* normalSet)
+PseudoThread::processFds(const timespec* waitPointer)
 {
   //
   //	*waitPointer is how long to wait for an event before returning.
@@ -38,14 +38,7 @@ PseudoThread::processFds(const timespec* waitPointer, sigset_t* normalSet)
   //	of these may be currently blocked to avoid losing the
   //	signals if they are delivered before the system call happens.
   //
-  //
-  //	Block SIGCHLD.
-  //
-  sigset_t oldset;
-  sigset_t newset;
-  sigemptyset(&newset);
-  sigaddset(&newset, SIGCHLD);
-  sigprocmask(SIG_BLOCK, &newset, &oldset);
+  int childEvent = NOTHING_HAPPENED;
 
   static fd_set readfds;
   static fd_set writefds;
@@ -84,35 +77,23 @@ PseudoThread::processFds(const timespec* waitPointer, sigset_t* normalSet)
 	}
     }
   //
-  //	Decide on the signals to be atomically unblocked during pselect().
-  //
-  sigset_t* maskForSystemCall = (normalSet != 0) ? normalSet : &oldset;
-  //
-  //	If a SIGCHLD signal arrived before we blocked it, set wait to zero
-  //	so we don't hang in pselect() and can process any exited processes,
-  //	even if nothing else is ready.
-  //
-  if (exitedFlag)
-    waitPointer = &zeroTime;
-  //
   //	Now we look to see what happened.
   //
-  int nrEvents = pselect(maxFd + 1, &readfds, &writefds, 0, waitPointer, maskForSystemCall);
+  timeval waitVal;
+  if (waitPointer != nullptr)
+    {
+      waitVal.tv_sec = waitPointer->tv_sec;
+      waitVal.tv_usec = waitPointer->tv_nsec / 1e3;
+    }
+  int nrEvents = select(maxFd + 1, &readfds, &writefds, 0, waitPointer == nullptr ? nullptr : &waitVal);
+
   if (nrEvents < 0)
     {
-      //
-      //	We expect this to happen when the pselects() exits due to a signal,
-      //	perhaps SIGCHILD being caught.
-      //
       Assert(errno == EINTR, "pselect() failed with " << errno);
-      sigprocmask(SIG_SETMASK, &oldset, 0);  // unblock SIGCHLD
       return INTERRUPTED;  // treat all errors as interrupts
     }
   //
   //	Deal with the information returned by pselect().
-  //	We handle this with SIGCHLD blocked so that if a process writes
-  //	and exits after pselect() returns, we don't process its exit
-  //	until we have processed its file descriptors.
   //
   int returnValue = NOTHING_HAPPENED;
   if (nrEvents > 0)
@@ -145,19 +126,5 @@ PseudoThread::processFds(const timespec* waitPointer, sigset_t* normalSet)
       Assert(returnValue == EVENT_HANDLED, "pselect() saw " << nrEvents
 	     << " events but we didn't handle any");
     }
-  //
-  //	Deal with any child exit notifications that became due before
-  //	we blocked SIGCHILD.
-  //
-  //	We only call doChildExit() after any fd events from the child have been
-  //	processed since the callback may close fds.
-  //
-  if (dispatchChildRequests())
-    returnValue |= EVENT_HANDLED;
-  //
-  //	Unblock SIGCHLD.
-  //
-  sigprocmask(SIG_SETMASK, &oldset, 0);
-
-  return returnValue;
+  return returnValue | childEvent;
 }

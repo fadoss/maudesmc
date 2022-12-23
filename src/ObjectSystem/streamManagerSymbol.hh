@@ -82,10 +82,6 @@ private:
 
   typedef map<int, PendingGetLine> PendingGetLineMap;
 
-  bool makeNonblockingPipe(int pair[2],
-			   FreeDagNode* message,
-			   ObjectSystemRewritingContext& context);
-  void nonblockingGetLine(FreeDagNode* message, ObjectSystemRewritingContext& context);
   void finishUp(PendingGetLineMap::iterator p);
   bool findPendingGetLine(ObjectSystemRewritingContext& context,
 			  PendingGetLineMap::iterator& ref);

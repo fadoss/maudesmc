@@ -255,18 +255,13 @@ StreamManagerSymbol::getLine(FreeDagNode* message, ObjectSystemRewritingContext&
 	  DagNode* promptArg = message->getArgument(2);
 	  if (promptArg->symbol() == stringSymbol)
 	    {
-	      if (isatty(STDIN_FILENO))
-		nonblockingGetLine(message, context);
-	      else
-		{
-		  //
-		  //	Can't safely read lines from a file in a separate
-		  //	process because we don't update the file position.
-		  //
-		  const Rope& prompt = safeCast(StringDagNode*, promptArg)->getValue();
-		  Rope line = ioManager.getLineFromStdin(prompt);
-		  gotLineReply(line, message, context);
-		}
+	      //
+	      //	Can't safely read lines from a file in a separate
+	      //	process because we don't update the file position.
+	      //
+	      const Rope& prompt = safeCast(StringDagNode*, promptArg)->getValue();
+	      Rope line = ioManager.getLineFromStdin(prompt);
+	      gotLineReply(line, message, context);
 	    }
 	  else
 	    errorReply("Bad string.", message, context);
@@ -378,18 +373,6 @@ StreamManagerSymbol::errorReply(const char* errorMessage,
   context.bufferMessage(target, streamErrorMsg->makeDagNode(reply));
 }
 
-bool
-StreamManagerSymbol::makeNonblockingPipe(int pair[2],
-					 FreeDagNode* message,
-					 ObjectSystemRewritingContext& context)
-{
-  //
-  //	Process communication is not supported in this Windows port.
-  //
-  errorReply("Non-blocking getLine is not supported in this Windows port.", message, context);
-  return false;
-}
-
 void
 StreamManagerSymbol::interruptHandler(int)
 {
@@ -400,15 +383,6 @@ StreamManagerSymbol::interruptHandler(int)
   if (::write(STDIN_FILENO, "\n", 1))  // exiting the subprocess so we *really* don't care about the result
     ;
   exit(0);
-}
-
-void
-StreamManagerSymbol::nonblockingGetLine(FreeDagNode* message,
-					ObjectSystemRewritingContext& context)
-{
-  int resultReturnPipe[2];
-  if (!makeNonblockingPipe(resultReturnPipe, message, context))
-    return;
 }
 
 void

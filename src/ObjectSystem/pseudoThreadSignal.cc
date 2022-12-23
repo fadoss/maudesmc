@@ -27,3 +27,10 @@
 Vector<PseudoThread::ChildRequest> PseudoThread::childRequests;
 bool PseudoThread::installedSigchldHandler = false;
 bool PseudoThread::exitedFlag = false;
+
+
+void
+PseudoThread::doChildExit(pid_t childPid, int /* status */)
+{
+  CantHappen("failed to do child exit on " << childPid);
+}

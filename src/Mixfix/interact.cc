@@ -149,8 +149,7 @@ UserLevelRewritingContext::installLibsigsegvHandlers()
 	  //
 	  static char allocFail[] = "Fatal error: unable to allocate alternate stack.\n";
 	  returnValueDump = write(STDERR_FILENO, allocFail, sizeof(allocFail) - 1);
-	  fsync(STDERR_FILENO);  // needed to avoid _exit() losing message on Mac OS <= 10.5
-	  _exit(OUT_OF_MEMORY);  // don't flush any buffers.
+	  exit(OUT_OF_MEMORY);  // don't flush any buffers.
 	}
     }
   else
@@ -158,10 +157,7 @@ UserLevelRewritingContext::installLibsigsegvHandlers()
       //
       //	Must be a child process.
       //
-      long pageSize = sysconf(_SC_PAGESIZE);
-      if (pageSize <= 0) {
-	pageSize = 4096; // fail-safe default fallback if system call fails
-      }
+      long pageSize = 4096;
       //
       //	Read and write back a byte from each page to break COW bond between
       //	the parent's alternate stack and the child's alternate stack.
@@ -204,8 +200,7 @@ Depending on your operating system configuration you may be able to\n\
 increase your stacksize with the tcsh command 'unlimit stacksize'\n\
 or the bash command 'ulimit -s unlimited'.\n\n";
   returnValueDump = write(STDERR_FILENO, message, sizeof(message) - 1);
-  fsync(STDERR_FILENO);  // needed to avoid _exit() losing message on Mac OS <= 10.5
-  _exit(STACK_OVERFLOW);
+  exit(STACK_OVERFLOW);  // calling _exit() loses the message on Macs
 }
 
 int
@@ -233,8 +228,7 @@ runtime to the bug being visible is greater than 10 seconds.\n\n";
   returnValueDump = write(STDERR_FILENO, message1, sizeof(message1) - 1);
   returnValueDump = write(STDERR_FILENO, message2, sizeof(message2) - 1);
   returnValueDump = write(STDERR_FILENO, message3, sizeof(message3) - 1);
-  fsync(STDERR_FILENO);  // needed to avoid _exit() losing message on Mac OS <= 10.5
-  _exit(INTERNAL_ERROR);
+  exit(INTERNAL_ERROR);  // calling _exit() loses the message on Macs
 }
 
 void

@@ -34,15 +34,13 @@
 
 #include "timer.hh"
 
-bool Timer::osTimersStarted = false;
-
 FORCE_INLINE Int64
-Timer::calculateMicroseconds(const itimerval& startTime, const itimerval& stopTime)
+Timer::calculateMicroseconds(Int64 startTime, Int64 stopTime)
 {
   return (stopTime - startTime) / 10;
 }
 
-local_inline
+FORCE_INLINE
 void Timer::getTimers(Int64& real, Int64& virt, Int64& prof)
 {
   // Get the current process kernel and user time (in time units of 100ns)
