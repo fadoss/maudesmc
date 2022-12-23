@@ -24,7 +24,7 @@
 //      Implementation for base class MemoryCell
 //
 #include "cmath"
-#include <sys/resource.h>
+//#include <sys/resource.h>
 
 //	utility stuff
 #include "macros.hh"
@@ -39,6 +39,7 @@
 #include "rootContainer.hh"
 
 #include "memoryCell.hh"
+#include <windows.h>
 
 static constexpr double SMALL_MODEL_SLOP = 8.0;
 static constexpr double BIG_MODEL_SLOP = 2.0;
@@ -413,19 +414,20 @@ MemoryCell::collectGarbage()
 void
 MemoryCell::showResources(ostream& s, ostream* latexStream)
 {
-  rusage usage;
-  if (getrusage(RUSAGE_SELF, &usage) == 0)
+  FILETIME starttime, exittime, kerneltime, usertime;
+  ULARGE_INTEGER li;
+  if (GetProcessTimes(GetCurrentProcess(), &starttime, &exittime, &kerneltime, &usertime) == 0)
     {
-      double userTime = usage.ru_utime.tv_usec / 1000000.0 + usage.ru_utime.tv_sec;
-      double sysTime = usage.ru_stime.tv_usec / 1000000.0 + usage.ru_stime.tv_sec;
-      pair<double, const char*> p = memConvert(1024 * static_cast<uint_fast64_t>(usage.ru_maxrss));
-      //
-      //	Text output.
-      //
+      // In this Windows port, only some information is shown
+      memcpy(&li, &usertime, sizeof(FILETIME));
+      double userTime = li.QuadPart / 10000000L;
+      memcpy(&li, &kerneltime, sizeof(FILETIME));
+      double sysTime = li.QuadPart / 10000000L;
       s << "Time: " << userTime << "s user / " <<  sysTime << "s system";
-      s << "\t\tContext switches: " << usage.ru_nvcsw << " voluntary / " << usage.ru_nivcsw << " involuntary" << endl;
-      s << "Maximum resident size: " << p.first << " " << p.second;
-      s << "\t\tPage faults: " << usage.ru_majflt << " major / " << usage.ru_minflt << " minor" << endl;
+
+      SIZE_T minwss, maxwss;
+      if (GetProcessWorkingSetSize(GetCurrentProcess(), &minwss, &maxwss) == 0)
+	s << "Maximum resident size: " << maxwss << endl;
       //
       //	Latex output.
       //
@@ -435,18 +437,18 @@ MemoryCell::showResources(ostream& s, ostream* latexStream)
 
 	  *latexStream << "\\maudeResponse{Time: }\\maudeNumber{" <<  userTime <<
 	    " s}\\maudeResponse{ user / }\\maudeNumber{" <<  sysTime << " s}\\maudeResponse{ system} &\n" <<
-	    "\\maudeResponse{Context switches: }\\maudeNumber{" <<  usage.ru_nvcsw <<
-	    "}\\maudeResponse{ voluntary / }\\maudeNumber{" <<  usage.ru_nivcsw << "}\\maudeResponse{ involuntary} \\\\\n";
+	    "\\maudeResponse{Context switches: }\\maudeNumber{" <<  -1 <<
+	    "}\\maudeResponse{ voluntary / }\\maudeNumber{" <<  -1 << "}\\maudeResponse{ involuntary} \\\\\n";
 
-	  *latexStream << "\\maudeResponse{Maximum resident size: }\\maudeNumber{" << p.first << " " << p.second << "} &\n" <<
-	    "\\maudeResponse{Page faults: }\\maudeNumber{" <<  usage.ru_majflt << "}\\maudeResponse{ major / }" <<
-	    "\\maudeNumber{" << usage.ru_minflt << "}\\maudeResponse{ minor}\n";
+	  *latexStream << "\\maudeResponse{Maximum resident size: }\\maudeNumber{" << maxwss << " " << -1 << "} &\n" <<
+	    "\\maudeResponse{Page faults: }\\maudeNumber{" <<  -1 << "}\\maudeResponse{ major / }" <<
+	    "\\maudeNumber{" << -1 << "}\\maudeResponse{ minor}\n";
 
 	  *latexStream << "\\end{tabular}\n";
 	}
     }
   else
-    CantHappen("getrusage() failed: " << strerror(errno));
+    CantHappen("GetProcessTimes() failed: " << strerror(errno));
 }
 
 #ifdef GC_DEBUG

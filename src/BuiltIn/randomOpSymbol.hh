@@ -29,6 +29,7 @@
 #include <random>
 
 using std::mt19937;
+using std::mt19937_64;
 
 class RandomOpSymbol : public NumberOpSymbol
 {
