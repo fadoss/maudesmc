@@ -28,6 +28,9 @@
 #include <random>
 #include "externalObjectManagerSymbol.hh"
 
+using std::mt19937;
+using std::mt19937_64;
+
 class PrngManagerSymbol : public ExternalObjectManagerSymbol
 {
   NO_COPYING(PrngManagerSymbol);
