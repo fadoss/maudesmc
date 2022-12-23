@@ -27,6 +27,8 @@
 #define _yices2_Bindings_hh_
 
 #include <map>
+// STATUS_INTERRUPTED is defined by the Windows API and also by Yices
+#undef STATUS_INTERRUPTED
 #include "yices.h"
 
 class VariableGenerator : public SMT_EngineWrapper

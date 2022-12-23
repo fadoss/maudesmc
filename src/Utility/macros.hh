@@ -111,6 +111,8 @@ using std::search;
 using std::find_end;
 using std::unordered_map;
 using std::unordered_set;
+using std::to_string;
+using std::stringstream;
 
 //
 //	Forward declarations for utility classes.

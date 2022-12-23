@@ -69,6 +69,10 @@ private:
     {
      ERROR_BUFFER_SIZE = 256
     };
+  //
+  //	Overridden method from PseudoThread.
+  //
+  void doChildExit(pid_t childPid, int wstatus) override;
 
   bool createProcess(FreeDagNode* message, ObjectSystemRewritingContext& context);
   bool waitForExit(FreeDagNode* message, ObjectSystemRewritingContext& context);
