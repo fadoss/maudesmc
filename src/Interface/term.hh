@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2003 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,8 +38,6 @@ class Term : public LineNumber
 {
   NO_COPYING(Term);
 
-  static bool discard;
-
 public:
   enum ReturnValues
   {
@@ -47,6 +45,15 @@ public:
     LESS = -2,
     EQUAL = 0,
     UNKNOWN = -1
+  };
+
+  //
+  //	Comparison object on Term* for use with associative containers.
+  //	Only safe if the Terms are fully normalized are belong the the same module.
+  //
+  struct LessThan
+  {
+    bool operator()(Term* const& t1, Term* const& t2) const;
   };
 
   Term(Symbol* symbol);
@@ -64,7 +71,7 @@ public:
   int computeSize();
   Term* deepCopy(SymbolMap* translation = 0) const;
   Term* instantiate(const Vector<Term*>& varBindings, SymbolMap* translation);
-  int compare(const Term* other) const;
+  int compare(const Term* other) const; 
   int compare(const DagNode* other) const;
   bool equal(const Term* other) const;
   bool equal(const DagNode* other) const;
@@ -101,13 +108,14 @@ public:
   void compileTopRhs(RhsBuilder& rhsBuilder,
 		     VariableInfo& variableInfo,
 		     TermBag& availableTerms);
+  Term* normalize(bool full);
   //
   //	These member functions must be defined for each derived class
   //
   virtual RawArgumentIterator* arguments() = 0;
   virtual void deepSelfDestruct() = 0;
   virtual Term* deepCopy2(SymbolMap* translator) const = 0;
-  virtual Term* normalize(bool full, bool& changed = discard) = 0;
+  virtual Term* normalize(bool full, bool& changed) = 0;
   virtual int compareArguments(const Term* other) const = 0;
   virtual int compareArguments(const DagNode* other) const = 0;
   virtual void findAvailableTerms(TermBag& availableTerms,
@@ -321,6 +329,13 @@ Term::collapseSymbols() const
 }
 
 inline Term*
+Term::normalize(bool full)
+{
+  bool dummy;
+  return normalize(full, dummy);
+}
+
+inline Term*
 Term::deepCopy(SymbolMap* translator) const
 {
   Term* t = deepCopy2(translator);
@@ -341,6 +356,12 @@ Term::compare(const Term* other) const
 {
   Symbol* s = other->topSymbol;
   return (topSymbol == s) ? compareArguments(other) : topSymbol->compare(s);
+}
+
+inline bool
+Term::LessThan::operator()(Term* const& t1, Term* const& t2) const
+{
+  return t1->compare(t2) < 0;
 }
 
 inline int

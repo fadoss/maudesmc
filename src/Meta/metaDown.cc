@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2021 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -288,14 +288,14 @@ MetaLevel::downModule(DagNode* metaModule)
 				  m->checkFreshVariableNames();
 				  cache.insert(metaModule, m);
 				  //
-				  //	We may have displace a module from the
-				  //	metamodule cache generating garbage in
-				  //	the expression. Also there may be an
-				  //	accumulation of garbage anyway from meta-meta
-				  //	processing so we should tidy the (expression)
-				  //	module cache regularly.
+				  //	We may have displaced a module from the metamodule cache.
+				  //	The displaced module may have had parameter and imports
+				  //	constructed for it which could now be orphans. Now that
+				  //	any parameters and imports of this new module have been
+				  //	processed, the module system is quiescent and we can
+				  //	purge any orphans.
 				  //
-				  owner->destructUnusedModules();
+				  owner->cleanCaches();
 				  return m;
 				}
 			    }
@@ -315,12 +315,11 @@ MetaLevel::downModule(DagNode* metaModule)
       //
       m->deepSelfDestruct();
       //
-      //	Pulling down module expressions may have resulted in
-      //	the creation of cached modules that no longer have
-      //	dependents now that we failed to build the metamodule.
-      //	Thus we now need to tidy the module cache.
+      //	Processing module expressions for parameters and imports may have resulted in the
+      //	construction of modules and views that are now orphaned because we failed to build
+      //	the metamodule. We purge these now.
       //	
-      owner->destructUnusedModules();
+      owner->cleanCaches();
     }
   return 0;
 }
@@ -353,6 +352,8 @@ MetaLevel::downImport(DagNode* metaImport, MetaModule* m)
     mode = ImportModule::EXTENDING;
   else if (mi == includingSymbol)
     mode = ImportModule::INCLUDING;
+  else if (mi == generatedBySymbol)
+    mode = ImportModule::GENERATED_BY;
   else
     return false;
   
@@ -911,6 +912,7 @@ MetaLevel::downMembAx(DagNode* metaMembAx, MixfixModule* m)
 		  if (ai.flags.getFlag(NONEXEC))
 		    mb->setNonexec();
 		  m->insertSortConstraint(mb);
+		  m->checkSortConstraint(mb);
 		  if (ai.metadata != NONE)
 		    m->insertMetadata(MixfixModule::MEMB_AX, mb, ai.metadata);
 		  if (ai.flags.getFlag(PRINT))
@@ -970,6 +972,7 @@ MetaLevel::downEquation(DagNode* metaEquation, MixfixModule* m)
 			IssueAdvisory("variant attribute not allowed for conditional equation in meta-module " << QUOTE(m) << '.');
 		    }
 		  m->insertEquation(eq);
+		  m->checkEquation(eq);
 		  if (ai.metadata != NONE)
 		    m->insertMetadata(MixfixModule::EQUATION, eq, ai.metadata);
 		  if (ai.flags.getFlag(PRINT))
@@ -1029,6 +1032,7 @@ MetaLevel::downRule(DagNode* metaRule, MixfixModule* m)
 			IssueAdvisory("narrowing attribute not allowed for conditional rule in meta-module " << QUOTE(m) << '.');
 		    }
 		  m->insertRule(rl);
+		  m->checkRule(rl);
 		  if (ai.metadata != NONE)
 		    m->insertMetadata(MixfixModule::RULE, rl, ai.metadata);
 		  if (ai.flags.getFlag(PRINT))

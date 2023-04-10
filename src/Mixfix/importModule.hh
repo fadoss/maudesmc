@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2021 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -42,9 +42,13 @@ class ImportModule
 public:
   enum ImportMode
   {
-    PROTECTING,
-    EXTENDING,
-    INCLUDING
+   NO_JUNK = 1,
+   NO_CONFUSION = 2,
+
+   INCLUDING = 0,
+   GENERATED_BY = NO_JUNK,
+   EXTENDING = NO_CONFUSION,
+   PROTECTING = NO_JUNK + NO_CONFUSION
   };
 
   enum Origin
@@ -86,6 +90,7 @@ public:
   int getNrParameters() const;
   bool hasFreeParameters() const;
   int getParameterName(int index) const;
+  ImportModule* getParameterTheoryCopy(int index) const;
   int getNrImports() const;
   ImportModule* getImportedModule(int index) const;
   ImportMode getImportMode(int index) const;
@@ -132,18 +137,32 @@ public:
   void handleParameterizedSorts(Renaming* canonical, 
 				const ParameterMap& parameterMap,
 				const ParameterSet& extraParameterSet) const;
+  void handleParameterizedConstants(Renaming* canonical,
+				    const ParameterMap& parameterMap,
+				    const ParameterSet& extraParameterSet) const;
 
   void addSortMappingsFromTheoryView(Renaming* underConstruction,
 				     int parameterName,
 				     const View* view) const;
   void addSortMappingsFromModuleView(Renaming* underConstruction, const View* view) const;
   void addSortRenamingsForParameterChange(Renaming* underConstruction, int newParameterName) const;
+  void addConstantRenamingsForParameterChange(Renaming* underConstruction,
+					      int newParameterName,
+					      const ImportModule* parameterCopyUser) const;
   void addOpMappingsFromView(Renaming* underConstruction,
 			     const View* view,
-			     const ImportModule* parameterCopyUser) const;
+			     const ImportModule* parameterCopyUser,
+			     ImportModule* targetTheoryParameterCopy = 0) const;
   void addStratMappingsFromView(Renaming* underConstruction,
 				const View* view,
 				const ImportModule* parameterCopyUser) const;
+  //
+  //	To support object-oriented syntactic sugar.
+  //
+  void insertClassIdSortCandidates(set<Sort*>& candidates) const;
+  Sort* uniqueClassIdSortCandidate(const set<Sort*>& candidates) const;
+  Sort* findClassIdSort() const;
+  Sort* findAtttributeSort() const;
 
 #ifndef NO_ASSERT
   void dumpImports(ostream& s) const;
@@ -314,7 +333,7 @@ private:
   //	view.
   //
   //	As of 5/2/19 we keep track of sortDeclaredInModule for all imported
-  //	sorts, even for modules.
+  //	sorts, even if we are a module.
   //
   NatSet sortDeclaredInModule;
   NatSet opDeclaredInModule;
@@ -543,7 +562,12 @@ inline bool
 ImportModule::moduleDeclared(Sort* sort) const
 {
   Assert(sort->getModule() == this, "wrong module");
-  return sortDeclaredInModule.contains(sort->getIndexWithinModule());
+  //
+  //	Because we call this on modules as well as theories, we need to check if the sort is
+  //	local and we are a module.
+  //
+  int index = sort->getIndexWithinModule();
+  return (index < nrImportedSorts) ? sortDeclaredInModule.contains(index) : !isTheory();
 }
 
 inline bool
@@ -619,6 +643,13 @@ ImportModule::hasFreeParameters() const
   //	If we have parameters and they are not bound they must be free.
   //
   return getNrParameters() > 0 && !(hasBoundParameters());
+}
+
+inline ImportModule*
+ImportModule::getParameterTheoryCopy(int index) const
+{
+  Assert(index < getNrParameters(), "bad parameter index " << index << " in module " << (const MixfixModule*) this);
+  return parameterTheories[index];
 }
 
 #endif

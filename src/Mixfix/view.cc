@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2019 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -63,6 +63,7 @@
 //	our stuff
 #include "instantiateViewWithFreeParameters.cc"
 #include "instantiateViewWithBoundParameters.cc"
+#include "ooView.cc"
 
 //
 //	Version for original view.
@@ -110,9 +111,9 @@ View::View(int viewName,
   //	We are likewise a user of our view arguments, though this
   //	is probably not strictly necessary - we do this defensively.
   //
-  FOR_EACH_CONST(i, Vector<Argument*>, arguments)
+  for (Argument* a : arguments)
     {
-      if (View* v = dynamic_cast<View*>(*i))
+      if (View* v = dynamic_cast<View*>(a))
 	v->addUser(this);
     }
   //
@@ -137,9 +138,9 @@ View::~View()
       //	We're an instantiation of a view; need to deal with our
       //	view arugments.
       //
-      FOR_EACH_CONST(i, Vector<Argument*>, savedArguments)
+      for (Argument* a : savedArguments)
 	{
-	  if (View* v = dynamic_cast<View*>(*i))
+	  if (View* v = dynamic_cast<View*>(a))
 	    v->removeUser(this);
 	}
       baseView->removeUser(this);
@@ -153,16 +154,16 @@ View::~View()
   if (toExpr != 0)
     toExpr->deepSelfDestruct();
   //
-  //	Remove ourselves as  users of our parameter theories and
+  //	Remove ourselves as users of our parameter theories and
   //	deepSelfDestruct() parameter theory expressions.
   //
-    FOR_EACH_CONST(i, Vector<ParameterDecl>, parameters)
-      {
-	if (i->theory != 0)
-	  i->theory->removeUser(this);
-	if (i->expr != 0)
-	  i->expr->deepSelfDestruct();
-      }
+  for (ParameterDecl& pd : parameters)
+    {
+      if (pd.theory != 0)
+	pd.theory->removeUser(this);
+      if (pd.expr != 0)
+	pd.expr->deepSelfDestruct();
+    }
   //
   //	Warn our users of our impending demise.
   //
@@ -240,10 +241,10 @@ View::addParameter(int name, ImportModule* theory)
 void
 View::clearOpTermMap()
 {
-  FOR_EACH_CONST(i, OpTermMap, opTermMap)
+  for (auto& i : opTermMap)
     {
-      i->second.first->deepSelfDestruct();
-      i->second.second->deepSelfDestruct();
+      i.second.first->deepSelfDestruct();
+      i.second.second->deepSelfDestruct();
     }
   opTermMap.clear();
 }
@@ -251,10 +252,10 @@ View::clearOpTermMap()
 void
 View::clearStratExprMap()
 {
-  FOR_EACH_CONST(i, StratExprMap, stratExprMap)
+  for (auto& i : stratExprMap)
     {
-      delete i->second.call;
-      delete i->second.value;
+      delete i.second.call;
+      delete i.second.value;
     }
   stratExprMap.clear();
 }
@@ -300,6 +301,7 @@ View::regretToInform(Entity* doomedEntity)
   //	Something we depended on changed so self destruct all calculated stuff.
   //
   clearOpTermMap();
+  purgeGeneratedMappings(); // breaks stuff - not sure why
   if (fromTheory != 0)
     {
       fromTheory->removeUser(this);
@@ -358,13 +360,10 @@ View::checkSorts()
   //	fromTheory, there exists under our mapping sorts (A', B') that are in 
   //	the same kind in toModule, and further more if A <= B then A' <= B'.
   //
-  const Vector<ConnectedComponent*> kinds = fromTheory->getConnectedComponents();
-  //
   //	We examine the sort structure of the from theory one connected component at a time.
   //
-  FOR_EACH_CONST(i, Vector<ConnectedComponent*>, kinds)
+  for (ConnectedComponent* kind : fromTheory->getConnectedComponents())
     {
-      ConnectedComponent* kind = (*i);
       //
       //	When an strategy view is instantiated to a functional or system
       //	module, the auxiliary sort type must not be defined
@@ -397,9 +396,17 @@ View::checkSorts()
 	    }
 	  if (fromTheory->moduleDeclared(jSort) && !(toModule->moduleDeclared(jTransSort)))
 	    {
+	      //
+	      //	We don't allow a module declared sort to be implicity mapped to
+	      //	a sort that was declared in a theory, whether a target theory
+	      //	or a parameter theory of a target module.
+	      //	Currently theories cannot have parameters so if toModule is a theory
+	      //	we can blame it for illegal mapping.
+	      //
 	      IssueWarning(*this << ": implicit mapping of sort " << QUOTE(jSort) <<
 			   " that was declared in a module to sort " << QUOTE(jTransSort) <<
-			   " derived from a parameter theory is not allowed.");
+			   (toModule->isTheory() ? " from the target theory" : " derived from a parameter theory") <<
+			   " is not allowed.");
 	      return false;
 	    }
 	  ConnectedComponent* transKind = jTransSort->component();
@@ -571,6 +578,7 @@ View::checkOps()
       int id = s->id();
       Term* dummy1;
       Term* dummy2;
+      bool msgMapping = false;
       if (fromTheory->moduleDeclared(s))
 	{
 	  if (getOpToTermMapping(s, dummy1, dummy2) || renameOp(s) != NONE)
@@ -585,7 +593,10 @@ View::checkOps()
 	    continue;  // op is being mapped to a term which parses and therefore whose ops must exist
 	  int index = renameOp(s);
 	  if (index != NONE)
-	    id = getOpTo(index);
+	    {
+	      id = getOpTo(index);
+	      msgMapping = isMsgMapping(index);
+	    }
 	}
       //
       //	Translate the domain and range components.
@@ -620,6 +631,17 @@ View::checkOps()
 		       QUOTE(toModule) << '.');
 	  return false;
 	}
+      //
+      //	Check that if mapping is via a msg mapping, both from and to symbols have the msg attribute.
+      //
+      if (msgMapping)
+	{
+	  AdvisoryCheck(st.hasFlag(SymbolType::MESSAGE), *this << ": theory symbol " << QUOTE(s) <<
+			" is mapped by a msg mapping but does not have the msg attribute.");
+	  AdvisoryCheck(tt.hasFlag(SymbolType::MESSAGE), *this << ": theory symbol " << QUOTE(s) <<
+			" is mapped to " << QUOTE(t) <<
+			" by a msg mapping, but the latter symbol does not have the msg attribute.");
+	}
     }
   return true;
 }
@@ -643,6 +665,7 @@ View::checkPolymorphicOps()
       //
       int id = fromTheory->getPolymorphName(i).code();
       int index = renamePolymorph(id);
+      bool msgMapping = false;
       if (index != NONE)
 	{
 	  if (fromTheory->moduleDeclaredPolymorph(i))
@@ -651,7 +674,10 @@ View::checkPolymorphicOps()
 			    QUOTE(Token::name(id)) << " as it was declared in a module.");
 	    }
 	  else
-	    id = getOpTo(index);
+	    {
+	      id = getOpTo(index);
+	      msgMapping = isMsgMapping(index);
+	    }
 	}
       //
       //	Translate the domain and range components.
@@ -667,12 +693,29 @@ View::checkPolymorphicOps()
       //
       //	Check to see that a suitable polymorphic operator exists in toModule.
       //
-      if (toModule->findPolymorphIndex(id, newDomainAndRange) == NONE)
+      int toPolymorphIndex = toModule->findPolymorphIndex(id, newDomainAndRange);
+      if (toPolymorphIndex == NONE)
 	{
 	  IssueWarning(*this << ": failed to find suitable polymorphic operator " << QUOTE(Token::name(id)) <<
 		       " in " << QUOTE(toModule) << " to represent polymorphic operator " <<
 		       QUOTE(fromTheory->getPolymorphName(i)) << " from " << QUOTE(fromTheory) << '.');
 	  return false;
+	}
+      //
+      //	Check that if mapping is via a msg mapping, both from and to symbols have the msg attribute.
+      //
+      if (msgMapping)
+	{
+	  SymbolType st = fromTheory->getPolymorphType(i);
+	  AdvisoryCheck(st.hasFlag(SymbolType::MESSAGE), *this << ": theory polymorphic symbol " <<
+			QUOTE(fromTheory->getPolymorphName(i)) <<
+			" is mapped by a msg mapping but does not have the msg attribute.");
+
+	  SymbolType tt = toModule->getPolymorphType(toPolymorphIndex);
+	  AdvisoryCheck(tt.hasFlag(SymbolType::MESSAGE), *this << ": theory polymorphic symbol " <<
+			QUOTE(fromTheory->getPolymorphName(i)) <<
+			" is mapped to " << QUOTE(toModule->getPolymorphName(toPolymorphIndex)) <<
+			" by a msg mapping, but the latter polymorphic symbol does not have the msg attribute.");
 	}
     }
   return true;
@@ -749,7 +792,15 @@ View::evaluate()
   switch (status)
     {
     case INITIAL:
-      break;
+      {
+	//
+	//	Evaluating a view with OO mapping can add sort and op mappings to the
+	//	base renaming. We need to keep track of what was original in case we
+	//	need to purge these to re-evaluate.
+	//
+	recordUserMappings();
+	break;
+      }
     case PROCESSING:
       {
 	IssueWarning(*this << ": recursive use of view " << QUOTE(this) << " is not allowed.");
@@ -862,7 +913,9 @@ View::evaluate()
 
   status = GOOD;  // until proven otherwise
 
-  if (!checkSorts() ||
+  if (!handleClassMappings() ||
+      !handleAttrMappings() ||
+      !checkSorts() ||
       !handleTermAndExprMappings() ||
       !checkOps() ||
       !checkPolymorphicOps() ||
@@ -1018,8 +1071,8 @@ View::insertStratToExprMapping(CallStrategy* fromCall,
 		       QUOTE(i.argument()) << '.');
 	  delete fromCall;
 	  delete toExpr;
-	  FOR_EACH_CONST(i, Vector<Term*>, vars)
-	    delete *i;
+	  for (Term* t : vars)
+	    delete t;
 	  return false;
 	}
       int base = vt->id();
@@ -1034,8 +1087,8 @@ View::insertStratToExprMapping(CallStrategy* fromCall,
 	  delete fromCall;
 	  delete toExpr;
 	  delete toVar;
-	  FOR_EACH_CONST(i, Vector<Term*>, vars)
-	    delete *i;
+	  for (Term* t : vars)
+	    delete t;
 	  return false;
 	}
       lhsVars.insert(toVar);
@@ -1066,8 +1119,8 @@ View::insertStratToExprMapping(CallStrategy* fromCall,
 	  contextSpec[i] = j;
     }
 
-  FOR_EACH_CONST(i, Vector<Term*>, vars)
-      delete *i;
+  for (Term* t : vars)
+    delete t;
 
   //
   //	For strat s(...) to expr e we insert

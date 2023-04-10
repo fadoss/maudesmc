@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2021 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -87,6 +87,7 @@ Vector<Token> strategyCall;
 Renaming* currentRenaming = 0;
 SyntaxContainer* currentSyntaxContainer = 0;
 SyntaxContainer* oldSyntaxContainer = 0;
+bool suppressParserErrorMessage = false;
 
 Int64 number;
 Int64 number2;
@@ -127,8 +128,8 @@ int yylex(YYSTYPE* lvalp);
 /*
  *	Inert keywords: these are only recognized by lexer when in initial mode.
  */
-%token <yyToken> KW_MOD KW_OO KW_VIEW
-%token KW_PARSE KW_NORMALIZE KW_REDUCE KW_REWRITE
+%token <yyToken> KW_MOD KW_VIEW
+%token KW_PARSE KW_NORMALIZE KW_REDUCE KW_REWRITE KW_OO
 %token KW_LOOP KW_NARROW KW_XG_NARROW KW_MATCH KW_XMATCH KW_UNIFY KW_CHECK
 %token KW_GET KW_VARIANTS KW_VARIANT
 %token KW_EREWRITE KW_FREWRITE KW_SREWRITE KW_DSREWRITE
@@ -137,32 +138,32 @@ int yylex(YYSTYPE* lvalp);
 %token KW_TRACE KW_BODY KW_BUILTIN KW_WHOLE KW_SELECT KW_DESELECT KW_CONDITION KW_SUBSTITUTION
 %token KW_PRINT KW_GRAPH KW_MIXFIX KW_FLAT KW_ATTRIBUTE KW_NEWLINE
 %token KW_WITH KW_PARENS KW_ALIASES KW_GC KW_TIME KW_STATS KW_TIMING
-%token KW_CMD KW_BREAKDOWN KW_BREAK KW_PATH KW_CONST
+%token KW_CMD KW_BREAKDOWN KW_BREAK KW_PATH KW_STATE KW_CONST
 %token KW_MODULE KW_MODULES KW_VIEWS KW_ALL KW_SORTS KW_OPS2 KW_VARS
 %token KW_MBS KW_EQS KW_RLS KW_STRATS KW_SDS KW_SUMMARY KW_KINDS KW_ADVISE KW_VERBOSE
 %token KW_DO KW_CLEAR
-%token KW_PROTECT KW_EXTEND KW_INCLUDE KW_EXCLUDE
+%token KW_PROTECT KW_EXTEND KW_GENERATE_BY KW_INCLUDE KW_EXCLUDE
 %token KW_CONCEAL KW_REVEAL KW_COMPILE KW_COUNT
 %token KW_DEBUG KW_IRREDUNDANT KW_FILTERED
 %token KW_RESUME KW_ABORT KW_STEP  KW_WHERE KW_CREDUCE KW_SREDUCE KW_DUMP KW_PROFILE
 %token KW_NUMBER KW_RAT KW_COLOR KW_IMPLIED_STEP
 %token <yyInt64> SIMPLE_NUMBER
 %token KW_PWD KW_CD KW_PUSHD KW_POPD KW_LS KW_LL KW_LOAD KW_SLOAD KW_QUIT
-%token KW_EOF KW_TEST KW_SMT_SEARCH KW_VU_NARROW KW_FVU_NARROW KW_FOLD KW_DESUGARED
+%token KW_EOF KW_TEST KW_SMT_SEARCH KW_VU_NARROW KW_FVU_NARROW KW_FOLD KW_DESUGARED KW_PROCESSED
 
 /*
  *	Start keywords: signal end of mixfix statement if following '.'.
  */
 %token <yyToken> KW_ENDM KW_IMPORT KW_ENDV
 %token <yyToken> KW_SORT KW_SUBSORT KW_OP KW_OPS KW_MSGS KW_VAR KW_CLASS KW_SUBCLASS KW_DSTRAT
-%token <yyToken> KW_MB KW_CMB KW_EQ KW_CEQ KW_RL KW_CRL KW_SD KW_CSD
+%token <yyToken> KW_MB KW_CMB KW_EQ KW_CEQ KW_RL KW_CRL KW_SD KW_CSD KW_ATTR
 
 /*
  *	Mid keywords: need to be recognized in the middle of mixfix syntax.
  */
 %token <yyToken> KW_IS KW_FROM
 %token <yyToken> KW_ARROW KW_ARROW2 KW_PARTIAL KW_IF KW_ASSIGN
-%type <yyToken> ':' '=' '(' ')' '.' '<' '[' ']' ',' '|'
+%type <yyToken> ':' '=' '(' ')' '.' '<' '[' ']' ',' '|' '@'
 
 /*
  *	Module expression keywords.
@@ -175,7 +176,7 @@ int yylex(YYSTYPE* lvalp);
 /*
  *	Attribute keywords need to be recognized when parsing attributes.
  */
-%token <yyToken> KW_ASSOC KW_COMM KW_ID KW_IDEM KW_ITER
+%token <yyToken> KW_ASSOC KW_COMM KW_ID KW_IDEM KW_ITER KW_PCONST
 %token <yyToken> KW_LEFT KW_RIGHT KW_PREC KW_GATHER KW_METADATA KW_STRAT KW_ASTRAT KW_POLY
 %token <yyToken> KW_MEMO KW_FROZEN KW_CTOR KW_LATEX KW_SPECIAL KW_CONFIG KW_OBJ KW_MSG
 %token <yyToken> KW_DITTO KW_FORMAT
@@ -199,9 +200,17 @@ int yylex(YYSTYPE* lvalp);
 %token FORCE_LOOKAHEAD
 
 /*
+ *	These tokens are returned by the lexer when an actual end-of-file is handled.
+ *	CHANGE_FILE means we resumed reading the previous file.
+ *	It is used to prevent parsing modules/commands across file boundries.
+ *	END_OF_INPUT  means there are no more characters to read.
+ */
+%token CHANGE_FILE END_OF_INPUT
+
+/*
  *	Nonterminals that return tokens.
  */
-%type <yyToken> identifier inert startKeyword startKeyword2 midKeyword attrKeyword attrKeyword2
+%type <yyToken> stratName attributeName
 %type <yyToken> token endsInDot badType
 %type <yyToken> tokenBarColon
 %type <yyToken> tokenBarDot
@@ -210,7 +219,7 @@ int yylex(YYSTYPE* lvalp);
 %type <yyToken> cSimpleTokenBarDot
 %type <yyToken> cTokenBarDotCommaRight cTokenBarDotCommaNumber
 %type <yyToken> cTokenBarOpenLeftIn cTokenBarDotCommaClose cOptionToken cTokenBarDotOptionToken
-%type <yyToken> sortName sortToken sortDot
+%type <yyToken> sortName sortToken sortDot tokenDot
 
 /*
  *	Nonterminals that return Interpreter::SearchKind.
@@ -219,7 +228,7 @@ int yylex(YYSTYPE* lvalp);
 /*
  *	Nonterminals that return bool.
  */
-%type <yyBool> polarity select match optDebug optIrredundant conceal exclude arrow
+%type <yyBool> polarity select match optDebug optIrredundant conceal exclude arrow typeName1 typeName1Dot
 /*
  *	Nonterminals that return int.
  */
@@ -255,9 +264,28 @@ int yylex(YYSTYPE* lvalp);
 %%
 
 top		:	item { YYACCEPT; }
-		|
+		|	END_OF_INPUT
 			{
 			  PARSE_RESULT = UserLevelRewritingContext::QUIT;
+			  YYACCEPT;
+			}
+		|	error END_OF_INPUT
+			{
+			  //
+			  //	This is the back stop if we see a END_OF_INPUT when we're part way
+			  //	through the item, and justifies suppressing the yyerror() message.
+			  //
+			  IssueWarning(LineNumber(lineNumber) << ": unexpected end-of-input.");
+			  YYABORT;
+			}
+		|	error CHANGE_FILE
+			{
+			  //
+			  //	This is the back stop if we see a CHANGE_FILE when we're part way
+			  //	through an item, and justifies suppressing the yyerror() message.
+			  //
+			  IssueWarning(LineNumber(lineNumber) << ": unexpected end-of-file.");
+			  YYABORT;
 			}
 		;
 
@@ -265,6 +293,13 @@ item		:	module
 		|	view
 		|	directive
 		|	command
+		|	CHANGE_FILE
+			{
+			  //
+			  //	Benign change of file; reenable yyerror() message.
+			  //
+			  suppressParserErrorMessage = false;
+			}
 		;
 
 /*

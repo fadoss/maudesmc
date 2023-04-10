@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2021 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -65,6 +65,7 @@
 #include "strategyExpression.hh"
 
 //	our stuff
+#include "ooSorts.cc"
 #include "renameModule.cc"
 #include "parameterization.cc"
 #include "instantiateModuleWithFreeParameters.cc"
@@ -127,8 +128,19 @@ ImportModule::getObjectName() const
 const char*
 ImportModule::importModeString(ImportMode mode)
 {
-  static const char* const modeStrings[] = { "protecting", "extending", "including" };
-  return modeStrings[mode];
+  switch (mode)
+    {
+    case INCLUDING:
+      return "including";
+    case GENERATED_BY:
+      return "generated-by";
+    case EXTENDING:
+      return "extending";
+    case PROTECTING:
+      return "protecting";
+    }
+  CantHappen("bad importation mode" << mode);
+  return 0;
 }
 
 void
@@ -347,10 +359,8 @@ ImportModule::importSorts()
   //
   //	We first go through our parameter theories and ask them
   //	to donate their sorts.
-  {
-    FOR_EACH_CONST(i, Vector<ImportModule*>, parameterTheories)
-      (*i)->donateSorts(this);
-  }
+  for (ImportModule* i : parameterTheories)
+    i->donateSorts(this);
   //
   //	We just imported the sorts from our last parameter theory
   //	so record this so we know what sorts came from parameters.
@@ -360,10 +370,8 @@ ImportModule::importSorts()
   //	We now go through our regular imports and ask them to
   //	donate their sorts.
   //
-  {
-    FOR_EACH_CONST(i, Vector<ImportModule*>, importedModules)
-      (*i)->donateSorts(this);
-  }
+  for (ImportModule* i : importedModules)
+    i->donateSorts(this);
   //
   //	Keep track of which sort and subsort declarations were imported
   //	from parameter theories or regular imports.
@@ -389,8 +397,8 @@ ImportModule::donateSorts(ImportModule* importer)
   //	- importer should have identical parameterTheories because our parameter
   //	must be bound.
   //
-  FOR_EACH_CONST(i, Vector<ImportModule*>, importedModules)
-    (*i)->donateSorts(importer);
+  for (ImportModule* i : importedModules)
+    i->donateSorts(importer);
   //
   //	Now handle our sorts.
   //
@@ -406,10 +414,8 @@ ImportModule::importOps()
   //
   //	We first go through our parameter theories and ask them
   //	to donate their operators.
-  {
-    FOR_EACH_CONST(i, Vector<ImportModule*>, parameterTheories)
-      (*i)->donateOps(this);
-  }
+  for (ImportModule* i : parameterTheories)
+    i->donateOps(this);
   //
   //	We just imported the operators from our last parameter theory
   //	so record record the number of symbols and polymorphs we
@@ -421,10 +427,8 @@ ImportModule::importOps()
   //	We now go through our regular imports and ask them to
   //	donate their operators.
   //
-  {
-    FOR_EACH_CONST(i, Vector<ImportModule*>, importedModules)
-      (*i)->donateOps(this);
-  }
+  for (ImportModule* i : importedModules)
+    i->donateOps(this);
   //
   //	Keep track of which operators and operator declarations were
   //	imported from parameter theories or regular imports.
@@ -451,8 +455,8 @@ ImportModule::donateOps(ImportModule* importer)
   //	- importer should have identical parameterTheories because our parameter
   //	must be bound.
   //
-  FOR_EACH_CONST(i, Vector<ImportModule*>, importedModules)
-    (*i)->donateOps(importer);
+  for (ImportModule* i : importedModules)
+    i->donateOps(importer);
   //
   //	Now handle our operators.
   //
@@ -468,18 +472,14 @@ ImportModule::fixUpImportedOps()
   //
   //	We first go through our parameter theories and ask them
   //	to fix up the operators they donated.
-  {
-    FOR_EACH_CONST(i, Vector<ImportModule*>, parameterTheories)
-      (*i)->fixUpDonatedOps(this);
-  }
+  for (ImportModule* i : parameterTheories)
+    i->fixUpDonatedOps(this);
   //
   //	We now go through our regular imports and ask them to
   //	fix up the operators they donated.
   //
-  {
-    FOR_EACH_CONST(i, Vector<ImportModule*>, importedModules)
-      (*i)->fixUpDonatedOps(this);
-  }
+  for (ImportModule* i : importedModules)
+    i->fixUpDonatedOps(this);
 }
 
 void
@@ -494,8 +494,8 @@ ImportModule::fixUpDonatedOps(ImportModule* importer)
   //	- importer should have identical parameterTheories because our parameter
   //	must be bound.
   //
-  FOR_EACH_CONST(i, Vector<ImportModule*>, importedModules)
-    (*i)->fixUpDonatedOps(importer);
+  for (ImportModule* i : importedModules)
+    i->fixUpDonatedOps(importer);
   //
   //	Handle our operators.
   //
@@ -540,18 +540,14 @@ ImportModule::importStatements()
   //	We first go through our parameter theories and ask them
   //	to donate their statements.
   //
-  {
-    FOR_EACH_CONST(i, Vector<ImportModule*>, parameterTheories)
-      (*i)->donateStatements(this);
-  }
+  for (ImportModule* i : parameterTheories)
+    i->donateStatements(this);
   //
   //	We now go through our regular imports and ask them to
   //	donate their statements.
   //
-  {
-    FOR_EACH_CONST(i, Vector<ImportModule*>, importedModules)
-      (*i)->donateStatements(this);
-  }
+  for (ImportModule* i : importedModules)
+    i->donateStatements(this);
 }
 
 void
@@ -571,8 +567,8 @@ ImportModule::donateStatements(ImportModule* importer)
   //	- importer should have identical parameterTheories because our parameter
   //	must be bound.
   //
-  FOR_EACH_CONST(i, Vector<ImportModule*>, importedModules)
-    (*i)->donateStatements(importer);
+  for (ImportModule* i : importedModules)
+    i->donateStatements(importer);
   //
   //	The map from imported module's symbols to importing module's symbols
   //	is built dynamically.
@@ -760,6 +756,7 @@ ImportModule::donateStatements2(ImportModule* importer, ImportTranslation& impor
 	    copy->setNonexec();
 	  copy->setLineNumber(ma->getLineNumber());
 	  importer->insertSortConstraint(copy);
+	  importer->checkSortConstraint(copy);
 	  copyMetadata(importer, importTranslation, MEMB_AX, ma, copy);
 	  //importer->insertMetadata(MEMB_AX, copy, getMetadata(MEMB_AX, ma));
 	}
@@ -785,6 +782,7 @@ ImportModule::donateStatements2(ImportModule* importer, ImportTranslation& impor
 	    copy->setVariant();
 	  copy->setLineNumber(e->getLineNumber());
 	  importer->insertEquation(copy);
+	  importer->checkEquation(copy);
 	  copyMetadata(importer, importTranslation, EQUATION, e, copy);
 	  //importer->insertMetadata(EQUATION, copy, getMetadata(EQUATION, e));
 	}
@@ -810,6 +808,7 @@ ImportModule::donateStatements2(ImportModule* importer, ImportTranslation& impor
 	    copy->setNarrowing();
 	  copy->setLineNumber(r->getLineNumber());
 	  importer->insertRule(copy);
+	  importer->checkRule(copy);
 	  copyMetadata(importer, importTranslation, RULE, r, copy);
 	  //importer->insertMetadata(RULE, copy, getMetadata(RULE, r));
 	}

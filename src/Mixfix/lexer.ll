@@ -95,6 +95,7 @@ string fileName;
 //int terminationCondition;
 int minLength;
 extern Vector<Token> lexerBubble;
+extern bool suppressParserErrorMessage;
 %}
 
 stringContent	([^[:cntrl:]"\\]|("\\"[^[:cntrl:]])|(\\\n)|\t)
@@ -143,8 +144,8 @@ in					RETURN(KW_IN)
 
 <INITIAL>{
 th|fth|sth|oth|mod|fmod|smod|omod|obj	RETURN(KW_MOD)  // need to know which one we saw
-oo					RETURN(KW_OO)
-view					RETURN(KW_VIEW);
+view					RETURN(KW_VIEW)  // needed for line number handling
+oo					return KW_OO;
 load					return KW_LOAD;
 sload					return KW_SLOAD;
 pwd					return KW_PWD;
@@ -228,6 +229,7 @@ kinds|components			return KW_KINDS;
 compile|compiler			return KW_COMPILE;
 count					return KW_COUNT;
 protect					return KW_PROTECT;
+"generate-by"				return KW_GENERATE_BY;
 extend					return KW_EXTEND;
 include					return KW_INCLUDE;
 exclude					return KW_EXCLUDE;
@@ -242,6 +244,7 @@ dump					return KW_DUMP;
 break					return KW_BREAK;
 breakdown				return KW_BREAKDOWN;
 path					return KW_PATH;
+state|states				return KW_STATE;
 label|labels				return KW_LABEL;
 profile					return KW_PROFILE;
 number					return KW_NUMBER;
@@ -252,6 +255,7 @@ vu-narrow				return KW_VU_NARROW;
 fvu-narrow				return KW_FVU_NARROW;
 fold					return KW_FOLD;
 desugared				return KW_DESUGARED;
+processed				return KW_PROCESSED;
 [.\[\](){}]				return *yytext;
 0|([1-9][0-9]*)				{
 					  bool dummy;
@@ -315,6 +319,7 @@ delay					RETURN(KW_DELAY)
 to					RETURN(KW_TO)
 from					RETURN(KW_FROM)
 label					RETURN(KW_LABEL)
+attr					RETURN(KW_ATTR)
 assoc|associative			RETURN(KW_ASSOC)
 comm|commutative			RETURN(KW_COMM)
 id:|identity:				RETURN(KW_ID)
@@ -340,9 +345,10 @@ ditto					RETURN(KW_DITTO)
 id-hook					RETURN(KW_ID_HOOK)
 op-hook					RETURN(KW_OP_HOOK)
 term-hook				RETURN(KW_TERM_HOOK)
+pconst					RETURN(KW_PCONST)
 is					RETURN(KW_IS)
 if					RETURN(KW_IF)
-pr|protecting|ex|extending|us|using|inc|including	RETURN(KW_IMPORT)
+pr|protecting|ex|extending|us|using|inc|including|gb|generated-by	RETURN(KW_IMPORT)
 sort|sorts				RETURN(KW_SORT)
 subsort|subsorts			RETURN(KW_SUBSORT)
 class					RETURN(KW_CLASS)
@@ -429,7 +435,7 @@ if					{
 					  else
 					    STORE
 					}
-assoc|associative|comm|commutative|id:|identity:|idem|idempotent|iter|iterated|left|right|prec|precedence|gather|metadata|strat|strategy|frozen|poly|polymorphic|ctor|constructor|latex|special|config|configuration|obj|object|msg|message|ditto|format|memo	{
+assoc|associative|comm|commutative|id:|identity:|idem|idempotent|iter|iterated|left|right|prec|precedence|gather|metadata|strat|strategy|frozen|poly|polymorphic|ctor|constructor|latex|special|config|configuration|obj|object|msg|message|ditto|format|memo|pconst	{
 					  if (parenCount == 0 && (terminationSet & BAR_OP_ATTRIBUTE) && lexerBubble.length() >= minLength)
 					    {
 					      yyless(0);  // need to re-lex it to get the correct return value
@@ -477,6 +483,14 @@ assoc|associative|comm|commutative|id:|identity:|idem|idempotent|iter|iterated|l
 					    STORE_FIX_UP
 					}
 {maudeId}				STORE_FIX_UP
+<<EOF>>					{
+					  //
+					  //	An EOF in the middle of a bubble is always an error that drops us
+					  //	out of the parser and does a full clean up.
+					  //
+					  bubbleEofError();
+					  yyterminate();
+					}
 }
 
  /*
@@ -485,7 +499,7 @@ assoc|associative|comm|commutative|id:|identity:|idem|idempotent|iter|iterated|l
   *	on to the input stream to be re-lexed in a new mode.
   */
 <END_STATEMENT_MODE>{
-pr|protecting|ex|extending|us|using|inc|including|sort|sorts|subsort|subsorts|op|ops|var|vars|mb|cmb|eq|cq|ceq|rl|crl|sd|csd|strat|strats|end(th|fth|sth|m|fm|sm|om|o|v|sv)|jbo|msg|msgs|class|classes|subclass|subclasses		{
+pr|protecting|ex|extending|us|using|inc|including|gb|generated-by|sort|sorts|subsort|subsorts|op|ops|var|vars|mb|cmb|eq|cq|ceq|rl|crl|sd|csd|strat|strats|end(th|oth|fth|sth|m|fm|sm|om|o|v|sv)|jbo|msg|msgs|class|subclass|subclasses		{
 					  yyless(0);  // BUG - need to deal with white space and comments after the .
 					  yy_pop_state();
 					  RETURN_SAVED(savedReturn)
@@ -616,9 +630,15 @@ pr|protecting|ex|extending|us|using|inc|including|sort|sorts|subsort|subsorts|op
 }
 
 <<EOF>>					{
-					  if (UserLevelRewritingContext::interrupted() ||
-					      !handleEof())
-					    yyterminate();
+					  //
+					  //	An EOF could be a benign change of file, an error in the middle
+					  //	of a command/module/view or a ^C interrupt or a ^D quit.
+					  //	In all cases we want to avoid any yyerror() message.
+					  //
+					  suppressParserErrorMessage = true;
+					  if (UserLevelRewritingContext::interrupted())
+					    yyterminate();  // return an end-of-file condition to the parser
+					  return handleEof() ? CHANGE_FILE : END_OF_INPUT;
 					}
 
 [ \t\r]*				;

@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 2019 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 2019-2023 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -55,7 +55,7 @@ View::makeInstantiation(int viewName,
   Renaming* canonicalRenaming = new Renaming;
   //
   //	We assume that fromTheory cannot be instantiated, because we do not support
-  //	parameterized theories and we do not allow parameterized modules to be summed
+  //	parameterized theories. We do not allow parameterized modules to be summed
   //	with theories.
   //
   copy->fromTheory = fromTheory;  // use the same fromTheory
@@ -102,6 +102,10 @@ View::makeInstantiation(int viewName,
   //	We do this for all the sorts in our toModule
   //
   toModule->handleParameterizedSorts(canonicalRenaming, parameterMap, extraParameterSet);
+  //
+  //	CHECK: do we need this
+  //
+  toModule->handleParameterizedConstants(canonicalRenaming, parameterMap, extraParameterSet);
   //
   //	Now we have our canonical renaming which takes use from our toModule to
   //	the instantiation our our toModule, targetInstance.
@@ -193,6 +197,7 @@ View::handleInstantiationByTheoryView(View* copy,
 				      ParameterSet& extraParameterSet,
 				      const Vector<Argument*>& arguments) const
 {
+  DebugEnter("instantiating\n" << this);
   //
   //	We return true if all parameters taking theory-view arguments were
   //	successfully instantiated and false if there was a problem.
@@ -254,17 +259,32 @@ View::handleInstantiationByTheoryView(View* copy,
 	      //	Since we store parameter theories rather than parameter theory copies (unlike ImportModule)
 	      //	we need to make the copy - it will already be in the module cache since our toModule imports it.
 	      //
-	      ImportModule* parameterCopyOfTheory = owner->makeParameterCopy(parameterName, parameters[i].theory);
+	      Assert(argumentView->getFromTheory() == parameters[i].theory, "theory mismatch " <<
+		     argumentView->getFromTheory() << " vs " << parameters[i].theory << " for argument " << i);
+	      const ImportModule* parameterCopyOfParameterTheory = owner->makeParameterCopy(parameterName, parameters[i].theory);
+	      //
+	      //	Get the parameter copy of the theory-view's target. The target module for copy which is instantiated
+	      //	by the theory-view and which we haven't at this point will also need this and  will get if from the cache.
+	      //
+	      ImportModule* parameterCopyOfArgumentViewToTheory = owner->makeParameterCopy(parameterName, viewToTheory);
 	      //
 	      //	We rely on the parameter copies to do the heavy lifting of
 	      //	adding sort and operator renamings to our canonicalRenaming.
 	      //
-	      parameterCopyOfTheory->addSortMappingsFromTheoryView(canonicalRenaming, parameterName, argumentView);
-	      parameterCopyOfTheory->addOpMappingsFromView(canonicalRenaming, argumentView, parameterCopyOfTheory);
-	      parameterCopyOfTheory->addStratMappingsFromView(canonicalRenaming, argumentView, parameterCopyOfTheory);
+	      parameterCopyOfParameterTheory->addSortMappingsFromTheoryView(canonicalRenaming, parameterName, argumentView);
+	      //
+	      //	2/8/23 CONSIDER: shoudn't we use our toModule for passing as the parameterCopyUser argument rather than
+	      //	parameterCopyOfParameterTheory itself? Probably doesn't matter since it's only used to looking up mapped sorts.
+	      //
+	      parameterCopyOfParameterTheory->addOpMappingsFromView(canonicalRenaming,
+								    argumentView,
+								    parameterCopyOfParameterTheory,
+								    parameterCopyOfArgumentViewToTheory);
+	      parameterCopyOfParameterTheory->addStratMappingsFromView(canonicalRenaming, argumentView, parameterCopyOfParameterTheory);
 	    }
 	}
     }
+  DebugExit("instantiating\n" << this);
   return true;
 }
 
@@ -275,6 +295,7 @@ View::handleInstantiationByParameter(View* copy,
 				     NatSet& positionsInstantiatedParameter,
 				     const Vector<Argument*>& arguments) const
 {
+  DebugEnter("instantiating\n" << this);
   int nrParameters = getNrParameters();
   for (int i = 0; i < nrParameters; ++i)
     {
@@ -321,6 +342,18 @@ View::handleInstantiationByParameter(View* copy,
 	      //	X$Foo |-> Y$Foo
 	      //
 	      parameterCopyOfTheory->addSortRenamingsForParameterChange(canonicalRenaming, newParameterName);
+	      //
+	      //	For each c : -> [S] |-> X$c we mapped in the parameter copy of the parameter theory, we
+	      //	add a mapping X$c : -> [T] |-> Y$c to the canonical renaming where T is whatever
+	      //	S mapped to in the parameter copy.
+	      //
+	      //	We require that toModule has each of parameters (bound by us), so we pass it as
+	      //	the parameterCopyUser used to look up [T] once we map S |-> T by the
+	      //	parameterCopyOfTheory canonical renaming.
+	      //
+	      parameterCopyOfTheory->addConstantRenamingsForParameterChange(canonicalRenaming,
+									    newParameterName,
+									    toModule);
 	    }
 	  positionsInstantiatedParameter.insert(i);
 	  //
@@ -334,6 +367,7 @@ View::handleInstantiationByParameter(View* copy,
 	  //
 	}
     }
+  DebugExit("instantiating\n" << this);
 }
 
 void
@@ -343,14 +377,17 @@ View::handleInstantiationByModuleView(View* copy,
 				      const NatSet& positionsInstantiatedParameter,
 				      const Vector<Argument*>& arguments) const
 {
+  DebugEnter("instantiating\n" << this);
   int nrParameters = getNrParameters();
   for (int i = 0; i < nrParameters; ++i)
     {
       Argument* argument = arguments[i];
       if (View* argumentView = dynamic_cast<View*>(argument))
 	{
-	  if (!(toModule->isTheory()))
+	  ImportModule* viewToModule = argumentView->getToModule();
+	  if (!(viewToModule->isTheory()))
 	    {
+	      DebugInfo("module view argument is " << argumentView << " which has target " << viewToModule);
 	      //
 	      //	We map the parmeter name to the argument view name.
 	      //
@@ -415,9 +452,7 @@ View::handleInstantiationByModuleView(View* copy,
 	      //	module-view to copy directly. So we do the add-in anyway.
 	      //
 	      //	5/9/18 We no longer allow toModules not to take all our parameters so we don't
-	      //	do the copy
-	      //
-	      //copy->addInAllConflicts(argumentView);
+	      //	do copy->addInAllConflicts(argumentView).
 	      //
 	      //	Need to add any conflicts between the bound parameters in our argument
 	      //	and bare paramters in the same instantiation.
@@ -427,14 +462,15 @@ View::handleInstantiationByModuleView(View* copy,
 	      //	it has the possibility of leaving them stranded in a nonfinal instantiation
 	      //	should both recieve theory-views in a nonfinal instantiation.
 	      //
-	      FOR_EACH_CONST(j, NatSet, positionsInstantiatedParameter)
+	      for (int j : positionsInstantiatedParameter)
 		{
-		  int bareParameterName = safeCast(Parameter*, arguments[*j])->id();
+		  int bareParameterName = safeCastNonNull<Parameter*>(arguments[j])->id();
 		  copy->addConflictsWithBoundParameters(argumentView, bareParameterName);
 		}
 	    }
 	}
     }
+  DebugExit("instantiating\n" << this);
 }
 
 void
@@ -552,10 +588,12 @@ View::handleOpMappings(View* copy, const Renaming* canonicalRenaming) const
 void
 View::handleAwkwardCase(View* copy, Symbol* symbol, Term* fromTerm, Term* toTerm) const
 {
+  DebugEnter("view = " << copy << "  symbol = " << symbol << "  fromTerm = " << fromTerm <<
+	     "  toTerm = " << toTerm);
   //
   //	We have symbol from our fromTheory which is explicitly or implicity
   //	mapped to a symbol' from one of our parameter theories. Now this parameter
-  //	theory has been instantiated by a view that maps symbol' to a term toTerm.
+  //	has been instantiated by a view that maps symbol' to a term toTerm.
   //	In order to handle this we need to synthesize an op->term mapping that
   //	takes symbol to toTerm and add it to copy.
   //	We do this an a very inefficient manner since this is a rare edge case.
@@ -585,7 +623,7 @@ View::handleAwkwardCase(View* copy, Symbol* symbol, Term* fromTerm, Term* toTerm
   //	Finally we insert it into the view instantiation.
   //
   copy->insertOpToTermMapping(newFromTerm, toTermCopy);
-  DebugNew("inserted " << newFromTerm << " to term " << toTermCopy << " into " <<
+  DebugExit("inserted " << newFromTerm << " to term " << toTermCopy << " into " <<
 	   copy << " during the instantiation of " << this);
 }
 
@@ -609,13 +647,13 @@ View::handleOpToTermMappings(View* copy, Renaming* canonicalRenaming) const
       //	that have been instantiated.
       //
       ImportTranslation toTermTranslation(copy->toModule, canonicalRenaming);
-      FOR_EACH_CONST(i, OpTermMap, opTermMap)
+      for (const auto& i : opTermMap)
 	{
-	  Term* fromTerm = i->second.first->deepCopy(&fromTermTranslation);
-	  Term* toTerm = i->second.second->deepCopy(&toTermTranslation);
+	  Term* fromTerm = i.second.first->deepCopy(&fromTermTranslation);
+	  Term* toTerm = i.second.second->deepCopy(&toTermTranslation);
 	  //
 	  //	This is a slow way to get toTerm indexed and fromTerm and toTerm inserted
-	  //	into the map - but we expect this case to be very rare so its not worth
+	  //	into the map - but we expect this case to be very rare so it's not worth
 	  //	the code to do something smarter.
 	  //
 	  copy->insertOpToTermMapping(fromTerm, toTerm);
@@ -800,10 +838,10 @@ View::handleStratToExprMappings(View* copy, Renaming* canonicalRenaming) const
       //	that have been instantiated.
       //
       ImportTranslation toExprTranslation(copy->toModule, canonicalRenaming);
-      FOR_EACH_CONST(i, StratExprMap, stratExprMap)
+      for (const auto& i : stratExprMap)
 	{
-	  CallStrategy* fromCall = static_cast<CallStrategy*>(ImportModule::deepCopyStrategyExpression(&fromCallTranslation, i->second.call));
-	  StrategyExpression* toExpr = ImportModule::deepCopyStrategyExpression(&toExprTranslation, i->second.value);
+	  CallStrategy* fromCall = static_cast<CallStrategy*>(ImportModule::deepCopyStrategyExpression(&fromCallTranslation, i.second.call));
+	  StrategyExpression* toExpr = ImportModule::deepCopyStrategyExpression(&toExprTranslation, i.second.value);
 
 	  copy->insertStratToExprMapping(fromCall, toExpr, copy->toModule);
 	  DebugNew("instantiating " << this << " to " << copy << " inserted strat->expr mapping " <<

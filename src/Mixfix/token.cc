@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2010 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,8 +40,7 @@
 StringTable Token::stringTable;
 Vector<int> Token::specialProperties;
 Vector<int> Token::auxProperties;
-char* Token::buffer = 0;
-int Token::bufferLength = 0;
+vector<char> Token::buffer;
 
 ostream&
 operator<<(ostream& s, const Token& token)
@@ -90,7 +89,12 @@ Token::printTokenVector(ostream& s,
 	    {
 	      if (c == ')' || c == ']' || c == '}' || c == ',')
 		needSpace = false;
-	      else if (c == '(' || c == '[' || c == '{')
+	      else if (c == '(')
+		{
+		  needSpace = false;
+		  nextNeedSpace = false;
+		}
+	      else if (c == '[' || c == '{')
 		nextNeedSpace = false;
 	    }
 	  if (needSpace)
@@ -110,18 +114,6 @@ Token::printTokenVector(ostream& s,
     }
 }
 
-void
-Token::reallocateBuffer(int length)
-{
-  length *= 2;  // to avoid piecemeal expansion
-  char* newBuffer = new char[length];
-  // FIXME Undefined behaviour when buffer is null and that happens
-  (void) memcpy(newBuffer, buffer, bufferLength);
-  delete [] buffer;
-  buffer = newBuffer;
-  bufferLength = length;
-}
-
 int
 Token::makeParameterInstanceName(int parameterCode, int originalCode)
 {
@@ -130,33 +122,6 @@ Token::makeParameterInstanceName(int parameterCode, int originalCode)
   newName += stringTable.name(originalCode);
   return encode(newName.c_str());
 }
-
-/*
-bool
-Token::splitParameterInstanceName(int code, int& parameterName, int& baseName)
-{
-  //
-  //	Checks for a parameter instance name of the form:
-  //	  parameterName$baseName
-  //	and if so, splits it and returns true. Otherwise returns false.
-  //
-  const char* n = name(code);
-  for (const char* p = n; *p; ++p)
-    {
-      if (*p == '$' && p != n && *(p + 1) != 0)  // first $ not at one end
-	{
-	  size_t parameterLength = p - n;
-	  char* t = new char[parameterLength + 1];
-	  strncpy(t, n, parameterLength);
-	  t[parameterLength] = '\0';
-	  parameterName = encode(t);
-	  baseName = encode(p + 1);
-	  return true;
-	}
-    }
-  return false;
-}
-*/
 
 void
 Token::fixUp(const char* tokenString, int& lineNumber)
@@ -167,14 +132,14 @@ Token::fixUp(const char* tokenString, int& lineNumber)
   //	We also convert \t characters to spaces.
   //
   int nrBackslashNewlineCombos = 0;
-  int j = 0;
+  buffer.clear();
   for (int i = 0;; i++)
     {
       char c = tokenString[i];
       if (c == '\\' && tokenString[i + 1] == '\n')
 	{
 	  //
-	  //	Fix up \ newline case.
+	  //	Skip over \ newline pair.
 	  //
 	  ++i;
 	  ++nrBackslashNewlineCombos;
@@ -187,14 +152,12 @@ Token::fixUp(const char* tokenString, int& lineNumber)
 		   ": tab character in string literal - replacing it with space");
 	      c = ' ';
 	    }
-	  bufferExpandTo(j + 1);
-	  buffer[j] = c;
-	  ++j;
+	  buffer.push_back(c);
 	  if (c == '\0')
 	    break;
 	}
     } 
-  codeNr = encode(buffer);
+  codeNr = encode(&buffer[0]);
   lineNr = lineNumber;
   lineNumber += nrBackslashNewlineCombos;
 }
@@ -205,29 +168,25 @@ Token::fixUp(const char* tokenString)
   //
   //	Remove \ newline sequences.
   //
-  int nrBackslashNewlineCombos = 0;
-  int j = 0;
+  buffer.clear();
   for (int i = 0;; i++)
     {
       char c = tokenString[i];
       if (c == '\\' && tokenString[i + 1] == '\n')
 	{
 	  //
-	  //	Fix up \ newline case.
+	  //	Skip over \ newline pair.
 	  //
 	  ++i;
-	  ++nrBackslashNewlineCombos;
 	}
       else
 	{
-	  bufferExpandTo(j + 1);
-	  buffer[j] = c;
-	  ++j;
+	  buffer.push_back(c);
 	  if (c == '\0')
 	    break;
 	}
-    } 
-  return encode(buffer);
+    }
+  return encode(&buffer[0]);
 }
 
 void
@@ -621,103 +580,6 @@ Token::doubleToCode(double d)
   return code;
 }
 
-/*
-Rope
-Token::codeToRope(int code)
-{
-  Rope result;
-  bool seenBackslash = false;
-  for (const char* p = stringTable.name(code) + 1; *p; p++)
-    {
-      char c = *p;
-      switch (c)
-	{
-	case '\\':
-	  {
-	    if (!seenBackslash)
-	      {
-		seenBackslash = true;
-		continue;
-	      }
-	    break;
-	  }
-	case '"':
-	  {
-	    if (!seenBackslash)
-	      return result;
-	    break;
-	  }
-	case 'a':
-	  {
-	    if (seenBackslash)
-	      c = '\a';
-	    break;
-	  }
-	case 'b':
-	  {
-	    if (seenBackslash)
-	      c = '\b';
-	    break;
-	  }
-	case 'f':
-	  {
-	    if (seenBackslash)
-	      c = '\f';
-	    break;
-	  }
-	case 'n':
-	  {
-	    if (seenBackslash)
-	      c = '\n';
-	    break;
-	  }
-	case 'r':
-	  {
-	    if (seenBackslash)
-	      c = '\r';
-	    break;
-	  }
-	case 't':
-	  {
-	    if (seenBackslash)
-	      c = '\t';
-	    break;
-	  }
-	case 'v':
-	  {
-	    if (seenBackslash)
-	      c = '\v';
-	    break;
-	  }
-	default:
-	  {
-	    if (seenBackslash && isdigit(c) && c != '8' && c != '9')
-	      {
-		int i = c - '0';
-	        c = *(p + 1);
-		if (isdigit(c) && c != '8' && c != '9')
-		  {
-		    ++p;
-		    i = 8 * i + c - '0';
-		    c = *(p + 1);
-		    if (isdigit(c) && c != '8' && c != '9')
-		      {
-			++p;
-			i = 8 * i + c - '0';
-		      }
-		  }
-		c = i;
-	      }
-	  }
-	}
-      result += c;
-      seenBackslash = false;
-    }
-  CantHappen("bad end to string");
-  return result;
-}
-*/
-
 Rope
 Token::stringToRope(const char* string)
 {
@@ -941,7 +803,7 @@ Token::ropeToPrefixNameCode(const Rope& r)
 int
 Token::bubbleToPrefixNameCode(const Vector<Token>& opBubble)
 {
-  int nrTokens = opBubble.length();
+  int nrTokens = opBubble.size();
   if (nrTokens == 1)
     {
       int code = opBubble[0].codeNr;
@@ -950,8 +812,8 @@ Token::bubbleToPrefixNameCode(const Vector<Token>& opBubble)
       if (!specialChar(stringTable.name(code)[0]))
         return code;
     }
-  int pos = 0;
   bool needBQ = false;
+  buffer.clear();
   for (int i = 0; i < nrTokens; i++)
     {
       const char* name = stringTable.name(opBubble[i].codeNr);
@@ -961,21 +823,16 @@ Token::bubbleToPrefixNameCode(const Vector<Token>& opBubble)
       else if (c == '_' || c == '`')
         needBQ = false;
       if (needBQ)
-        {
-          bufferExpandTo(pos + 1);
-          buffer[pos++] = '`';
-        }
+	buffer.push_back('`');
       while (*name != '\0')
-        {
-          c = *name++;
-          bufferExpandTo(pos + 1);
-          buffer[pos++] = c;
-        }
+	{
+	  c = *name++;
+	  buffer.push_back(c);
+	}
       needBQ = !(specialChar(c) || c == '_');
     }
-  bufferExpandTo(pos + 1);
-  buffer[pos] = '\0';
-  return encode(buffer);
+  buffer.push_back('\0');
+  return encode(&buffer[0]);
 }
 
 void
@@ -1022,4 +879,54 @@ Token::peelParens(Vector<Token>& tokens)
   for (int i = 1; i < len - 1; ++i)
     tokens[i - 1] = tokens[i];
   tokens.resize(len - 2);
+}
+
+Rope
+Token::removeBoundParameterBrackets(int code)
+{
+  //
+  //	Because we put []s around bound parameters to distinguish them from views
+  //	in canonical module and view names for caching, we need to undo this for
+  //	printing out module imports and to-modules.
+  //	We remove []s that are inside {} with backquoted characters disregarded.
+  //
+  Rope newName;
+  bool backquoteActive = false;
+  int braceCount = 0;
+  for (const char* p = name(code); *p; ++p)
+    {
+      char c = *p;
+      if (backquoteActive)
+	backquoteActive = false;
+      else
+	{ 
+	  switch (c)
+	    {
+	    case '`':
+	      {
+		backquoteActive = true;
+		break;
+	      }
+	    case '[':
+	    case ']':
+	      {
+		if (braceCount > 0)
+		  continue;  // skip bracket
+		break;
+	      }
+	    case '{':
+	      {
+		++braceCount;
+		break;
+	      }
+	    case '}':
+	      {
+		--braceCount;
+		break;
+	      }
+	    }
+	}
+      newName += c;
+    }
+  return newName;
 }

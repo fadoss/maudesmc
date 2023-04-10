@@ -1,3 +1,76 @@
+Overview of Changes in Maude 3.3 (alpha143) (2023-03-22)
+========================================================
+* overparsing for omiting -> in constant mapping removed due
+to ambiguity
+* various gcc/clang warnings fixed
+* show path states command now shows rule labels
+* fixed a subtle bug with narrowing with variant unification in
+the presence of irreducibility constraints
+* fixed a bug where certain debugging information was printing
+in the debug build even without the -debug flag
+* added set generate-by command
+* optimization for free theory dag nodes
+
+Overview of Changes in Maude 3.3 beta (alpha142) (2023-03-03)
+=============================================================
+* show path states command
+* fixed bug where generated-by was not recognized as the and of the
+previous mixfix statement
+* fixed bug where orphaned view instantiations were not being purged
+* fixed bug where replacing a view did not immediately purged an
+modules that became orphaned as a result
+* heurstics for giving detailed explanations of runaway statements
+* fixed bug where parameterized constants were printed without
+parentheses in an ops declaration
+* more overparsing
+
+Overview of Changes in alpha141 (2023-02-24)
+============================================
+* fixed bug in parsing of oths
+* fixed statement transformation depending on memory allocator issue
+* -debug flag for debug build
+* fixed bad printing of renamings in module names
+* fixed op to term mapping in theory-view crash
+* support pconst in op to term mappings
+* sanity checks for class attributes
+* fixed bug where auto OO includes were ignored by upModule()
+* modules/views/commands cannot span files
+
+Overview of Changes in alpha140 (2023-02-14)
+============================================
+* fixed bug where no warning was given for duplicate iter attribute
+* pconst attribute for constants
+* parameterized constants
+* generated-by importation mode
+* show processed view command
+* classes can be parameterized
+* object-oriented theories
+* object-oriented mappings in views
+* fixed bug where []s around bound parameter were shown in imported
+module name with show desugared
+
+Overview of Changes in alpha139 (2023-02-02)
+============================================
+* syntactic sugar for empty attribute set in object constructor
+* changed reporting of syntax errors in sort and subset declarations
+* fixed bug where automatic imports were included in meta-theories
+* getClass() added to CONFIGURATION
+* allow "from" as a sort name
+* fixed spurious advisory where a specific renaming did not capture
+an operator from a parameter
+* identity sort/op mappings quietly dropped during renaming
+canonicalization
+* advisory if all the variables in the pattern of a := condition
+fragment are bound before matching
+* fixed bug where advisory about a specific strat renaming affecting
+a theory parameter printed 0 rather than the strat name
+* prettier printing of _,_ for attribute sets
+* first attempt at supporting omods and OO mappings in renamings
+* fixed bug where a view from T importing M to M was not allowed
+* fixed a related bug where a misleading warning was given for
+  theory-views that implicitly mapped a sort from module to the
+  target theory
+
 Overview of Changes in 3.2.2 (alpha138) (2022-12-22)
 ====================================================
 * fixed bug where multiple instantiations (say via a theory-view)
@@ -203,10 +276,7 @@ Overview of Changes in alpha126
 * symmetric change in meta-interpreter
 
 Overview of Changes in alpha123
-===============================erew <>
-< me : User | state: 1 > 
-createProcess(processManager, me, "dc", nil, none) .
-
+===============================
 * fixed a bug in module instantiation introduced by the
   redesigned module system
 * kludged around a bug in BuDDy

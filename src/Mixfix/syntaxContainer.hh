@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2003 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 class SyntaxContainer
 {
 public:
+  virtual ~SyntaxContainer() = default;
   //
   //	Subclasses SyntacticPreModule and SyntacticView recieve parameters and
   //	variable declarations.
@@ -43,6 +44,13 @@ public:
   virtual void addType(bool kind, const Vector<Token>& tokens) = 0;
 
 protected:
+  //
+  //	Suffix for forming class attribute ops.
+  //
+  static constexpr const char* attributeSuffix = "`:_";
+  //static constexpr const Index attributeSuffixLength = strlen(attributeSuffix);
+  static constexpr const Index attributeSuffixLength = 3;
+
   struct Type
   {
     bool kind;

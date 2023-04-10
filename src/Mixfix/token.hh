@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2003 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,8 +26,10 @@
 #ifndef _token_hh_
 #define _token_hh_
 #include <gmpxx.h>
+#include <vector>
 #include "rope.hh"
 #include "stringTable.hh"
+#include "lineNumber.hh"
 
 class Token
 {
@@ -63,7 +65,6 @@ public:
   void tokenize(const char* tokenString, int lineNumber);
   void tokenize(int code, int lineNumber);
   static int makeParameterInstanceName(int parameterCode, int originalCode);
-  //static bool splitParameterInstanceName(int code, int& parameterName, int& baseName);
   void fixUp(const char* tokenString, int& lineNumber);
   void dropChar(const Token& original);
 
@@ -71,9 +72,11 @@ public:
   const char* name() const;
   int code() const;
   int lineNumber() const;
+  LineNumber getLineNr() const;
   int specialProperty() const;
   int auxProperty() const;
   bool getInt(int& value) const;
+  bool containsUnderscore() const;
 
   static const char* name(int code);
   static Rope sortName(int code);
@@ -120,6 +123,7 @@ public:
   static bool isFlagged(int code);
   static int unflaggedCode(int code);
   static int fixUp(const char* tokenString);
+  static Rope removeBoundParameterBrackets(int code);
 
 private:
   enum SpecialValues
@@ -127,8 +131,6 @@ private:
       FLAG_BIT = 0x40000000	// we set this bit to create flagged codes
     };
 
-  static void bufferExpandTo(int size);
-  static void reallocateBuffer(int length);
   static void checkForSpecialProperty(const char* tokenString);
   static int computeAuxProperty(const char* tokenString);
   static const char* skipSortName(const char* tokenString, bool& parameterized);
@@ -136,8 +138,7 @@ private:
   static StringTable stringTable;
   static Vector<int> specialProperties;
   static Vector<int> auxProperties;
-  static char* buffer;
-  static int bufferLength;
+  static vector<char> buffer;
 
   int codeNr;
   int lineNr;
@@ -215,13 +216,6 @@ Token::unBackQuoteSpecials(int code)
 }
 
 inline void
-Token::bufferExpandTo(int length)
-{
-  if (length > bufferLength)
-    reallocateBuffer(length);
-}
-
-inline void
 Token::tokenize(const char* tokenString, int lineNumber)
 {
   codeNr = encode(tokenString);
@@ -254,10 +248,23 @@ Token::lineNumber() const
   return lineNr;
 }
 
+inline LineNumber
+Token::getLineNr() const
+{
+  return LineNumber(lineNr);
+}
+
 inline const char*
 Token::name(int code)
 {
   return stringTable.name(code);
+}
+
+inline bool
+Token::containsUnderscore() const
+{
+  // might want to cache this as a flag in specialProperties
+  return index(name(), '_') != 0;
 }
 
 inline int

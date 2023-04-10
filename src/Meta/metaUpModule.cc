@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2021 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -98,6 +98,11 @@ MetaLevel::upParameterDecl(PreModule* pm, int index, PointerMap& qidMap)
 DagNode*
 MetaLevel::upImports(PreModule* pm, PointerMap& qidMap)
 {
+  //
+  //	We deal with the PreModule rather that the flat module, because the
+  //	flat module has pointers to imported modules rather than module expressions
+  //	and we need module expressions.
+  //
   static Vector<DagNode*> args;
   args.clear();
   static Vector<DagNode*> args2(1);
@@ -114,6 +119,8 @@ MetaLevel::upImports(PreModule* pm, PointerMap& qidMap)
 	    s = protectingSymbol;
 	  else if (i.second == ImportModule::EXTENDING)
 	    s = extendingSymbol;
+	  else if (i.second == ImportModule::GENERATED_BY)
+	  s = generatedBySymbol;
 	  args.append(s->makeDagNode(args2));
 	}
     }
@@ -131,6 +138,8 @@ MetaLevel::upImports(PreModule* pm, PointerMap& qidMap)
 	  s = protectingSymbol;
 	else if (mode == ImportModule::EXTENDING)
 	  s = extendingSymbol;
+	else if (mode == ImportModule::GENERATED_BY)
+	  s = generatedBySymbol;
 	args.append(s->makeDagNode(args2));
       }
   }
@@ -795,6 +804,8 @@ MetaLevel::upAttributeSet(SymbolType st, Vector<DagNode*>& args)
     args.append(msgSymbol->makeDagNode());
   if (st.hasFlag(SymbolType::MEMO))
     args.append(memoSymbol->makeDagNode());
+  if (st.hasFlag(SymbolType::PCONST))
+    args.append(pconstSymbol->makeDagNode());
   return upGroup(args, emptyAttrSetSymbol, attrSetSymbol);
 }
 

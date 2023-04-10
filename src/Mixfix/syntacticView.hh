@@ -27,6 +27,7 @@
 #ifndef _syntacticView_hh_
 #define _syntacticView_hh_
 #include <list>
+#include <unordered_set>
 #include "view.hh"
 
 class SyntacticView : public View
@@ -40,19 +41,27 @@ public:
   //
   void addVarDecl(Token varName);
   void addType(bool kind, const Vector<Token>& tokens);
-  void addOpTermMapping(const Vector<Token>& fromOp, const Vector<Token>& toTerm);
+  void addOpTermMapping(const Vector<Token>& fromOp, const Vector<Token>& toTerm, bool msgFlag = false);
   void addStratExprMapping(const Vector<Token>& fromExpr, const Vector<Token>& toExpr);
   //
   //	Show view command only makes sense for object level views.
   //
   void showView(ostream& s);
-  
+  void showProcessedView(ostream& s);
+
 private:
 
   struct VarDecl
   {
     Token varName;
     bool lastWithCurrentDef;
+  };
+
+  struct OpTermMapping
+  {
+    Vector<Token> fromBubble;
+    Vector<Token> toBubble;
+    bool msg;
   };
 
   struct BubblePair
@@ -63,8 +72,9 @@ private:
 
   typedef list<VarDecl> VarDeclList;
   typedef list<Type> TypeList;
-  typedef list<BubblePair> OpTermList;
+  typedef list<OpTermMapping> OpTermList;
   typedef list<BubblePair> StratExprList;
+  typedef unordered_set<Term*> MessageSet;
 
   //
   //	Override virtual function from view.
@@ -85,6 +95,11 @@ private:
   //
   MixfixModule::AliasMap fromTheoryVariableAliases;
   MixfixModule::AliasMap toModuleVariableAliases;
+  //
+  //	We keep track of the fromTerm pointers for msg->term mappings so we
+  //	can print msg rather than op when printing the view.
+  //
+  MessageSet messages;
 };
 
 #endif

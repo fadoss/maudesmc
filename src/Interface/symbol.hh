@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2003 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -29,7 +29,6 @@
 
 #include "namedEntity.hh"
 #include "lineNumber.hh"
-#include "moduleItem.hh"
 #include "sort.hh"
 #include "connectedComponent.hh"
 #include "sortTable.hh"
@@ -54,6 +53,17 @@ class Symbol
   static const Vector<DagNode*> noArgs;
 
 public:
+  //
+  //	Comparison object on Symbol* for use with associative containers.
+  //	We use this in preference to a raw pointer comparison so the ordering does not depend
+  //	on the vagaries of the memory allocator, which can mess up test suite .out files.
+  //	Only safe for Symbols from the same module.
+  //
+  struct LessThan
+  {
+    bool operator()(Symbol* const& s1, Symbol* const& s2) const;
+  };
+
   Symbol(int id, int arity, bool memoFlag = false);
   virtual ~Symbol();
 
@@ -204,6 +214,12 @@ private:
   int matchIndex;  // for fast matching in new engine
 };
 
+inline bool
+Symbol::LessThan::operator()(Symbol* const& s1, Symbol* const& s2) const
+{
+  return s1->getIndexWithinModule() < s2->getIndexWithinModule();
+}
+
 inline unsigned int
 Symbol::getHashValue() const
 {
@@ -235,5 +251,10 @@ Symbol::setMatchIndex(int index)
 	 index << " when it is already " << matchIndex);
   matchIndex = index;
 }
+
+//
+//      Output function for Symbol must be defined by library user.
+//
+ostream& operator<<(ostream& s, const Symbol* symbol);
 
 #endif

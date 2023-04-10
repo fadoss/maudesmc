@@ -1,3 +1,69 @@
+2023-03-13  Steven Eker  <eker@pup>
+
+	* metaUp.cc (MetaLevel::upTypeList): changed test from nrTypes == 0 to
+	nrTypes <= 0 to avoid compiler warning though nrTypes can never be -1
+
+===================================Maude143===========================================
+
+2023-02-28  Steven Eker  <eker@pup>
+
+	* miModule.cc (InterpreterManagerSymbol::insertModule): call cleanCaches()
+	if we displaced an existing module from the interpreter's module database
+	(InterpreterManagerSymbol::insertView): call cleanCaches() if we displaced
+	an existing view from the interpreter's view data base
+
+	* metaDown.cc (MetaLevel::downModule): updated comments on cleanCaches() calls
+
+	* metaDownSignature.cc (MetaLevel::downSignature): call cleanCaches() rather
+	than destructUnusedModules()
+
+	* metaDown.cc (MetaLevel::downModule): call cleanCaches() rather than
+	destructUnusedModules() (2 places)
+
+===================================Maude142===========================================
+
+2023-02-17  Steven Eker  <eker@pup>
+
+	* metaUpView.cc (MetaLevel::upOpMappings): don't call isAttrMapping()
+	now that attr mappings have been moved to a separate data structure
+
+===================================Maude141===========================================
+
+2023-02-14  Steven Eker  <eker@pup>
+
+	* metaUpView.cc (MetaLevel::upOpMappings): skip over attr mappings
+
+2023-02-09  Steven Eker  <eker@pup>
+
+	* metaLevelSignature.cc: added pconstSymbol
+
+	* metaUpModule.cc (MetaLevel::upAttributeSet): handle PCONST
+
+	* metaDownOps.cc (MetaLevel::downAttr): handle PCONST
+
+	* metaUpModule.cc (MetaLevel::upImports): handle GENERATED_BY
+
+	* metaLevelSignature.cc: added generatedBySymbol
+
+	* metaDownSignature.cc (MetaLevel::downImport2): handle GENERATED_BY
+
+	* metaDown.cc (MetaLevel::downImport): handle GENERATED_BY
+
+===================================Maude140===========================================
+
+2023-01-31  Steven Eker  <eker@pup>
+
+	* metaDown.cc (MetaLevel::downRule): call checkRule()
+	(MetaLevel::downEquation): call checkEquation()
+	(MetaLevel::downMembAx): call checkSortConstraint()
+
+2023-01-10  Steven Eker  <eker@pup>
+
+	* metaUpModule.cc (MetaLevel::upImports): added comment to explain why we
+	are dealing with the PreModule rather than the flat module
+
+===================================Maude139===========================================
+
 2021-08-26  Steven Eker  <eker@pup>
 
 	* metaLevelOpSymbol.cc (MetaLevelOpSymbol::eqRewrite): code cleaning

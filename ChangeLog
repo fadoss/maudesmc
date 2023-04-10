@@ -1,3 +1,129 @@
+2023-03-22  Steven Eker  <eker@pup>
+
+	* tests/Meta/metaGeneratedBy.maude: added
+
+	* tests/ResolvedBugs/opRenamingParseErrorMarch2023.maude: added
+
+	* tests/ResolvedBugs/parameterizedConstantsMarch2023.maude: added
+
+	* tests/ResolvedBugs/moduleOrphanedByViewFebruary2023.maude: added
+
+	* tests/ResolvedBugs/orphanedViewInstantiationFebruary2023.maude: added
+
+	* tests/ResolvedBugs/generatedByFebruary2023.maude: added
+
+2023-03-21  Steven Eker  <eker@pup>
+
+	* INSTALL: no need to pass CFLAGS for Maude build
+
+	* tests/ResolvedBugs/metaAutoOoIncludeFebruary2023.maude: added
+
+	* tests/ResolvedBugs/theoryViewOpToTermFebruary2023.maude: added
+
+	* tests/ResolvedBugs/specificOpMappingPrintFebruary2023.maude: added
+
+	* tests/ResolvedBugs/endothFebruary2023.maude: created
+
+	* tests/ResolvedBugs/metaNarrowingApplyMarch2023.maude: created
+
+	* configure.ac (USE_TECLA): try -ltinfo, -lncurses, -lcurses in
+	turn because Mac does not have libtinfo, but does have libncurses
+
+2023-03-20  Steven Eker  <eker@pup>
+
+	* configure.ac: remove -lcurses in the --with-tecla case
+
+2023-03-15  Steven Eker  <eker@pup>
+
+	* INSTALL: updated
+
+	* tests/Corner/badStatement.maude: added
+
+	* tests/Misc/pconst5.maude: added
+
+2023-03-14  Steven Eker  <eker@pup>
+
+	* tests/ResolvedBugs/showDesugaredFebruary2023.maude: added
+
+	* tests/ResolvedBugs/doubleAttributeFebruary2023.maude: added
+
+2023-03-13  Steven Eker  <eker@pup>
+
+	* tests/ResolvedBugs/spuriousAdvisoryRenamingCaptureJanuary2023.maude:
+	added
+
+	* tests/ResolvedBugs/smodStrategyNameJanuary2023.maude: added
+
+	* INSTALL: updated
+
+2023-03-10  Steven Eker  <eker@pup>
+
+	* tests/Corner/badOmod.maude: turn timing off
+
+	* README.md: updated
+
+2023-03-06  Steven Eker  <eker@pup>
+
+	* tests/Corner/badView.maude: added
+
+	* tests/Corner/badOmod.maude: added
+
+	* tests/Corner/badRenaming.maude: added
+
+===================================Maude143===========================================
+
+2023-02-16  Steven Eker  <eker@pup>
+
+	* tests/ObjectOriented/oo-list-2.maude: updated with new version from Paco
+
+	* tests/ObjectOriented/oo-list-3.maude: added
+
+	* tests/ObjectOriented/oo-list-2.maude: added
+
+	* tests/ObjectOriented/dining-philosophers6.maude: added
+
+	* tests/ObjectOriented/dining-philosophers5.maude: added
+
+===================================Maude141===========================================
+
+2023-02-14  Steven Eker  <eker@pup>
+
+	* README.md: added Maude 3.2.2 changes
+
+	* tests/ObjectOriented/parameterization.maude: added
+
+	* tests/Misc/parameterizedConstant.maude: added
+
+2023-02-08  Steven Eker  <eker@pup>
+
+	* tests/Misc/pconst4.maude: added
+
+2023-02-07  Steven Eker  <eker@pup>
+
+	* tests/Misc/pconst3.maude: added
+
+	* tests/Misc/pconst2.maude: added
+
+	* tests/Misc/pconst.maude: added
+
+===================================Maude140===========================================
+
+2023-02-02  Steven Eker  <eker@pup>
+
+	* tests/ResolvedBugs/theoryViewWrongWarningFebruary2023.maude: created
+
+	* tests/ObjectOriented/rrobin.maude: added
+
+	* tests/ObjectOriented/rent-a-car-store.maude: added
+
+	* tests/ObjectOriented/account.maude: added
+
+2023-01-31  Steven Eker  <eker@pup>
+
+	* tests/ResolvedBugs/upTheoryJanuary2023.maude: added
+
+===================================Maude139===========================================
+
 2022-12-22  Steven Eker  <eker@pup>
 
 	* tests/ResolvedBugs/degenerateFilteredVariantUnifyDecember2022.maude: turn timing off

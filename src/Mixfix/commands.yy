@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2021 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -360,6 +360,12 @@ command		:	KW_SELECT		{ lexBubble(END_COMMAND, 1); }
 			  if (interpreter.setCurrentView(lexerBubble))
 			    interpreter.showView();
 			}
+		|	KW_SHOW KW_PROCESSED KW_VIEW	{ lexBubble(END_COMMAND, 0); }
+			endBubble
+			{
+			  if (interpreter.setCurrentView(lexerBubble))
+			    interpreter.showProcessedView();
+			}
 		|	KW_SHOW KW_MODULES '.'
 			{
 			  interpreter.showModules(true);
@@ -430,7 +436,11 @@ command		:	KW_SELECT		{ lexBubble(END_COMMAND, 1); }
 			}
 		|	KW_SHOW KW_PATH SIMPLE_NUMBER '.'
 			{
-			  interpreter.showSearchPath($3);
+			  interpreter.showSearchPath($3, true);
+			}
+		|	KW_SHOW KW_PATH KW_STATE SIMPLE_NUMBER '.'
+			{
+			  interpreter.showSearchPath($4, false);
 			}
 		|	KW_SHOW KW_PATH KW_LABEL SIMPLE_NUMBER '.'
 			{
@@ -662,6 +672,7 @@ option		:	KW_FOLD			{ $$ = NarrowingSequenceSearch3::FOLD; }
 
 importMode	:	KW_PROTECT		{ $$ = ImportModule::PROTECTING; }
 		|	KW_EXTEND		{ $$ = ImportModule::EXTENDING; }
+		|	KW_GENERATE_BY		{ $$ = ImportModule::GENERATED_BY; }
 		|	KW_INCLUDE		{ $$ = ImportModule::INCLUDING; }
 		;
 /*

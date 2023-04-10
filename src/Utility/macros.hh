@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2003 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -94,6 +94,17 @@ class IntSystem;
 class Rope;
 
 //
+//	Type for indexing arrays and vectors.
+//
+//	We want to use a signed type to avoid subtle errors caused by unsigned underflow
+//	such as testing i >= 0 in a loop iterating backwards through a vector.
+//      https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#es107-dont-use-unsigned-for-subscripts-prefer-gslindex
+//	ES.107: Don’t use unsigned for subscripts, prefer gsl::index
+//	We want to avoid 32-bit ints on a 64-bit architectures since we don't want to pay for sign-extension in loops.
+//
+typedef ptrdiff_t Index;
+
+//	
 //	Types for storage efficiency.
 //
 typedef char Bool;
@@ -150,8 +161,10 @@ typedef unsigned int Uint32;
 //
 //	Macro to forbid default copy ctor and assignment operator
 //
-#define NO_COPYING(c)	c(const c&); c& operator=(const c&)
-
+#define NO_COPYING(c) \
+  c(const c&) = delete; \
+  c& operator=(const c&) = delete
+ 
 //
 //	Casting which is checked if debugging and fast otherwise.
 //
@@ -263,27 +276,27 @@ abort())
 
 #define \
 DebugAdvisoryCheck(condition, message) \
-if (!(condition) && globalAdvisoryFlag) \
+if (!(condition) && globalDebugFlag) \
 ((cerr << Tty(Tty::BLUE) << "DEBUG ADVISORY: " << Tty(Tty::RESET) << message << endl))
 
 #define \
 DebugAdvisory(message) \
-if (globalAdvisoryFlag) \
+if (globalDebugFlag) \
 (cerr << Tty(Tty::BLUE) << "DEBUG ADVISORY: " << Tty(Tty::RESET) << message << endl)
 
 #define \
 DebugEnter(message) \
-if (globalAdvisoryFlag) \
+if (globalDebugFlag) \
 (cerr << Tty(Tty::MAGENTA) << "DEBUG ENTER: " << __PRETTY_FUNCTION__ << ": " << Tty(Tty::RESET) << message << endl)
 
 #define \
 DebugExit(message) \
-if (globalAdvisoryFlag) \
+if (globalDebugFlag) \
 (cerr << Tty(Tty::CYAN) << "DEBUG EXIT: " << __PRETTY_FUNCTION__ << ": " << Tty(Tty::RESET) << message << endl)
 
 #define \
 DebugInfo(message) \
-if (globalAdvisoryFlag) \
+if (globalDebugFlag) \
 (cerr << Tty(Tty::BLUE) << "DEBUG INFO: " << __PRETTY_FUNCTION__ << ": " << Tty(Tty::RESET) << message << endl)
 
 //
@@ -295,17 +308,17 @@ DebugAlways(message) \
 
 #define \
 DebugNew(message) \
-if (globalAdvisoryFlag) \
+if (globalDebugFlag) \
 (cerr << Tty(Tty::REVERSE) << "DEBUG NEW: " << __PRETTY_FUNCTION__ << ": " << Tty(Tty::RESET) << message << endl)
 
 #define \
 DebugPrint(v) \
-if (globalAdvisoryFlag) \
+if (globalDebugFlag) \
 (cerr << #v << " = " << v << '\t')
 
 #define \
 DebugPrintNL(v) \
-if (globalAdvisoryFlag) \
+if (globalDebugFlag) \
 (cerr << #v << " = " << v << '\n')
 
 //
@@ -363,9 +376,12 @@ ComplexWarning(message) \
 (cerr << WARNING_HEADER << message)
 
 #define \
+ContinueWarning(message) \
+(cerr << message)
+
+#define \
 IssueAdvisory(message) \
-if (globalAdvisoryFlag) \
-(cerr << ADVISORY_HEADER << message << endl)
+(globalAdvisoryFlag ? (cerr << ADVISORY_HEADER << message << endl) : cerr)
 
 #define \
 Verbose(output) \
@@ -374,6 +390,7 @@ if (globalVerboseFlag) \
 
 extern bool globalAdvisoryFlag;
 extern bool globalVerboseFlag;
+extern bool globalDebugFlag;
 //
 //	Used to circumvent GCC's unused result warnings; because (void)
 //	is deemed an inadequate indication that we REALLY don't care about
@@ -382,16 +399,6 @@ extern bool globalVerboseFlag;
 //
 extern int returnValueDump;
 
-//
-//	A machine word should be about to hold any pointer, int or size
-//	(but not necessarily an Int64).
-//
-union MachineWord
-{
-  void* pointer;
-  int integer;
-  size_t size;
-};
 
 //
 //	Macro for common const_iterator loop.
@@ -451,17 +458,6 @@ pluralize(Int64 quantity)
 {
   return (quantity == 1) ? "" : "s";
 }
-
-//
-//	Branch free conditional assignments. These use bit twiddling rather
-//	than branches and are intended for performance critical loops
-//	where the branch would be unpredicatable. Executing a couple of extra
-//	instructions is better than having a high rate of mispredicts on
-//	modern superpipelined architectures.
-//
-//	If the instruction set supports conditional moves then the naive code
-//	will beat the bit twiddling.
-//
 
 const char* int64ToString(Int64 i, int base = 10);
 Int64 stringToInt64(const char* s, bool& error, int base = 10);

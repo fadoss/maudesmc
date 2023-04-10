@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2020 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -139,10 +139,10 @@ MixfixModule::checkIterated(Symbol* symbol, const Vector<Sort*>& domainAndRange)
       //
       //	At least one symbol aliasing the iterated forms of symbol.
       //
-      FOR_EACH_CONST(j, NumberToSymbolMap, i->second)
+      for (const auto& j : i->second)
 	{
+	  Symbol* pSymbol = j.second;
 	  int overloadType = ADHOC_OVERLOADED;
-	  Symbol* pSymbol = j->second;
 	  const Vector<Sort*>& pDomainAndRange = pSymbol->getOpDeclarations()[0].getDomainAndRange();
 
 	  bool sameRange = (domainAndRange[1]->component() == pDomainAndRange[1]->component());
@@ -636,21 +636,6 @@ MixfixModule::addPolymorph(Token prefixName,
     }
   validateAttributes(prefixName, domainAndRange, symbolType);
   int nrArgs = domainAndRange.size() - 1;
-  if (symbolType.hasFlag(SymbolType::ITER))
-    {
-      if (nrArgs != 1)
-	{
-	  IssueWarning(LineNumber(prefixName.lineNumber()) <<
-		       ": declaration for polymorphic operator " << QUOTE(prefixName) <<
-		       " has iter attribute but " << nrArgs << " arguments.");
-	}
-      else if (!(domainAndRange[0] == 0 && domainAndRange[0] == 0))
-	{
-	  IssueWarning(LineNumber(prefixName.lineNumber()) <<
-		       ": declaration for polymorphic operator " << QUOTE(prefixName) <<
-		       " doesn't have both domain and range as polymorphic.");
-	}
-    }
   int nrPolymorphs = polymorphs.length();
   polymorphs.expandBy(1);
   Polymorph& p = polymorphs[nrPolymorphs];
@@ -689,11 +674,11 @@ MixfixModule::addPolymorph(Token prefixName,
     }
   else
     {
-      if (domainAndRange.length() - 1 != nrUnderscores)
+      if (nrArgs != nrUnderscores)
 	{
 	  IssueWarning(LineNumber(prefixName.lineNumber()) <<
 		       ": number of underscores does not match (" << nrUnderscores <<
-		       ") number of arguments (" << domainAndRange.length() - 1 <<
+		       ") number of arguments (" << nrArgs <<
 		       ") for operator " <<
 		       QUOTE(prefixName) << '.');
 	  p.symbolInfo.mixfixSyntax.contractTo(0);
@@ -722,11 +707,9 @@ MixfixModule::addPolymorph(Token prefixName,
     }
   p.symbolInfo.polymorphIndex = nrPolymorphs;  // our own index
   p.symbolInfo.symbolType = symbolType;
-  //cout << "symbolType for "<< prefixName << " is " << symbolType << endl;
   p.symbolInfo.next = NONE;
   {
     p.symbolInfo.iflags = ADHOC_OVERLOADED | DOMAIN_OVERLOADED;
-    int nrArgs = domainAndRange.length() - 1;
     for (int i = 0; i < nrArgs; i++)
       {
 	if (domainAndRange[i] == 0)
@@ -806,4 +789,49 @@ MixfixModule::addBubbleSpec(Symbol* topSymbol,
     domainAndRange[domainAndRange.length() - 1]->component()->getIndexWithinModule();
   bubbleComponents.insert(b.componentIndex);
   return nrBubbleSpecs;
+}
+
+void
+MixfixModule::handleSortConstraint(SortConstraint* sortConstraint, bool dnt)
+{
+  if (!dnt && statementTransformer != 0)
+    {
+      StatementTransformer::Outcome result = statementTransformer->transformSortConstraint(sortConstraint);
+      AdvisoryCheck(result != StatementTransformer::Outcome::NOT_TRANSFORMED,
+		    *sortConstraint << ": transformation not performed for:\n  " << sortConstraint);
+    }
+  //
+  //	Any transformation has taken place so its safe to analyze sortConstraint.
+  //
+  checkSortConstraint(sortConstraint);
+}
+
+void
+MixfixModule::handleEquation(Equation* equation, bool dnt)
+{
+  if (!dnt && statementTransformer != 0)
+    {
+      StatementTransformer::Outcome result = statementTransformer->transformEquation(equation);
+      AdvisoryCheck(result != StatementTransformer::Outcome::NOT_TRANSFORMED,
+		    *equation << ": transformation not performed for:\n  " << equation);
+    }
+  //
+  //	Any transformation has taken place so its safe to analyze equation.
+  //
+  checkEquation(equation);
+}
+
+void
+MixfixModule::handleRule(Rule* rule, bool dnt)
+{
+  if (!dnt && statementTransformer != 0)
+    {
+      StatementTransformer::Outcome result = statementTransformer->transformRule(rule);
+      AdvisoryCheck(result != StatementTransformer::Outcome::NOT_TRANSFORMED,
+		    *rule << ": transformation not performed for:\n  " << rule);
+    }
+  //
+  //	Any transformation has taken place so its safe to analyze rule.
+  //
+  checkRule(rule);
 }

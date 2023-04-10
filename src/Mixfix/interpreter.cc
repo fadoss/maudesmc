@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2003 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -118,6 +118,22 @@ Interpreter::~Interpreter()
   clearContinueInfo();
   delete xmlBuffer;
   delete xmlLog;
+}
+
+void
+Interpreter::cleanCaches()
+{
+  //
+  //	We can have constructed modules that are users of constructed modules
+  //	and/or view instantiations.
+  //	We can also have view instantiations that are user of constructed
+  //	modules and/or view instantiations.
+  //	So we iterate the purge up to fixed point.
+  //	This is expensive for long dependency chains but in practice long
+  //	dependency chains rare.
+  //
+  while (destructUnusedModules() + destructUnusedViews() > 0)
+    ;
 }
 
 void
@@ -272,13 +288,13 @@ Interpreter::makeClean(int lineNumber)
 {
   if (currentModule != 0 && !(currentModule->isComplete()))
     {
-      IssueAdvisory(LineNumber(lineNumber) << ": discarding incomplete module.");
+      IssueAdvisory(*currentModule << ": discarding incomplete module " << QUOTE(currentModule) << ".");
       delete currentModule;
       currentModule = 0;
     }
   else if (currentView != 0 && !(currentView->isComplete()))
     {
-      IssueAdvisory(LineNumber(lineNumber) << ": discarding incomplete view.");
+      IssueAdvisory(*currentView << ": discarding incomplete view " << QUOTE(currentView) << ".");
       delete currentView;
       currentView = 0;
     }
@@ -288,9 +304,7 @@ void
 Interpreter::addSelected(const Vector<Token>& opName)
 {
   selected.insert(Token::bubbleToPrefixNameCode(opName));
-  //  opName.contractTo(0);
 }
-
 
 void
 Interpreter::updateSet(set<int>& target, bool add)
@@ -298,10 +312,7 @@ Interpreter::updateSet(set<int>& target, bool add)
   if (add)
     target.insert(selected.begin(), selected.end());
   else
-    {
-      FOR_EACH_CONST(i, set<int>, selected)
-	target.erase(*i);
-    }
+    target.erase(selected.begin(), selected.end());
   selected.clear();
 }
 
@@ -346,6 +357,15 @@ Interpreter::showView() const
 {
   if (currentView->evaluate())  // in case it became stale
     currentView->showView(cout);
+  else
+    IssueWarning("view " << QUOTE(currentView) << " cannot be used due to earlier errors.");
+}
+
+void
+Interpreter::showProcessedView() const
+{
+  if (currentView->evaluate())  // in case it became stale
+    currentView->showProcessedView(cout);
   else
     IssueWarning("view " << QUOTE(currentView) << " cannot be used due to earlier errors.");
 }
@@ -612,6 +632,10 @@ Interpreter::handleArgument(const ViewExpression* expr,
 ImportModule*
 Interpreter::makeModule(const ModuleExpression* expr, EnclosingObject* enclosingObject)
 {
+  //
+  //	All successfully contructed modules end up in the ModuleCache so we need no worry
+  //	about garbage collecting submodules if we fail part way through a construction.
+  //
   switch (expr->getType())
     {
     case ModuleExpression::MODULE:
@@ -639,11 +663,10 @@ Interpreter::makeModule(const ModuleExpression* expr, EnclosingObject* enclosing
       }
     case ModuleExpression::SUMMATION:
       {
-	const list<ModuleExpression*>& modules = expr->getModules();
 	Vector<ImportModule*> fms;
-	FOR_EACH_CONST(i, list<ModuleExpression*>, modules)
+	for (ModuleExpression* m : expr->getModules())
 	  {
-	    if (ImportModule* fm = makeModule(*i, enclosingObject))
+	    if (ImportModule* fm = makeModule(m, enclosingObject))
 	      {
 		if (fm->hasFreeParameters())
 		  {

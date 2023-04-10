@@ -33,7 +33,13 @@ TESTS = \
 	continue \
 	parse \
 	bubble \
-	rot13
+	rot13 \
+	pconst \
+	pconst2 \
+	pconst3 \
+	pconst4 \
+	parameterizedConstant \
+	pconst5
 
 MAUDE_FILES = \
 	directoryTest.maude \
@@ -70,7 +76,13 @@ MAUDE_FILES = \
 	continue.maude \
 	parse.maude \
 	bubble.maude \
-	rot13.maude
+	rot13.maude \
+	pconst.maude \
+	pconst2.maude \
+	pconst3.maude \
+	pconst4.maude \
+	parameterizedConstant.maude \
+	pconst5.maude
 
 RESULT_FILES = \
 	directoryTest.expected \
@@ -107,6 +119,12 @@ RESULT_FILES = \
 	continue.expected \
 	parse.expected \
 	bubble.expected \
-	rot13.expected
+	rot13.expected \
+	pconst.expected \
+	pconst2.expected \
+	pconst3.expected \
+	pconst4.expected \
+	parameterizedConstant.expected \
+	pconst5.expected
 
 EXTRA_DIST = $(TESTS) $(MAUDE_FILES) $(RESULT_FILES)

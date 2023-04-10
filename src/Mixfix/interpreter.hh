@@ -163,6 +163,7 @@ public:
   void endXmlLog();
   MaudemlBuffer* getXmlBuffer() const;
 
+  void cleanCaches();
   void setFlag(Flags flag, bool polarity);
   bool getFlag(Flags flag) const;
   void setPrintFlag(PrintFlags flag, bool polarity);
@@ -207,7 +208,7 @@ public:
   void variantMatch(const Vector<Token>& bubble, Int64 limit, bool debug);
   void smtSearch(const Vector<Token>& subject, int limit, int depth);
 
-  void showSearchPath(int stateNr);
+  void showSearchPath(int stateNr, bool showRule);
   void showSearchPathLabels(int stateNr);
   void showSearchGraph();
 
@@ -232,6 +233,7 @@ public:
   void showModule(bool all = true) const;
   void showModules(bool all) const;
   void showView() const;
+  void showProcessedView() const;
   void showViews(bool all) const;
   void showVars() const;
   void showOps(bool all = true) const;
