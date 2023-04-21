@@ -462,7 +462,7 @@ SyntacticPreModule::makeDeclsConsistent()
   if (nrOpDefs != 0)
     {
       int lastDefIndex = nrOpDefs - 1;
-      if(opDefs[lastDefIndex].types.length() == 0)
+      if(opDefs[lastDefIndex].types.empty())
 	{
 	  //
 	  //	Problem: we have op decls for which op def has not been
@@ -479,12 +479,11 @@ SyntacticPreModule::makeDeclsConsistent()
   //
   //	Strategy declarations are handled in the same way.
   //
-  int nrStratDecls = stratDecls.length();
-  if (nrStratDecls == 0)
+  if (stratDecls.empty())
     return;
-  if (stratDecls[nrStratDecls - 1].types.length() == 0)
+  if (stratDecls.back().types.empty())
     {
-      stratDecls.contractTo(nrStratDecls - 1);
+      stratDecls.pop_back();
       lastSawOpDecl = false;
     }
 }

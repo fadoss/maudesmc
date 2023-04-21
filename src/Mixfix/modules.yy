@@ -40,8 +40,7 @@ moduleExprDot	:	tokenBarDot expectedDot
 			    $$ = new ModuleExpression($1, $3);
 			  else
 			    {
-			      IssueWarning(LineNumber($2.lineNumber()) <<
-			                   ": missing module expression after " << QUOTE($2) << ".");
+			      IssueWarning(&($2) << ": missing module expression after " << QUOTE($2) << ".");
 			      $$ = $1;
 			    }
 			}
@@ -217,12 +216,16 @@ toAttributeList	:	toAttributeList toAttribute
 		;
 
 toAttribute	:	KW_PREC IDENTIFIER	{ currentRenaming->setPrec($2); }
-		|	KW_GATHER '('		{ clear(); }
+		|	KW_PREC			{ IssueWarning(&($1) << ": prec attribute without value in operator mapping."); }
+		|	KW_GATHER '('		{ tokensClear(); }
 			idList ')'		{ currentRenaming->setGather(tokenSequence); }
-		|	KW_FORMAT '('		{ clear(); }
+		|	KW_GATHER		{ IssueWarning(&($1) << ": gather attribute without pattern in operator mapping."); }
+		|	KW_FORMAT '('		{ tokensClear(); }
 			idList ')'		{ currentRenaming->setFormat(tokenSequence); }
+		|	KW_FORMAT		{ IssueWarning(&($1) << ": format attribute without specification in operator mapping."); }
 		|	KW_LATEX '('		{ lexerLatexMode(); }
 			LATEX_STRING ')'	{ currentRenaming->setLatexMacro($4); }
+		|	KW_LATEX     		{ IssueWarning(&($1) << ": latex attribute without latex code in operator mapping."); }
 		;
 
 /*
@@ -256,8 +259,7 @@ viewDecList	:	viewDecList viewDeclaration
 
 skipStrayArrow	:	KW_ARROW
 			{
-			  IssueWarning(LineNumber($1.lineNumber()) <<
-				       ": skipping " << QUOTE("->") << " in variable declaration.");
+			  IssueWarning(&($1) << ": skipping " << QUOTE("->") << " in variable declaration.");
 			}
 		|	{}
 		;
@@ -458,10 +460,10 @@ viewStratMap	:	stratName
 			      CV->addStratMapping(strategyCall[0]);
 			      CV->addStratTarget(lexerBubble[0]);
 			    }
-			  else {
-			    IssueWarning(LineNumber(strategyCall[0].lineNumber()) <<
-			      ": bad syntax for strategy mapping.");
-			  }
+			  else
+			    {
+			      IssueWarning(&(strategyCall[0]) << ": bad syntax for strategy mapping.");
+			    }
 			}
 		;
 
@@ -492,7 +494,7 @@ module		:	KW_MOD		{ lexerIdMode(); }
 		;
 
 dot		:	'.'		{}
-		|	tokenDot	{ store($1); }
+		|	tokenDot	{ tokensStore($1); }
 		;
 
 parameters	:	'{' parameterList '}' {}
@@ -512,9 +514,7 @@ parameter	:	token colon2 moduleExpr
 colon2		:	KW_COLON2 {}
 		|	':'
 			{
-			  IssueWarning(LineNumber($1.lineNumber()) <<
-			    ": saw " << QUOTE(':') << " instead of " <<
-			    QUOTE("::") << " in parameter declaration.");
+			  IssueWarning(&($1) << ": saw " << QUOTE(':') << " instead of " << QUOTE("::") << " in parameter declaration.");
 			}
 		;
 
@@ -541,15 +541,14 @@ declaration	:	KW_IMPORT moduleExprDot
 			    CM->addImport($1, $2);
 			  else
 			    {
-			      IssueWarning(LineNumber($1.lineNumber()) <<
-			                   ": missing module expression after " << QUOTE($1) << ".");
+			      IssueWarning(&($1) << ": missing module expression after " << QUOTE($1) << ".");
 			    }
 			}
 
-		|	KW_SORT			{ clear(); }
+		|	KW_SORT			{ tokensClear(); }
 			endSortNameList		{ CM->addSortDecl(tokenSequence); }
 
-		|	KW_SUBSORT		{ clear(); }
+		|	KW_SUBSORT		{ tokensClear(); }
 			endSubsortList		{ CM->addSubsortDecl(tokenSequence); }
 
 		|	KW_OP			{ lexBubble(BAR_COLON, 1); }
@@ -596,7 +595,7 @@ declaration	:	KW_IMPORT moduleExprDot
 			KW_IF			{ lexContinueBubble($5, END_STATEMENT, 1); }
 			endBubble	    	{ CM->addStatement(lexerBubble); }
 
-		|	stratDeclKeyword	{ clear(); }
+		|	stratDeclKeyword	{ tokensClear(); }
 			stratIdList
 			stratSignature
 			stratAttributes
@@ -615,7 +614,7 @@ declaration	:	KW_IMPORT moduleExprDot
 
 		|	KW_CLASS classDecl
 
-		|	KW_SUBCLASS		{ clear(); }
+		|	KW_SUBCLASS		{ tokensClear(); }
 			endSubsortList		{ CM->addSubclassDecl(tokenSequence); }
 		
 		|	error '.'
@@ -700,8 +699,7 @@ domainRangeAttr	:	typeName typeList dra2
 		|	rangeAttr
 		|	badType
 			{
-			  IssueWarning(LineNumber(lineNumber) <<
-				       ": missing " << QUOTE("->") << " in constant declaration.");
+			  IssueWarning(&($1) << ": missing " << QUOTE("->") << " in constant declaration.");
 			}
 		;
 
@@ -734,9 +732,7 @@ stratAttrList 	:	KW_METADATA IDENTIFIER
 
 skipStrayColon 	:	':'
 			{
-			  IssueWarning(LineNumber($1.lineNumber()) <<
-				       ": skipping stray " << QUOTE(":") << " in operator declaration.");
-
+			  IssueWarning(&($1) << ": skipping stray " << QUOTE(":") << " in operator declaration.");
 			}
 		|	{}
 		;
@@ -744,13 +740,11 @@ skipStrayColon 	:	':'
 dra2		:	skipStrayColon rangeAttr
 		|	'.'
 			{
-			  IssueWarning(LineNumber($1.lineNumber()) <<
-			  ": missing " << QUOTE("->") << " in operator declaration.");
+			  IssueWarning(&($1) << ": missing " << QUOTE("->") << " in operator declaration.");
 			}
 		|	badType
 			{
-			  IssueWarning(LineNumber($1.lineNumber()) <<
-			  ": missing " << QUOTE("->") << " in operator declaration.");
+			  IssueWarning(&($1) << ": missing " << QUOTE("->") << " in operator declaration.");
 			}
 		;
 
@@ -800,7 +794,7 @@ typeName1Dot	:	sortName expectedDot
 			}
 		;
 
-kind		:	'['			{ clear(); }
+kind		:	'['			{ tokensClear(); }
 			sortNames ']'
 		;
 
@@ -809,15 +803,15 @@ typeName	:	sortName
 			  singleton[0] = $1;
 			  currentSyntaxContainer->addType(false, singleton);
 			}
-		|	'['			{ clear(); }
+		|	'['			{ tokensClear(); }
 			sortNames ']'
 			{
 			  currentSyntaxContainer->addType(true, tokenSequence);
 			}
 		;
 
-sortNames	:	sortNames ',' sortName		{ store($3); }
-		|	sortName			{ store($1); }
+sortNames	:	sortNames ',' sortName		{ tokensStore($3); }
+		|	sortName			{ tokensStore($1); }
 		;
 
 attributes	:	'[' attributeList ']'	{}
@@ -861,16 +855,22 @@ attribute	:	KW_ASSOC
 			  CM->setFlag(SymbolType::ITER);
 			}
 		|	KW_PREC IDENTIFIER	{ CM->setPrec($2); }
-		|	KW_GATHER '('		{ clear(); }
+		|	KW_PREC			{ IssueWarning(&($1) << ": prec attribute without value in operator declaration."); }
+		|	KW_GATHER '('		{ tokensClear(); }
 			idList ')'		{ CM->setGather(tokenSequence); }
-		|	KW_FORMAT '('		{ clear(); }
+		|	KW_GATHER 		{ IssueWarning(&($1) << ": gather attribute without pattern in operator declaration."); }
+		|	KW_FORMAT '('		{ tokensClear(); }
 			idList ')'		{ CM->setFormat(tokenSequence); }
-		|	KW_STRAT '('		{ clear(); }
+		|	KW_FORMAT 		{ IssueWarning(&($1) << ": format attribute without specification in operator declaration."); }
+		|	KW_STRAT '('		{ tokensClear(); }
 			idList ')'		{ CM->setStrat(tokenSequence); }
-		|	KW_ASTRAT '('		{ clear(); }
+		|	KW_STRAT 		{ IssueWarning(&($1) << ": strat attribute without strategy in operator declaration."); }
+		|	KW_ASTRAT '('		{ tokensClear(); }
 			idList ')'		{ CM->setStrat(tokenSequence); }
-		|	KW_POLY '('		{ clear(); }
+		|	KW_ASTRAT		{ IssueWarning(&($1) << ": strategy attribute without strategy in operator declaration."); }
+		|	KW_POLY '('		{ tokensClear(); }
 			idList ')'		{ CM->setPoly(tokenSequence); }
+		|	KW_POLY			{ IssueWarning(&($1) << ": poly attribute without specification in operator declaration."); }
 		|	KW_MEMO
 			{
 			  CM->setFlag(SymbolType::MEMO);
@@ -881,10 +881,10 @@ attribute	:	KW_ASSOC
 			}
 		|	KW_FROZEN
 			{
-			  clear();
+			  tokensClear();
 			  CM->setFrozen(tokenSequence);
 			}
-		|	KW_FROZEN '('		{ clear(); }
+		|	KW_FROZEN '('		{ tokensClear(); }
 			idList ')'		{ CM->setFrozen(tokenSequence); }
 		|	KW_CONFIG
 			{
@@ -904,6 +904,7 @@ attribute	:	KW_ASSOC
 			}
 		|	KW_LATEX '('		{ lexerLatexMode(); }
 			LATEX_STRING ')'	{ CM->setLatexMacro($4); }
+		|	KW_LATEX		{ IssueWarning(&($1) << ": latex attribute without latex code in operator declaration."); }
 		|	KW_SPECIAL '(' hookList ')'	{}
 		|	KW_DITTO
 			{
@@ -923,15 +924,15 @@ identity	:	FORCE_LOOKAHEAD
 		|	{}
 		;
 
-idList		:	idList IDENTIFIER	{ store($2); }
-		|	IDENTIFIER		{ store($1); }
+idList		:	idList IDENTIFIER	{ tokensStore($2); }
+		|	IDENTIFIER		{ tokensStore($1); }
 		;
 
 hookList	:	hookList hook		{}
 		|	hook	 		{}
 		;
 
-hook		:	KW_ID_HOOK token		{ clear(); CM->addHook(SyntacticPreModule::ID_HOOK, $2, tokenSequence); }
+hook		:	KW_ID_HOOK token		{ tokensClear(); CM->addHook(SyntacticPreModule::ID_HOOK, $2, tokenSequence); }
 		|	KW_ID_HOOK token parenBubble	{ CM->addHook(SyntacticPreModule::ID_HOOK, $2, lexerBubble); }
 		|	KW_OP_HOOK token parenBubble	{ CM->addHook(SyntacticPreModule::OP_HOOK, $2, lexerBubble); }
 		|	KW_TERM_HOOK token parenBubble	{ CM->addHook(SyntacticPreModule::TERM_HOOK, $2, lexerBubble); }
@@ -943,8 +944,7 @@ hook		:	KW_ID_HOOK token		{ clear(); CM->addHook(SyntacticPreModule::ID_HOOK, $2
 expectedIs	:	KW_IS {}
 		|
 			{
-			  IssueWarning(LineNumber(lineNumber) << ": missing " <<
-				       QUOTE("is") << " keyword.");
+			  IssueWarning(LineNumber(lineNumber) << ": missing " << QUOTE("is") << " keyword.");
 			}
 		;
 
@@ -958,20 +958,20 @@ expectedDot	:	'.' {}
 /*
  *	Sort lists.
  */
-sortNameList	:	sortNameList sortName	{ store($2); }
-		|	sortName     		{ store($1); }
+sortNameList	:	sortNameList sortName	{ tokensStore($2); }
+		|	sortName     		{ tokensStore($1); }
 		;
 
 		
-endSortNameList :	tokenDot		{ store($1); }
+endSortNameList :	tokenDot		{ tokensStore($1); }
 	    	|	sortNameList dot
 		;
 
 /*
  *	Subsort lists.
  */
-subsortList	:	subsortList sortNameList '<'	{ store($3); }
-		|	sortNameList '<'		{ store($2); }
+subsortList	:	subsortList sortNameList '<'	{ tokensStore($3); }
+		|	sortNameList '<'		{ tokensStore($2); }
 	    	;
 
 endSubsortList	:	subsortList endSortNameList

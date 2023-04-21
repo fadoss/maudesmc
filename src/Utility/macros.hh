@@ -50,17 +50,14 @@
 #if HAVE_CTYPE_H
 #include <ctype.h>
 #endif
-#if HAVE_STRING_H
-#include <string.h>
-#elif HAVE_STRINGS_H
-#include <strings.h>
-#endif
 #if HAVE_UNISTD_H
 #include <unistd.h>  // needed by solaris
 #endif
 //
 //	C++ stuff.
 //
+#include <cstdint> 
+#include <cstring>
 #include <new>
 #include <string>
 #include <iostream>
@@ -107,7 +104,6 @@ typedef ptrdiff_t Index;
 //	
 //	Types for storage efficiency.
 //
-typedef char Bool;
 typedef signed char Byte;
 typedef unsigned char Ubyte;
 //
@@ -146,7 +142,6 @@ typedef unsigned long long int Uint64;
 //
 //	32 bit arithmetic; sometime we need guarentee of left truncation.
 //
-typedef int Int32;
 typedef unsigned int Uint32;
 
 //
@@ -252,6 +247,9 @@ enum SpecialConstants
   #define local_inline
 #endif
 
+
+#ifndef NO_ASSERT
+
 #define \
 AlwaysAssert(condition, message) \
 if (!(condition)) \
@@ -259,7 +257,6 @@ if (!(condition)) \
 __FILE__ << ':' << __LINE__ << '\n' << message << endl), \
 abort())
 
-#ifndef NO_ASSERT
 
 #define \
 Assert(condition, message) \
@@ -326,6 +323,13 @@ if (globalDebugFlag) \
 //
 #define DebugSave(v, e) auto v = (e)
 #else
+
+#define \
+AlwaysAssert(condition, message) \
+if (!(condition)) \
+((cerr << "ASSERT FAILED: " << \
+__FILE__ << ':' << __LINE__ << '\n' << message << endl), \
+selfCheckFailHandler())
 
 #define Assert(condition, message)
 #define CantHappen(message)
@@ -448,7 +452,7 @@ ceilingDivision(int dividend, int divisor)
 }
 
 inline const char*
-pluralize(Int32 quantity)
+pluralize(int quantity)
 {
   return (quantity == 1) ? "" : "s";
 }
@@ -465,5 +469,6 @@ bool looksLikeFloat(const char* s);
 const char* doubleToString(double d);
 double stringToDouble(const char* s, bool& error);
 void correctEcvt(double d, int nrDigits, char buffer[], int& decPt, int& sign);
+void selfCheckFailHandler();
 
 #endif

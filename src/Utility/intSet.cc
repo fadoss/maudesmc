@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2003 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,10 +19,10 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
 */
-
 //
 //      Implementation for class IntSet.
 //
+#include <functional>
 #include "macros.hh"
 #include "vector.hh"
 #include "intSet.hh"
@@ -30,19 +30,20 @@
 inline int
 IntSet::hash(int i)
 {
-  return i ^ (i >> 4);
+  return std::hash<int>{}(i);
 }
  
 inline int
 IntSet::hash2(int i)  // 2nd hash function must always return an odd value
 {
-  return (i ^ (i >> 8)) | 1;
+  std::size_t h = std::hash<int>{}(i);
+  return (h ^ (h >> 8)) | 1;
 }
 
 int
 IntSet::insert(int k)
 {
-  if (intTable.length() == 0)
+  if (intTable.empty())
     resize(STARTING_HASH_TABLE_SIZE);
   int i = findEntry(k);
   int j = hashTable[i];
@@ -77,27 +78,28 @@ IntSet::insert(const IntSet& other)
     }
 }
 
-void
-IntSet::subtract(int k)
+int
+IntSet::erase(int k)
 {
   int n = intTable.length();
   if (n == 0)
-    return;
+    return 0;
   int i = findEntry(k);
   int j = hashTable[i];
   if (j == UNUSED)
-    return;
+    return 0;
   --n;
   intTable[j] = intTable[n];
   intTable.contractTo(n);
-  rehash();  // removing an element is expensive
+  rehash();  // removing an element is expensive with closed hashing
+  return 1;
 }
-  
+
 void
 IntSet::subtract(const IntSet& other)
 {
   int n = intTable.length();
-  if (n == 0 || other.intTable.length() == 0)
+  if (n == 0 || other.intTable.empty())
     return;
   int j = 0;
   for (int i = 0; i < n; i++)
@@ -119,10 +121,10 @@ IntSet::intersect(const IntSet& other)
   int n = intTable.length();
   if (n == 0)
     return;
-  if (other.intTable.length() == 0)
+  if (other.intTable.empty())
     {
-      intTable.contractTo(0);
-      hashTable.contractTo(0);
+      intTable.clear();
+      hashTable.clear();
       return;
     }
   int j = 0;
@@ -138,7 +140,7 @@ IntSet::intersect(const IntSet& other)
       rehash();
     }
 }
- 
+
 bool
 IntSet::contains(const IntSet& other) const
 {
@@ -159,7 +161,7 @@ bool
 IntSet::disjoint(const IntSet& other) const
 {
   int i = other.intTable.length();
-  if (i == 0 || intTable.length() == 0)
+  if (i == 0 || intTable.empty())
     return true;
   for (i--; i >= 0; i--)
     {
@@ -172,7 +174,7 @@ IntSet::disjoint(const IntSet& other) const
 int
 IntSet::findEntry(int k) const
 {
-  Assert(hashTable.length() != 0, "zero length hash table");
+  Assert(!hashTable.empty(), "empty length hash table");
   int mask = hashTable.length() - 1;
   int i = hash(k) & mask;
   int j = hashTable[i];

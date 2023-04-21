@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2003 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -84,8 +84,8 @@ LoopSymbol::attachData(const Vector<Sort*>& opDeclaration,
 		       const Vector<const char*>& data)
 {
   if (strcmp(purpose, "LoopSymbol") == 0)
-    return data.length() == 0;
-  return  FreeSymbol::attachData(opDeclaration, purpose, data);
+    return data.empty();
+  return FreeSymbol::attachData(opDeclaration, purpose, data);
 }
 
 bool
@@ -177,7 +177,7 @@ LoopSymbol::extractQid(DagNode* metaQid, int& id)
 bool
 LoopSymbol::extractQidList(DagNode* metaQidList, Vector<int>& ids)
 {
-  ids.contractTo(0);
+  ids.clear();
   Symbol* mq = metaQidList->symbol();
   int id;
   if (mq == qidListSymbol)
