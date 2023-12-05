@@ -1,3 +1,35 @@
+2023-10-02  Steven Eker  <eker@pup>
+
+	* tests/ResolvedBugs/filteredVariantUnifyJune2023.maude: added
+
+==================================Maude152===========================================
+
+2023-05-12  Steven Eker  <eker@pup>
+
+	* tests/ObjectOriented/prngTest.maude: added
+
+==================================Maude149===========================================
+
+2023-05-05  Steven Eker  <eker@pup>
+
+	* tests/ResolvedBugs/stripperCollectorSwitchMay2023.maude: added
+
+2023-05-03  Steven Eker  <eker@pup>
+
+	* tests/Corner/ACU_TreeVariableSubproblem.maude: added
+
+==================================Maude148===========================================
+
+2023-04-28  Steven Eker  <eker@pup>
+
+	* tests/ResolvedBugs/redBlackNGA_April2023.maude: added
+
+	* tests/ResolvedBugs/redBlackTooFewSubjectsApril2023.maude: added
+
+	* tests/ResolvedBugs/redBlackNonLinearApril2023.maude: added
+
+===================================Maude147===========================================
+
 2023-04-13  Steven Eker  <eker@pup>
 
 	* tests/Corner/attributeOverparsing.maude: added latex examples
@@ -10,7 +42,7 @@
 
 	* tests/Corner/fakeParameterSort.maude: added
 
-===================================Maude144===========================================
+===================================Maude145===========================================
 
 2023-04-10  Steven Eker  <eker@pup>
 

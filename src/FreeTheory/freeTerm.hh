@@ -29,7 +29,7 @@
 #include "term.hh"
 #include "freeSubterm.hh"
 
-class FreeTerm : public Term
+class FreeTerm final : public Term
 {
 public:
   FreeTerm(FreeSymbol* symbol, const Vector<Term*>& arguments);
@@ -128,7 +128,7 @@ private:
 		  bool eagerContext);
 
   Vector<Term*> argArray;
-  short slotIndex;
+  int slotIndex;
   bool visitedFlag;
 };
 

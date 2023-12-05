@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2003 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@
 class BinBuf
 {
 public:
-  void init(Uint64 bits, int leadingZeros);
+  void init(uint_fast64_t bits, int leadingZeros);
   int times10();
   int cmpHalf();
   bool gtZero();
@@ -45,7 +45,7 @@ private:
     MAX_WORDS = 34
   };
 
-  Uint32 buf[MAX_WORDS];
+  uint_fast32_t buf[MAX_WORDS];
   int begin;
   int end;
 };

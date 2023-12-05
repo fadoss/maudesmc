@@ -47,7 +47,8 @@
 //	higher class definitions
 #include "variantFolder.hh"
 
-VariantFolder::VariantFolder()
+VariantFolder::VariantFolder(bool ignoreSubstitution)
+  : ignoreSubstitution(ignoreSubstitution)
 {
   currentVariantIndex = -1;
 }
@@ -85,15 +86,17 @@ VariantFolder::insertVariant(const Vector<DagNode*>& variant,
 			     int parentIndex,
 			     int variableFamily)
 {
-  //cerr << " i" << index << "p" << parentIndex;
+  //DebugAlways("variant=" << variant.back());
   //
   //	First we check if it is subsumed by one of the existing variants.
   //
   if (isSubsumed(variant))
     {
+      //DebugAlways("new variant subsumed=" << variant.back());
       DebugAdvisory("new variant subsumed");
       return false;
     }
+  //DebugAlways("new variant added=" << variant.back());
   DebugAdvisory("new variant added");
   //
   //	Compile a set of matching automata for this variant.
@@ -129,7 +132,7 @@ VariantFolder::insertVariant(const Vector<DagNode*>& variant,
 	      //
 	      //	Our parent was subsumed so we are also subsumed.
 	      //
-	      DebugAdvisory("new variant evicted descendent of an older variant " << i->first);
+	      //DebugAlways("new variant evicted descendent of an older variant " << i->first);
 	      existingVariantsSubsumed.insert(i->first);
 	      delete potentialVictim;
 	      mostGeneralSoFar.erase(i);
@@ -139,7 +142,7 @@ VariantFolder::insertVariant(const Vector<DagNode*>& variant,
 	      //
 	      //	Direct subsumption by new variant.
 	      //
-	      DebugAdvisory("new variant evicted an older variant " << i->first);
+	      //DebugAlways("new variant evicted an older variant " << i->first);
 	      existingVariantsSubsumed.insert(i->first);
 	      delete potentialVictim;
 	      mostGeneralSoFar.erase(i);
@@ -169,9 +172,9 @@ VariantFolder::insertVariant(const Vector<DagNode*>& variant,
 bool
 VariantFolder::subsumes(const RetainedVariant* retainedVariant, const Vector<DagNode*>& variant) const
 {
-  int nrDagsToCheck = variant.size();
+  int nrDagsInVariant = variant.size();
   int nrDagsInRetainedVariant = retainedVariant->matchingAutomata.size();
-  if (nrDagsToCheck != nrDagsInRetainedVariant)
+  if (nrDagsInVariant != nrDagsInRetainedVariant)
     return false;  // different sized variants are trivially incomparable
 
   MemoryCell::okToCollectGarbage();  // otherwise we have huge accumulation of junk from matching
@@ -186,7 +189,8 @@ VariantFolder::subsumes(const RetainedVariant* retainedVariant, const Vector<Dag
   matcher.clear(nrVariablesToUse);
   SubproblemAccumulator subproblems;
 
-  for (int i = nrDagsToCheck - 1; i >= 0; --i)
+  int lastDagToCheck = ignoreSubstitution ?  nrDagsInVariant - 1 : 0;
+  for (int i = nrDagsInVariant - 1; i >= lastDagToCheck; --i)
     {
       Subproblem* subproblem;
 
@@ -214,6 +218,7 @@ VariantFolder::subsumes(const RetainedVariant* retainedVariant, const Vector<Dag
   delete final;
   return result;
 }
+
 int
 VariantFolder::findNextSurvivingVariant()
 {
@@ -287,7 +292,7 @@ VariantFolder::findNextVariantThatMatches(int& indexOfLastUsedVariant,
 					  DagNode* subject,
 					  const VariableInfo*& variableInfo,
 					  RewritingContext*& matcher,
-					  Subproblem*& subproblem)
+					  Subproblem*& subproblem) const
 {
   for (RetainedVariantMap::const_iterator i =
 	 mostGeneralSoFar.upper_bound(indexOfLastUsedVariant); i != mostGeneralSoFar.end(); ++i)

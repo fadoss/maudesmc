@@ -111,6 +111,7 @@ VariantUnifierFilter::insertUnifier(const Vector<DagNode*>& unifier,
 				    int nrFreeVariables,
 				    int variableFamily)
 {
+  //cerr << "inserting\n"; for (DagNode* d : unifier) cerr << d << endl;
   if (tupleSymbol == 0)
     {
       int nrAssignments = unifier.size();  // could be zero!
@@ -128,6 +129,7 @@ VariantUnifierFilter::insertUnifier(const Vector<DagNode*>& unifier,
   //	subsumption checks.
   //
   encodedUnifier.setNode(tupleSymbol->makeDagNode(unifier));
+  //DebugAlways("encoded unifier=" << encodedUnifier.getNode());
   for (RetainedUnifierList::iterator i = mostGeneralSoFar.begin(); i != mostGeneralSoFar.end(); ++i)
     {
       //
@@ -145,11 +147,13 @@ VariantUnifierFilter::insertUnifier(const Vector<DagNode*>& unifier,
   //
   RewritingContext* newContext = context->makeSubcontext(encodedUnifier.getNode());
   Vector<DagNode*> dummy;  // subsumption mode can't use blocker dags because there is no substitution
+  //DebugAlways("starting subsumption mode");
   VariantSearch* variants = new VariantSearch(newContext,
 					      dummy,
 					      freshVariableGenerator,
 					      VariantSearch::SUBSUMPTION_MODE,
 					      variableFamily);
+  //DebugAlways("subsumption mode completed");
   context->addInCount(*newContext);
   if (variants->isIncomplete())
     filteringIncompleteFlag = true;

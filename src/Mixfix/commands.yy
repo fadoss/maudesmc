@@ -330,17 +330,11 @@ command		:	KW_SELECT		{ lexBubble(END_COMMAND, 1); }
 /*
  *	Commands to show interpreter state.
  */
-		|	KW_SHOW KW_MOD		{ lexBubble(END_COMMAND, 0); }
+		|	KW_SHOW kw_module	{ lexBubble(END_COMMAND, 0); }
 			endBubble
 			{
 			  if (interpreter.setCurrentModule(lexerBubble))
-			    CM->showModule();
-			}
-		|	KW_SHOW KW_MODULE	{ lexBubble(END_COMMAND, 0); }
-			endBubble
-			{
-			  if (interpreter.setCurrentModule(lexerBubble))
-			    CM->showModule();
+			    interpreter.showPreModule();
 			}
 		|	KW_SHOW KW_ALL		{ lexBubble(END_COMMAND, 0); }
 			endBubble
@@ -459,93 +453,103 @@ command		:	KW_SELECT		{ lexBubble(END_COMMAND, 1); }
 /*
  *	Commands to set interpreter state variables.
  */
-		|	KW_SET KW_SHOW KW_ADVISE polarity '.'
+		|	KW_SET KW_SHOW KW_ADVISE polarityDot
 			{
 			  globalAdvisoryFlag = alwaysAdviseFlag ? true : $4;
 			}
-		|	KW_SET KW_SHOW KW_STATS polarity '.'
+		|	KW_SET KW_SHOW KW_STATS polarityDot
 			{
 			  interpreter.setFlag(Interpreter::SHOW_STATS, $4);
 			}
-		|	KW_SET KW_SHOW KW_LOOP KW_STATS polarity '.'
+		|	KW_SET KW_SHOW KW_LOOP KW_STATS polarityDot
 			{
 			  interpreter.setFlag(Interpreter::SHOW_LOOP_STATS, $5);
 			}
-		|	KW_SET KW_SHOW KW_TIMING polarity '.'
+		|	KW_SET KW_SHOW KW_TIMING polarityDot
 			{
 			  interpreter.setFlag(Interpreter::SHOW_TIMING, $4);
 			}
-		|	KW_SET KW_SHOW KW_BREAKDOWN polarity '.'
+		|	KW_SET KW_SHOW KW_BREAKDOWN polarityDot
 			{
 			  interpreter.setFlag(Interpreter::SHOW_BREAKDOWN, $4);
 			}
-		|	KW_SET KW_SHOW KW_LOOP KW_TIMING polarity '.'
+		|	KW_SET KW_SHOW KW_LOOP KW_TIMING polarityDot
 			{
 			  interpreter.setFlag(Interpreter::SHOW_LOOP_TIMING, $5);
 			}
-		|	KW_SET KW_SHOW KW_CMD polarity '.'
+		|	KW_SET KW_SHOW KW_CMD polarityDot
 			{
 			  interpreter.setFlag(Interpreter::SHOW_COMMAND, $4);
 			}
-		|	KW_SET KW_SHOW KW_GC polarity '.'
+		|	KW_SET KW_SHOW KW_GC polarityDot
 			{
 			  MemoryCell::setShowGC($4);
 			}
-		|	KW_SET KW_PRINT printOption polarity '.'
+		|	KW_SET KW_SHOW KW_RESOURCES polarityDot
+			{
+			  MemoryCell::setShowResources($4);
+			}
+		|	KW_SET KW_PRINT printOption polarityDot
 			{
 			  interpreter.setPrintFlag($3, $4);
 			}
-		|	KW_SET KW_PRINT KW_ATTRIBUTE polarity '.'
+		|	KW_SET KW_PRINT KW_ATTRIBUTE polarityDot
 			{
+			  // a general flag, not a print flag, to activate print attribute
 			  interpreter.setFlag(Interpreter::PRINT_ATTRIBUTE, $4);
 			}
-		|	KW_SET KW_PRINT KW_ATTRIBUTE KW_NEWLINE polarity '.'
+		|	KW_SET KW_PRINT KW_ATTRIBUTE KW_NEWLINE polarityDot
 			{
+			  // a general flag, not a print flag, to print a newline after print attribute message
 			  interpreter.setFlag(Interpreter::PRINT_ATTRIBUTE_NEWLINE, $5);
 			}
-		|	KW_SET KW_TRACE traceOption polarity '.'
+		|	KW_SET KW_TRACE traceOption polarityDot
 			{
 			  interpreter.setFlag($3, $4);
 			}
-		|	KW_SET KW_BREAK polarity '.'
+		|	KW_SET KW_BREAK polarityDot
 			{
 			  interpreter.setFlag(Interpreter::BREAK, $3);
 			}
 		|	KW_SET importMode		{ lexerCmdMode(); }
 			cSimpleTokenBarDot		{ lexerInitialMode(); }
-			polarity '.'
+			polarityDot
 			{
 			  interpreter.setAutoImport($2, $4, $6);
 			}
 		|	KW_SET KW_OO KW_INCLUDE		{ lexerCmdMode(); }
 			cSimpleTokenBarDot		{ lexerInitialMode(); }
-			polarity '.'
+			polarityDot
 			{
 			  interpreter.setOoInclude($5, $7);
 			}
-		|	KW_SET KW_VERBOSE polarity '.'
+		|	KW_SET KW_VERBOSE polarityDot
 			{
 			  globalVerboseFlag = $3;
 			}
-		|	KW_SET KW_CLEAR KW_MEMO polarity '.'
+		|	KW_SET KW_CLEAR KW_MEMO polarityDot
 			{
 			  interpreter.setFlag(Interpreter::AUTO_CLEAR_MEMO, $4);
 			}
-		|	KW_SET KW_CLEAR KW_RLS polarity '.'
+		|	KW_SET KW_CLEAR KW_RLS polarityDot
 			{
 			  interpreter.setFlag(Interpreter::AUTO_CLEAR_RULES, $4);
 			}
-		|	KW_SET KW_COMPILE KW_COUNT polarity '.'
+		|	KW_SET KW_COMPILE KW_COUNT polarityDot
 			{
 			  interpreter.setFlag(Interpreter::COMPILE_COUNT, $4);
 			}
-		|	KW_SET KW_PROFILE polarity '.'
+		|	KW_SET KW_PROFILE polarityDot
 			{
 			  interpreter.setFlag(Interpreter::PROFILE, $3);
 			}
-		|	KW_SET KW_CLEAR KW_PROFILE polarity '.'
+		|	KW_SET KW_CLEAR KW_PROFILE polarityDot
 			{
 			  interpreter.setFlag(Interpreter::AUTO_CLEAR_PROFILE, $4);
+			}
+		|	KW_SET KW_CLEAR kw_module KW_CACHES polarityDot
+			{
+			  interpreter.setFlag(Interpreter::AUTO_CLEAR_CACHES, $5);
 			}
 /*
  *	Debugger mode commands
@@ -573,11 +577,11 @@ command		:	KW_SELECT		{ lexBubble(END_COMMAND, 1); }
 /*
  *	OBJ3 legacy cruft.
  */
-		|	KW_SET KW_GC KW_SHOW polarity '.'
+		|	KW_SET KW_GC KW_SHOW polarityDot
 			{
 			  MemoryCell::setShowGC($4);
 			}
-		|	KW_SET KW_STATS polarity '.'
+		|	KW_SET KW_STATS polarityDot
 			{
 			  interpreter.setFlag(Interpreter::SHOW_STATS, $3);
 			}
@@ -587,21 +591,30 @@ command		:	KW_SELECT		{ lexBubble(END_COMMAND, 1); }
 		|	error			{ lexerInitialMode(); }
 			'.'
 		;
+/*
+ *	Allow mod as an abbreviation for module (can't do this is lexer because of mod ... endm for system modules).
+ */
+kw_module	:	KW_MODULE
+		|	KW_MOD
+		;
 
 /*
  *	Options
  */
-printOption	:	KW_MIXFIX		{ $$ = Interpreter::PRINT_MIXFIX; }
-		|	KW_FLAT			{ $$ = Interpreter::PRINT_FLAT; }
-		|	KW_WITH KW_ALIASES	{ $$ = Interpreter::PRINT_WITH_ALIASES; }
-		|	KW_WITH KW_PARENS	{ $$ = Interpreter::PRINT_WITH_PARENS; }
-		|	KW_GRAPH		{ $$ = Interpreter::PRINT_GRAPH; }
-		|	KW_CONCEAL		{ $$ = Interpreter::PRINT_CONCEAL; }
-		|	KW_NUMBER		{ $$ = Interpreter::PRINT_NUMBER; }
-		|	KW_RAT			{ $$ = Interpreter::PRINT_RAT; }
-		|	KW_COLOR		{ $$ = Interpreter::PRINT_COLOR; }
-		|	KW_FORMAT		{ $$ = Interpreter::PRINT_FORMAT; }
-		|	KW_CONST KW_WITH KW_SORTS	{ $$ = Interpreter::PRINT_DISAMBIG_CONST; }
+printOption	:	KW_MIXFIX		{ $$ = PrintSettings::PRINT_MIXFIX; }
+		|	KW_FLAT			{ $$ = PrintSettings::PRINT_FLAT; }
+		|	KW_WITH KW_ALIASES	{ $$ = PrintSettings::PRINT_WITH_ALIASES; }
+		|	KW_WITH KW_PARENS	{ $$ = PrintSettings::PRINT_WITH_PARENS; }
+		|	KW_GRAPH		{ $$ = PrintSettings::PRINT_GRAPH; }
+		|	KW_CONCEAL		{ $$ = PrintSettings::PRINT_CONCEAL; }
+		|	KW_NUMBER		{ $$ = PrintSettings::PRINT_NUMBER; }
+		|	KW_RAT			{ $$ = PrintSettings::PRINT_RAT; }
+		|	KW_COLOR		{ $$ = PrintSettings::PRINT_COLOR; }
+		|	KW_FORMAT		{ $$ = PrintSettings::PRINT_FORMAT; }
+		|	KW_CONST KW_WITH KW_SORTS	{ $$ = PrintSettings::PRINT_DISAMBIG_CONST; }
+		|	KW_LABEL KW_ATTRIBUTE	{ $$ = PrintSettings::PRINT_LABEL_ATTRIBUTE; }
+		|	KW_HOOKS 		{ $$ = PrintSettings::PRINT_HOOKS; }
+		|	KW_COMBINE KW_VARS	{ $$ = PrintSettings::PRINT_COMBINE_VARS; }
 		;
 
 traceOption	:				{ $$ = Interpreter::TRACE; }
@@ -618,8 +631,18 @@ traceOption	:				{ $$ = Interpreter::TRACE; }
 		|	KW_BUILTIN		{ $$ = Interpreter::TRACE_BUILTIN; }
 		;
 
-polarity	:	KW_ON			{ $$ = true; }
-		|	KW_OFF			{ $$ = false; }
+polarityDot	:	KW_ON '.'		{ $$ = true; }
+		|	KW_OFF '.'		{ $$ = false; }
+		|	KW_ON_DOT
+			{
+			  IssueWarning(LineNumber(lineNumber) << ": missing space between " << QUOTE("on") << " and period.");
+			  $$ = true;
+			}
+		|	KW_OFF_DOT
+			{
+			  IssueWarning(LineNumber(lineNumber) << ": missing space between " << QUOTE("off") << " and period.");
+			  $$ = false;
+			}
 		;
 
 select		:	KW_SELECT		{ $$ = true; }

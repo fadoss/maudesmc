@@ -182,11 +182,14 @@ set					return KW_SET;
 show					return KW_SHOW;
 on					return KW_ON;
 off					return KW_OFF;
+"on."					return KW_ON_DOT;
+"off."					return KW_OFF_DOT;
 trace					return KW_TRACE;
 advise|advisory|advisories		return KW_ADVISE;
 verbose					return KW_VERBOSE;
 do					return KW_DO;
 clear					return KW_CLEAR;
+cache|caches				return KW_CACHES;
 body					return KW_BODY;
 builtin					return KW_BUILTIN;
 whole					return KW_WHOLE;
@@ -208,6 +211,7 @@ paren|parens|parentheses		return KW_PARENS;
 alias|aliases				return KW_ALIASES;
 const|constant|constants		return KW_CONST;
 gc					return KW_GC;
+resources				return KW_RESOURCES;
 time					return KW_TIME;
 stats					return KW_STATS;
 timing					return KW_TIMING;
@@ -256,6 +260,8 @@ fvu-narrow				return KW_FVU_NARROW;
 fold					return KW_FOLD;
 desugared				return KW_DESUGARED;
 processed				return KW_PROCESSED;
+hook|hooks				return KW_HOOKS;
+combine					return KW_COMBINE;
 [.\[\](){}]				return *yytext;
 0|([1-9][0-9]*)				{
 					  bool dummy;
@@ -341,6 +347,7 @@ special					RETURN(KW_SPECIAL)
 config|configuration			RETURN(KW_CONFIG)
 obj|object				RETURN(KW_OBJ)
 msg|message				RETURN(KW_MSG)
+portal					RETURN(KW_PORTAL)
 ditto					RETURN(KW_DITTO)
 id-hook					RETURN(KW_ID_HOOK)
 op-hook					RETURN(KW_OP_HOOK)

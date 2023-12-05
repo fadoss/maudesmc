@@ -32,6 +32,7 @@
   MACRO(SystemFalse, SymbolType::SYSTEM_FALSE)
   MACRO(BranchSymbol, SymbolType::BRANCH_SYMBOL)
   MACRO(EqualitySymbol, SymbolType::EQUALITY_SYMBOL)
+  MACRO(CommutativeDecomposeEqualitySymbol, SymbolType::COMMUTATIVE_DECOMPOSE_EQUALITY_SYMBOL)
   MACRO(FloatSymbol, SymbolType::FLOAT)
   MACRO(FloatOpSymbol, SymbolType::FLOAT_OP)
   MACRO(StringSymbol, SymbolType::STRING)
@@ -61,4 +62,5 @@
   MACRO(DirectoryManagerSymbol, SymbolType::DIRECTORY_MANAGER_SYMBOL)
   MACRO(ProcessManagerSymbol, SymbolType::PROCESS_MANAGER_SYMBOL)
   MACRO(TimeManagerSymbol, SymbolType::TIME_MANAGER_SYMBOL)
+  MACRO(PrngManagerSymbol, SymbolType::PRNG_MANAGER_SYMBOL)
   MACRO(ObjectConstructorSymbol, SymbolType::OBJECT_CONSTRUCTOR_SYMBOL)

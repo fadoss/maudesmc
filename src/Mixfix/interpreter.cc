@@ -76,6 +76,7 @@
 #include "viewExpression.hh"
 #include "moduleExpression.hh"
 #include "interpreter.hh"
+#include "maudeLatexBuffer.hh"
 
 //	our stuff
 #include "execute.cc"
@@ -90,12 +91,13 @@
 #include "srewrite.cc"
 
 Interpreter::Interpreter()
+: PrintSettings(DEFAULT_PRINT_FLAGS)
 {
   xmlLog = 0;
   xmlBuffer = 0;
+  latexBuffer = 0;
 
   flags = DEFAULT_FLAGS;
-  printFlags = DEFAULT_PRINT_FLAGS;
   currentModule = 0;
   currentView = 0;
 
@@ -118,6 +120,13 @@ Interpreter::~Interpreter()
   clearContinueInfo();
   delete xmlBuffer;
   delete xmlLog;
+}
+
+void
+Interpreter::outputBanner(const char* date, const char* time, time_t seconds)
+{
+  if (latexBuffer)
+    latexBuffer->generateBanner(date, time, seconds);
 }
 
 void
@@ -147,15 +156,6 @@ Interpreter::setFlag(Flags flag, bool polarity)
 }
 
 void
-Interpreter::setPrintFlag(PrintFlags flag, bool polarity)
-{
-  if (polarity)
-    printFlags |= flag;
-  else
-    printFlags &= ~flag;
-}
-
-void
 Interpreter::showProfile() const
 {
   currentModule->getFlatModule()->showProfile(cout);
@@ -177,6 +177,20 @@ Interpreter::endXmlLog()
   xmlBuffer = 0;
   delete xmlLog;
   xmlLog = 0;
+}
+
+void
+Interpreter::beginLatexLog(const char* fileName)
+{
+  delete latexBuffer;
+  latexBuffer = new MaudeLatexBuffer(fileName);
+}
+
+void
+Interpreter::endLatexLog()
+{
+  delete latexBuffer;
+  latexBuffer = 0;
 }
 
 bool
@@ -245,7 +259,7 @@ Interpreter::setCurrentModule(SyntacticPreModule* module)
       if (currentModule != 0)
 	{
 	  clearContinueInfo();
-	  currentModule->loseFocus();
+	  currentModule->loseFocus(getFlag(AUTO_CLEAR_CACHES));
 	}
       currentModule = module;
     }
@@ -312,14 +326,27 @@ Interpreter::updateSet(set<int>& target, bool add)
   if (add)
     target.insert(selected.begin(), selected.end());
   else
-    target.erase(selected.begin(), selected.end());
+    {
+      for (int i : selected)
+	target.erase(i);
+    }
   selected.clear();
 }
 
-bool
-Interpreter::concealedSymbol(Symbol* symbol)
+void
+Interpreter::printConceal(bool add)
 {
-  return getPrintFlag(PRINT_CONCEAL) && concealedSymbols.find(symbol->id()) != concealedSymbols.end();
+  if (add)
+    {
+      for (int i : selected)
+	insertConcealed(i);
+    }
+  else
+    {
+      for (int i : selected)
+	eraseConcealed(i);
+    }
+  selected.clear();
 }
 
 void
@@ -333,9 +360,19 @@ Interpreter::parse(const Vector<Token>& subject)
   Term* s = currentModule->getFlatModule()->parseTerm(subject);
   if (s != 0)
     {
+      bool showCommand = getFlag(SHOW_COMMAND);
+      if (latexBuffer != 0)
+	latexBuffer->generateCommand(showCommand, "parse", s);
+
       if (s->getSortIndex() == Sort::SORT_UNKNOWN)
 	s->symbol()->fillInSortInfo(s);
       cout << s->getSort() << ": " << s << '\n';
+      if (latexBuffer != 0)
+	{
+	  latexBuffer->generateResult(s);
+	  latexBuffer->cleanUp();
+	}
+
       s->deepSelfDestruct();
     }
 }
@@ -344,19 +381,51 @@ void
 Interpreter::showSortsAndSubsorts() const
 {
   currentModule->getFlatModule()->showSortsAndSubsorts(cout);
+  if (latexBuffer)
+    {
+      latexBuffer->generateShow(getFlag(SHOW_COMMAND), "show sorts", currentModule->getFlatModule());
+      currentModule->getFlatModule()->latexShowSortsAndSubsorts(latexBuffer->getStream());
+      latexBuffer->cleanUp();
+    }
 }
 
 void
 Interpreter::showModule(bool all) const
 {
   currentModule->getFlatModule()->showModule(cout, all);
+  if (latexBuffer)
+    {
+      latexBuffer->generateShow(getFlag(SHOW_COMMAND), all ? "show all" : "show desugared", currentModule->getFlatModule());
+      currentModule->getFlatModule()->latexShowModule(latexBuffer->getStream(), all);
+      latexBuffer->cleanUp();
+    }
+}
+
+void
+Interpreter::showPreModule() const
+{
+  currentModule->showModule(cout);
+  if (latexBuffer)
+    {
+      latexBuffer->generateShow(getFlag(SHOW_COMMAND), "show module", currentModule->getFlatModule());
+      currentModule->latexShowModule(latexBuffer->getStream());
+      latexBuffer->cleanUp();
+    }
 }
 
 void
 Interpreter::showView() const
 {
   if (currentView->evaluate())  // in case it became stale
-    currentView->showView(cout);
+    {
+      currentView->showView(cout);
+      if (latexBuffer)
+	{
+	  latexBuffer->generateShow(getFlag(SHOW_COMMAND), "show view", currentView);
+	  currentView->latexShowView(latexBuffer->getStream());
+	  latexBuffer->cleanUp();
+	}
+    }
   else
     IssueWarning("view " << QUOTE(currentView) << " cannot be used due to earlier errors.");
 }
@@ -365,7 +434,15 @@ void
 Interpreter::showProcessedView() const
 {
   if (currentView->evaluate())  // in case it became stale
-    currentView->showProcessedView(cout);
+    {
+      currentView->showProcessedView(cout);
+      if (latexBuffer)
+	{
+	  latexBuffer->generateShow(getFlag(SHOW_COMMAND), "show processed view", currentView);
+	  currentView->latexShowProcessedView(latexBuffer->getStream());
+	  latexBuffer->cleanUp();
+	}
+    }
   else
     IssueWarning("view " << QUOTE(currentView) << " cannot be used due to earlier errors.");
 }
@@ -376,6 +453,15 @@ Interpreter::showModules(bool all) const
   showNamedModules(cout);
   if (all)
     showCreatedModules(cout);
+  if (latexBuffer)
+    {
+      latexBuffer->generateShow(getFlag(SHOW_COMMAND), "show modules");
+      ostream& s = latexBuffer->getStream();
+      latexShowNamedModules(s);
+      if (all)
+	latexShowCreatedModules(s);
+      latexBuffer->cleanUp();
+    }
 }
 
 void
@@ -384,6 +470,15 @@ Interpreter::showViews(bool all) const
   showNamedViews(cout);
   if (all)
     showCreatedViews(cout);
+  if (latexBuffer)
+    {
+      latexBuffer->generateShow(getFlag(SHOW_COMMAND), "show views");
+      ostream& s = latexBuffer->getStream();
+      latexShowNamedViews(s);
+      if (all)
+	latexShowCreatedViews(s);
+      latexBuffer->cleanUp();
+    }
 }
 
 void
@@ -391,54 +486,109 @@ Interpreter::showOps(bool all) const
 {
   currentModule->getFlatModule()->showPolymorphs(cout, false, all);
   currentModule->getFlatModule()->showOps(cout, false, all);
+  if (latexBuffer)
+    {
+      latexBuffer->generateShow(getFlag(SHOW_COMMAND), "show ops", currentModule->getFlatModule());
+      currentModule->getFlatModule()->latexShowPolymorphs(latexBuffer->getStream(), "", all);
+      currentModule->getFlatModule()->latexShowOps(latexBuffer->getStream(), "", all);
+      latexBuffer->cleanUp();
+    }
 }
 
 void
 Interpreter::showVars() const
 {
   currentModule->getFlatModule()->showVars(cout, false);
+  if (latexBuffer)
+    {
+      latexBuffer->generateShow(getFlag(SHOW_COMMAND), "show vars", currentModule->getFlatModule());
+      currentModule->getFlatModule()->latexShowVars(latexBuffer->getStream(), "");
+      latexBuffer->cleanUp();
+    }
 }
 
 void
 Interpreter::showMbs(bool all) const
 {
   currentModule->getFlatModule()->showMbs(cout, false, all);
+  if (latexBuffer)
+    {
+      latexBuffer->generateShow(getFlag(SHOW_COMMAND), "show mbs", currentModule->getFlatModule());
+      currentModule->getFlatModule()->latexShowMbs(latexBuffer->getStream(), "", all);
+      latexBuffer->cleanUp();
+    }
 }
 
 void
 Interpreter::showEqs(bool all) const
 {
   currentModule->getFlatModule()->showEqs(cout, false, all);
+  if (latexBuffer)
+    {
+      latexBuffer->generateShow(getFlag(SHOW_COMMAND), "show eqs", currentModule->getFlatModule());
+      currentModule->getFlatModule()->latexShowEqs(latexBuffer->getStream(), "", all);
+      latexBuffer->cleanUp();
+    }
 }
 
 void
 Interpreter::showRls(bool all) const
 {
   currentModule->getFlatModule()->showRls(cout, false, all);
+  if (latexBuffer)
+    {
+      latexBuffer->generateShow(getFlag(SHOW_COMMAND), "show rls", currentModule->getFlatModule());
+      currentModule->getFlatModule()->latexShowRls(latexBuffer->getStream(), "", all);
+      latexBuffer->cleanUp();
+    }
 }
 
 void
 Interpreter::showStrats(bool all) const
 {
   currentModule->getFlatModule()->showStrats(cout, false, all);
+  if (latexBuffer)
+    {
+      latexBuffer->generateShow(getFlag(SHOW_COMMAND), "show strats", currentModule->getFlatModule());
+      currentModule->getFlatModule()->latexShowStrats(latexBuffer->getStream(), "", all);
+      latexBuffer->cleanUp();
+    }
 }
 
 void
 Interpreter::showSds(bool all) const
 {
   currentModule->getFlatModule()->showSds(cout, false, all);
+  if (latexBuffer)
+    {
+      latexBuffer->generateShow(getFlag(SHOW_COMMAND), "show sds", currentModule->getFlatModule());
+      currentModule->getFlatModule()->latexShowSds(latexBuffer->getStream(), "", all);
+      latexBuffer->cleanUp();
+    }
 }
 
 void
 Interpreter::showKinds() const
 {
   currentModule->getFlatModule()->showKinds(cout);
+  if (latexBuffer)
+    {
+      latexBuffer->generateShow(getFlag(SHOW_COMMAND), "show kinds", currentModule->getFlatModule());
+      currentModule->getFlatModule()->latexShowKinds(latexBuffer->getStream());
+      latexBuffer->cleanUp();
+    }
 }
 
 void
 Interpreter::showSummary() const
 {
   currentModule->getFlatModule()->showSummary(cout);
+  if (latexBuffer)
+    {
+      latexBuffer->generateShow(getFlag(SHOW_COMMAND), "show summary", currentModule->getFlatModule());
+      currentModule->getFlatModule()->latexShowSummary(latexBuffer->getStream());
+      latexBuffer->cleanUp();
+    }
 }
 
 ImportModule*

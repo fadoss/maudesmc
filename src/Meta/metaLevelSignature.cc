@@ -184,6 +184,7 @@
      MACRO(configSymbol, Symbol, 0, 0)
      MACRO(objectSymbol, Symbol, 0, 0)
      MACRO(msgSymbol, Symbol, 0, 0)
+     MACRO(portalSymbol, Symbol, 0, 0)
      MACRO(pconstSymbol, Symbol, 0, 0)
      MACRO(specialSymbol, FreeSymbol, 0, 1)
 
@@ -341,6 +342,7 @@
      //
      MACRO(mixfixSymbol, Symbol, 0, 0)
      MACRO(withParensSymbol, Symbol, 0, 0)
+     MACRO(withSortsSymbol, Symbol, 0, 0)
      MACRO(flatSymbol, Symbol, 0, 0)
      MACRO(formatPrintOptionSymbol, Symbol, 0, 0)
      MACRO(numberSymbol, Symbol, 0, 0)

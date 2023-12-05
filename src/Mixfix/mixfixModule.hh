@@ -200,7 +200,8 @@ public:
   ModuleType getModuleType() const;
   static const char* moduleTypeString(ModuleType type);
   static const char* moduleEndString(ModuleType type);
-  SymbolType getSymbolType(Symbol* symbol) const;
+  SymbolType getSymbolType(const Symbol* symbol) const;
+  int getPolymorphIndex(const Symbol* symbol) const;
   int getPrec(const Symbol* symbol) const;
   void getGather(const Symbol* symbol, Vector<int>& gather) const;
   const Vector<int>& getFormat(const Symbol* symbol) const;
@@ -275,10 +276,36 @@ public:
   //
   //	Pretty print functions.
   //
-  void bufferPrint(Vector<int>& buffer, Term* term, int printFlags);
-  void bufferPrint(Vector<int>& buffer, StrategyExpression* term, int printFlags);
+  void bufferPrint(Vector<int>& buffer, Term* term, const PrintSettings& printSettings);
+  void bufferPrint(Vector<int>& buffer, StrategyExpression* term, const PrintSettings& printSettings);
   static Sort* disambiguatorSort(const Term* term);
   int getSMT_NumberToken(const mpq_class& value, Sort* sort);
+  void printModifiers(ostream& s, Int64 number = NONE, Int64 number2 = NONE);
+  static void prettyPrint(ostream& s, const Term* term, bool rangeKnown = false);
+  static void prettyPrint(ostream& s, DagNode* dagNode, bool rangeKnown = false);
+  static bool prettyPrint(ostream& s, StrategyExpression* strategy, int requiredPrec);
+  static void clearIndent();
+  static void clearColor(ostream& s);
+  //
+  //	LaTeX conversion functions.
+  //
+  static string latexStructuredName(const Vector<int>& codes, const Module* m);
+  static string latexSort(int code, const Module* module);
+  static string latexSort(const Sort* sort);
+  static string latexType(const Sort* sort);
+  string latexStructuredConstant(int code) const;
+  static string latexPrettyOp(int code);
+  static string latexConstant(int code, const Module* module);
+  static string latexTokenVector(const Vector<Token>& tokens, Index first, Index last);
+
+  //
+  //	Latex pretty print functions.
+  //
+  static void latexPrettyPrint(ostream& s, DagNode* dagNode);
+  static void latexPrettyPrint(ostream& s, Term* term, bool rangeKnown = false);
+  static void latexPrintDagNode(ostream& s, DagNode* dagNode);
+  static void latexPrintGather(ostream& s, const Vector<int>& gather);
+  static void latexPrintFormat(ostream& s, const Vector<int>& format);
   //
   //	Misc.
   //
@@ -575,22 +602,24 @@ private:
 
   static Term* findNonlinearVariable(Term* term, NatSet& seenIndices);
 
-  void printVariable(ostream& s, int name, Sort* sort) const;
-  void graphPrint(ostream& s, DagNode* dagNode);
+  void printVariable(ostream& s, int name, Sort* sort, const PrintSettings& printSettings) const;
+  void graphPrint(ostream& s, DagNode* dagNode, const PrintSettings& printSettings);
 
-  static void printPrefixName(ostream& s, const char* prefixName, SymbolInfo& si);
+  static void printPrefixName(ostream& s, const char* prefixName, SymbolInfo& si, const PrintSettings& printSettings);
   static int printTokens(ostream& s,
 			 const SymbolInfo& si,
 			 int pos,
-			 const char* color = 0);
+			 const char* color,
+			 const PrintSettings& printSettings);
   static void printTails(ostream& s,
 			 const SymbolInfo& si,
 			 int pos,
 			 int nrTails,
 			 bool needAssocParen,
-			 bool checkForInterrupt = false,
-			 const char* color = 0);
-  static bool fancySpace(ostream& s, int spaceToken);
+			 bool checkForInterrupt,
+			 const char* color,
+			 const PrintSettings& printSettings);
+  static bool fancySpace(ostream& s, int spaceToken, const PrintSettings& printSettings);
   static int chooseDisambiguator(Symbol* s);
   static void graphCount(DagNode* dagNode, PointerSet& visited, Vector<mpz_class>& counts);
   static void makeIterName(string& name, int id, const mpz_class& number);
@@ -601,54 +630,53 @@ private:
   //	Member functions for Term* -> Vector<int>&  pretty printer.
   //
   static void prefix(Vector<int>& buffer, bool needDisambig);
-  static void suffix(Vector<int>& buffer, Term* term, bool needDisambig, int printFlags);
+  static void suffix(Vector<int>& buffer, Term* term, bool needDisambig, const PrintSettings& printSettings);
   void prettyPrint(Vector<int>& buffer,
+		   const PrintSettings& printSettings,
 		   Term* term,
 		   int requiredPrec,
 		   int leftCapture,
 		   const ConnectedComponent* leftCaptureComponent,
 		   int rightCapture,
 		   const ConnectedComponent* rightCaptureComponent,
-		   bool rangeKnown,
-		   int printFlags);
+		   bool rangeKnown);
+  void handleVariable(Vector<int>& buffer, Term* term, const PrintSettings& printSettings);
+  bool handleIter(Vector<int>& buffer, Term* term, SymbolInfo& si, bool rangeKnown, const PrintSettings& printSettings);
+  bool handleMinus(Vector<int>& buffer, Term* term, bool rangeKnown, const PrintSettings& printSettings);
+  bool handleDivision(Vector<int>& buffer, Term* term, bool rangeKnown, const PrintSettings& printSettings);
+  void handleFloat(Vector<int>& buffer, Term* term, bool rangeKnown, const PrintSettings& printSettings);
+  void handleString(Vector<int>& buffer, Term* term, bool rangeKnown, const PrintSettings& printSettings);
+  void handleQuotedIdentifier(Vector<int>& buffer, Term* term, bool rangeKnown, const PrintSettings& printSettings);
+  void handleSMT_NumberSymbol(Vector<int>& buffer, Term* term, bool rangeKnown, const PrintSettings& printSettings);
 
-  void handleVariable(Vector<int>& buffer, Term* term, int printFlags);
-  bool handleIter(Vector<int>& buffer, Term* term, SymbolInfo& si, bool rangeKnown, int printFlags);
-  bool handleMinus(Vector<int>& buffer, Term* term, bool rangeKnown, int printFlags);
-  bool handleDivision(Vector<int>& buffer, Term* term, bool rangeKnown, int printFlags);
-  void handleFloat(Vector<int>& buffer, Term* term, bool rangeKnown, int printFlags);
-  void handleString(Vector<int>& buffer, Term* term, bool rangeKnown, int printFlags);
-  void handleQuotedIdentifier(Vector<int>& buffer, Term* term, bool rangeKnown, int printFlags);
-  void handleSMT_NumberSymbol(Vector<int>& buffer, Term* term, bool rangeKnown, int printFlags);
+  static void printKind(Vector<int>& buffer, const Sort* kind, const PrintSettings& printSettings);
+  static void printSort(Vector<int>& buffer, const Sort* sort, const PrintSettings& printSettings);
+  static void printDotSort(Vector<int>& buffer, const Sort* sort, const PrintSettings& printSettings);
+  static void printVarSort(Vector<int>& buffer, string& fullName, const Sort* sort, const PrintSettings& printSettings);
 
-  static void printKind(Vector<int>& buffer, const Sort* kind, int printFlags);
-  static void printSort(Vector<int>& buffer, const Sort* sort, int printFlags);
-  static void printDotSort(Vector<int>& buffer, const Sort* sort, int printFlags);
-  static void printVarSort(Vector<int>& buffer, string& fullName, const Sort* sort, int printFlags);
-
-  int printTokens(Vector<int>& buffer, const SymbolInfo& si, int pos, int printFlags);
+  int printTokens(Vector<int>& buffer, const SymbolInfo& si, int pos, const PrintSettings& printSettings);
   void printTails(Vector<int>& buffer,
 		  const SymbolInfo& si,
 		  int pos,
 		  int nrTails,
 		  bool needAssocParen,
-		  int printFlags);
-  void printPrefixName(Vector<int>& buffer, int prefixName, SymbolInfo& si, int printFlags);
+		  const PrintSettings& printSettings);
+  void printPrefixName(Vector<int>& buffer, int prefixName, SymbolInfo& si, const PrintSettings& printSettings);
   void handleFormat(Vector<int>& buffer, int spaceToken);
 
   //
   //	Member functions for StrategyExpression* -> Vector<int>&  pretty printer.
   //
   void prettyPrint(Vector<int>& buffer,
-		   StrategyExpression* term,
-		   int requiredPrec,
-		   int printFlags);
+		   const PrintSettings& printSettings,
+		   StrategyExpression* expr,
+		   int requiredPrec);
   void prettyPrint(Vector<int>& buffer,
 		   const Vector<ConditionFragment*>& condition,
-		   int printFlags);
+		   const PrintSettings& printSettings);
   void prettyPrint(Vector<int>& buffer,
 		   const ConditionFragment* fragment,
-		   int printFlags);
+		   const PrintSettings& printSettings);
 
   static Vector<int> emptyGather;
   static Vector<int> gatherAny;
@@ -777,57 +805,66 @@ private:
 
   int visit(DagNode* dagNode, PointerSet& visited, Rope& accumulator);
 
-  bool ambiguous(int iflags);
+  bool ambiguous(int iflags) const;
   static bool rangeOfArgumentsKnown(int iflags, bool rangeKnown, bool rangeDisambiguated);
   void decideIteratedAmbiguity(bool rangeKnown,
 			       Symbol* symbol,
 			       const mpz_class& number,
 			       bool& needToDisambiguate,
-			       bool& argumentRangeKnown);
+			       bool& argumentRangeKnown) const;
   int checkPseudoIterated(Symbol* symbol, const Vector<Sort*>& domainAndRange);
   void checkIterated(Symbol* symbol, const Vector<Sort*>& domainAndRange);
   //
   //	Member functions for DagNode* -> ostream& pretty printer.
   //
-  const char* computeColor(ColoringInfo& coloringInfo, DagNode* dagNode);
-  static void prefix(ostream& s, bool needDisambig, const char* color);
+  const char* computeColor(ColoringInfo& coloringInfo, DagNode* dagNode, const PrintSettings& printSettings);
+  static void prefix(ostream& s, bool needDisambig, const char* color = nullptr);
   static void suffix(ostream& s, DagNode* dagNode, bool needDisambig, const char* color);
   void handleFloat(ostream& s,
 		   DagNode* dagNode,
 		   bool rangeKnown,
-		   const char* color);
+		   const char* color,
+		   const PrintSettings& printSettings);
   void handleString(ostream& s,
 		    DagNode* dagNode,
 		    bool rangeKnown,
-		    const char* color);
+		    const char* color,
+		    const PrintSettings& printSettings);
   void handleQuotedIdentifier(ostream& s,
 			      DagNode* dagNode,
 			      bool rangeKnown,
-			      const char* color);
+			      const char* color,
+			      const PrintSettings& printSettings);
   void handleVariable(ostream& s,
 		      DagNode* dagNode,
 		      bool rangeKnown,
-		      const char* color);
+		      const char* color,
+		      const PrintSettings& printSettings);
   bool handleIter(ostream& s,
 		  ColoringInfo& coloringInfo,
 		  DagNode* dagNode,
 		  SymbolInfo& si,
 		  bool rangeKnown,
-		  const char* color);
+		  const char* color,
+		  const PrintSettings& printSettings);
   bool handleMinus(ostream& s,
 		   DagNode* dagNode,
 		   bool rangeKnown,
-		   const char* color);
+		   const char* color,
+		   const PrintSettings& printSettings);
   bool handleDivision(ostream& s,
 		      DagNode* dagNode,
 		      bool rangeKnown,
-		      const char* color);
+		      const char* color,
+		      const PrintSettings& printSettings);
   void handleSMT_Number(ostream& s,
 			DagNode* dagNode,
 			bool rangeKnown,
-			const char* color);
+			const char* color,
+			const PrintSettings& printSettings);
   void prettyPrint(ostream& s,
 		   ColoringInfo& coloringInfo,
+		   const PrintSettings& printSettings,
 		   DagNode* dagNode,
 		   int requiredPrec,
 		   int leftCapture,
@@ -838,41 +875,43 @@ private:
   //
   //	Member functions for Term* -> ostream& pretty printer.
   //
-  static const char* computeColor(SymbolType st);
-  static void suffix(ostream& s, Term* term, bool needDisambig, const char* color);
+  static const char* computeColor(SymbolType st, const PrintSettings& printSettings);
+  static void suffix(ostream& s, Term* term, bool needDisambig);
   bool handleIter(ostream& s,
 		  Term* term,
 		  SymbolInfo& si,
 		  bool rangeKnown,
-		  const char* color);
+		  const PrintSettings& printSettings);
   bool handleMinus(ostream& s, Term* term,
 		   bool rangeKnown,
-		   const char* color);
+		   const PrintSettings& printSettings);
   bool handleDivision(ostream& s,
 		      Term* term,
 		      bool rangeKnown,
-		      const char* color);
+		      const PrintSettings& printSettings);
   void handleFloat(ostream& s,
 		   Term* term,
 		   bool rangeKnown,
-		   const char* color);
+		   const PrintSettings& printSettings);
   void handleString(ostream& s,
 		    Term* term,
 		    bool rangeKnown,
-		    const char* color);
+		    const PrintSettings& printSettings);
   void handleQuotedIdentifier(ostream& s,
 			      Term* term,
 			      bool rangeKnown,
-			      const char* color);
+			      const PrintSettings& printSettings);
   void handleVariable(ostream& s,
 		      Term* term,
 		      bool rangeKnown,
-		      const char* color);
+		      const PrintSettings& printSettings);
   void handleSMT_Number(ostream& s,
 			Term* term,
 			bool rangeKnown,
-			const char* color);
+			const PrintSettings& printSettings);
+public:
   void prettyPrint(ostream& s,
+		   const PrintSettings& printSettings,
 		   Term* term,
 		   int requiredPrec,
 		   int leftCapture,
@@ -880,13 +919,87 @@ private:
 		   int rightCapture,
 		   const ConnectedComponent* rightCaptureComponent,
 		   bool rangeKnown);
+private:
 
-  static bool prettyPrint(ostream& s,
-			  StrategyExpression* strategy,
-			  int requiredPrec);
+  //
+  //	Common LaTeX functions.
+  //
+  static void latexPrintPrefixName(ostream& s, const char* prefixName, const SymbolInfo& si, const PrintSettings& printSettings);
+  static int latexPrintTokens(ostream& s, const SymbolInfo& si, int pos, const char* color, const PrintSettings& printSettings);
+  static void latexPrefix(ostream& s, bool needDisambig, const char* color = nullptr);
+  static void latexPrintTails(ostream& s,
+			      const SymbolInfo& si,
+			      int pos,
+			      int nrTails,
+			      bool needAssocParen,
+			      bool checkForInterrupt,
+			      const char* color,
+			      const PrintSettings& printSettings);
+  static bool latexFancySpace(ostream& s, int spaceToken, const PrintSettings& printSettings);
+  //
+  //	Member functions for Term* -> LaTeX pretty printer.
+  //
+  static const char* latexComputeColor(SymbolType st, const PrintSettings& printSettings);
+  static void latexSuffix(ostream& s, Term* term, bool needDisambig);
+  bool latexHandleIter(ostream& s,
+		       Term* term,
+		       const SymbolInfo& si,
+		       bool rangeKnown,
+		       const PrintSettings& printSettings);
+  bool latexHandleMinus(ostream& s, Term* term, bool rangeKnown, const PrintSettings& printSettings) const;
+  bool latexHandleDivision(ostream& s, Term* term, bool rangeKnown, const PrintSettings& printSettings) const;
+  void latexHandleFloat(ostream& s, Term* term, bool rangeKnown, const PrintSettings& printSettings) const;
+  void latexHandleString(ostream& s, Term* term, bool rangeKnown, const PrintSettings& printSettings) const;
+  void latexHandleQuotedIdentifier(ostream& s, Term* term, bool rangeKnown, const PrintSettings& printSettings) const;
+  void latexHandleVariable(ostream& s, Term* term, bool rangeKnown, const PrintSettings& printSettings) const;
+  void latexHandleSMT_Number(ostream& s, Term* term, bool rangeKnown, const PrintSettings& printSettings);
+
+protected:
+  void latexPrettyPrint(ostream& s,
+			const PrintSettings& printSettings,
+			Term* term,
+			int requiredPrec,
+			int leftCapture,
+			const ConnectedComponent* leftCaptureComponent,
+			int rightCapture,
+			const ConnectedComponent* rightCaptureComponent,
+			bool rangeKnown);
+  void latexPrintStrategyTerm(ostream& s, RewriteStrategy* rs, Term* term) const;
+
+private:
+  //
+  //	Member functions for DagNode* -> LaTeX pretty printer.
+  //
+  static const char* latexComputeColor(ColoringInfo& coloringInfo, DagNode* dagNode, const PrintSettings& printSettings);
+  static void latexSuffix(ostream& s, DagNode* dagNode, bool needDisambig, const char* color);
+  bool latexHandleIter(ostream& s,
+		       ColoringInfo& coloringInfo,
+		       DagNode* dagNode,
+		       SymbolInfo& si,
+		       bool rangeKnown,
+		       const char* color,
+		       const PrintSettings& printSettings);
+  bool latexHandleMinus(ostream& s, DagNode* dagNode, bool rangeKnown, const char* color, const PrintSettings& printSettings);
+  bool latexHandleDivision(ostream& s, DagNode* dagNode, bool rangeKnown, const char* color, const PrintSettings& printSettings);
+  void latexHandleFloat(ostream& s, DagNode* dagNode, bool rangeKnown, const char* color, const PrintSettings& printSettings);
+  void latexHandleString(ostream& s, DagNode* dagNode, bool rangeKnown, const char* color, const PrintSettings& printSettings);
+  void latexHandleQuotedIdentifier(ostream& s, DagNode* dagNode, bool rangeKnown, const char* color, const PrintSettings& printSettings);
+  void latexHandleVariable(ostream& s, DagNode* dagNode, bool rangeKnown, const char* color, const PrintSettings& printSettings);
+  void latexHandleSMT_Number(ostream& s, DagNode* dagNode, bool rangeKnown, const char* color, const PrintSettings& printSettings);
+  void latexPrettyPrint(ostream& s,
+			const PrintSettings& printSettings,
+			ColoringInfo& coloringInfo,
+			DagNode* dagNode,
+			int requiredPrec,
+			int leftCapture,
+			const ConnectedComponent* leftCaptureComponent,
+			int rightCapture,
+			const ConnectedComponent* rightCaptureComponent,
+			bool rangeKnown);
 
   NatSet objectSymbols;
   NatSet messageSymbols;
+  NatSet portalSymbols;
   StatementTransformer* statementTransformer = 0;
 
   //
@@ -900,17 +1013,32 @@ private:
   SMT_Info smtInfo;
   SMT_Status smtStatus;
 
-  friend ostream& operator<<(ostream& s, const Term* term);
-  friend ostream& operator<<(ostream& s, DagNode* dagNode);
-  friend ostream& operator<<(ostream& s, StrategyExpression* strategy);
+  static const char* latexRed;
+  static const char* latexGreen;
+  static const char* latexBlue;
+  static const char* latexCyan;
+  static const char* latexMagenta;
+  static const char* latexYellow;
+  static const char* latexResetColor;
 };
 
 inline SymbolType
-MixfixModule::getSymbolType(Symbol* symbol) const
+MixfixModule::getSymbolType(const Symbol* symbol) const
 {
   Assert(symbol->getModule() == this, "symbol " << symbol <<
 	 " belongs to " << symbol->getModule() << " and not " << this);
   return symbolInfo[symbol->getIndexWithinModule()].symbolType;
+}
+
+inline int
+MixfixModule::getPolymorphIndex(const Symbol* symbol) const
+{
+  //
+  //	If symbol is an instantiation of a polymorph, return its index or else return NONE.
+  //
+  Assert(symbol->getModule() == this, "symbol " << symbol <<
+	 " belongs to " << symbol->getModule() << " and not " << this);
+  return symbolInfo[symbol->getIndexWithinModule()].polymorphIndex;
 }
 
 inline Token
@@ -1135,6 +1263,22 @@ inline void
 MixfixModule::installStatementTransformer(StatementTransformer* st)
 {
   statementTransformer = st;
+}
+
+inline void
+MixfixModule::clearIndent()
+{
+  globalIndent = 0;
+}
+
+inline void
+MixfixModule::clearColor(ostream& s)
+{
+  if (attributeUsed)
+    {
+      attributeUsed = false;
+      s << Tty(Tty::RESET);
+    }
 }
 
 #endif

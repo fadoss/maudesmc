@@ -36,6 +36,7 @@
 
 //	our stuff
 #include "auxProperty.cc"
+#include "latexToken.cc"
 
 StringTable Token::stringTable;
 Vector<int> Token::specialProperties;
@@ -97,12 +98,7 @@ Token::printTokenVector(ostream& s,
 	    {
 	      if (c == ')' || c == ']' || c == '}' || c == ',')
 		needSpace = false;
-	      else if (c == '(')
-		{
-		  needSpace = false;
-		  nextNeedSpace = false;
-		}
-	      else if (c == '[' || c == '{')
+	      else if (c == '(' || c == '[' || c == '{')
 		nextNeedSpace = false;
 	    }
 	  if (needSpace)
@@ -231,10 +227,42 @@ Token::getInt(int& value) const
   return pointer != str && *pointer == '\0';
 }
 
+string
+Token::prettyOpName(int prefixNameCode)
+{
+  int sp = specialProperties[prefixNameCode];
+  if (sp != NONE && sp != CONTAINS_COLON && sp != ENDS_IN_COLON && sp != ITER_SYMBOL)
+    return "";  // regular string literals exit here
+  //
+  //	We make a "pretty" version of a prefix name by removing backquotes, except
+  //	those in front of ( and ). The result is no longer a valid single token but
+  //	can be parsed in an op declaration.
+  //	If there were no backquotes to remove, we flag this by returning the empty string.
+  //
+  bool prettified = false;
+  string result;
+  for (const char* p = stringTable.name(prefixNameCode); *p; ++p)
+    {
+      char c = *p;
+      if (c == '`')
+	{
+	  char c = *(p + 1);
+	  if (!(c == '(' || c == ')'))
+	    {
+	      if (!(c == '[' || c == ']' || c == '{' || c == '}' || c  == ','))
+		result += ' ';
+	      prettified = true;
+	      continue;
+	    }
+	}
+      result += c;
+    }
+  return prettified ? result : "";
+}
+
 int
 Token::extractMixfix(int prefixNameCode, Vector<int>& mixfixSyntax)
 {
-  
   int sp = specialProperties[prefixNameCode];
   if (sp != NONE && sp != CONTAINS_COLON && sp != ENDS_IN_COLON && sp != ITER_SYMBOL)
     return 0;  // regular string literals exit here
@@ -438,23 +466,23 @@ Token::looksLikeRational(const char* s)
 bool
 Token::split(int code, int& prefix, int& suffix)
 {
+  buffer.clear();
   const char* p = stringTable.name(code);
-  size_t len = strlen(p);
-  char* t = new char[len + 1];
-  strcpy(t, p);
-  for (size_t i = len - 1; i > 0; --i)
+  Index len = strlen(p);
+  for (Index i = len - 1; i > 0; --i)  // don't consider ':' or '.' in p[0]
     {
-      char c = t[i];
+      char c = p[i];
       if (c == ':' || c == '.')
 	{
-	  t[i] = '\0';
-	  prefix = encode(t);
-	  suffix = (i == len - 1) ? NONE : encode(t + i + 1);
-	  delete [] t;
+	  suffix = (i == len - 1) ? NONE : encode(p + i + 1);
+	  buffer.resize(i + 1);
+	  for (Index j = 0; j != i; ++j)
+	    buffer[j] = p[j];
+	  buffer[i] = '\0';
+	  prefix = encode(buffer.data());
 	  return true;
 	}
     }
-  delete [] t;
   return false;
 }
 
@@ -490,9 +518,8 @@ Token::splitKind(int code, Vector<int>& codes)
 {
   codes.clear();
   const char* p = stringTable.name(code);
-  size_t len = strlen(p);
-  char* t = new char[len + 1];
-  p = strcpy(t, p);
+  buffer.resize(strlen(p) + 1);
+  p = strcpy(buffer.data(), p);
   if (*p++ =='`' && *p++ == '[')
     {
       for(;;)
@@ -509,10 +536,7 @@ Token::splitKind(int code, Vector<int>& codes)
 		case ']':
 		  {
 		    if (*p == '\0')
-		      {
-			delete [] t;
-			return true;
-		      }
+		      return true;
 		  }
 		case ',':
 		  continue;
@@ -521,7 +545,6 @@ Token::splitKind(int code, Vector<int>& codes)
 	  break;
 	}
     }
-  delete [] t;
   return false;
 }
 

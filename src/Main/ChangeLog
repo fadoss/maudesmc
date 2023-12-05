@@ -1,3 +1,283 @@
+2023-11-22  Steven Eker  <eker@pup>
+
+	* metaInterpreter.maude: added printTermToString, printedTermToString
+	messages
+	printTerm message now takes a conseal symbols argument; added backward
+	compatibility symbol
+
+	* prelude.maude:  metaPrettyPrint() now takes a final QidSet argument for
+	conceal symbols; added backward compatibility definition
+
+2023-11-21  Steven Eker  <eker@pup>
+
+	* prelude.maude: added constant with-sorts of sort PrintOption
+	in META-LEVEL
+	added descent function
+	metaPrintToString : Module VariableSet Term PrintOptionSet Qid ~> String
+
+2023-11-16  Steven Eker  <eker@pup>
+
+	* main.cc (main): Interpreter::PRINT_MIXFIX ->
+	PrintSettings::PRINT_MIXFIX
+
+===================================Maude154===========================================
+
+2023-11-06  Steven Eker  <eker@pup>
+
+	* maude.sty: added \maudeAllowLineBreak and use it for \maudeComma
+
+2023-11-02  Steven Eker  <eker@pup>
+
+	* model-checker.maude: make _|=_ partial in order to protect
+	BOOL
+
+	* prelude.maude: added portal constant to fmod META-MODULE; added
+	op-hook portalSymbol to fmod META-LEVEL
+
+2023-11-01  Steven Eker  <eker@pup>
+
+	* prelude.maude: add portal attribute to <> in mod CONFIGURATION
+
+2023-10-30  Steven Eker  <eker@pup>
+
+	* prelude.maude: remove format attribute from AttributeSet _,_
+	changed format statements for NarrowingApplyResult,
+	NarrowingSearchResult, NarrowingSearchPathResult, NarrowingStep
+	to put explict space after commas
+
+2023-10-24  Steven Eker  <eker@pup>
+
+	* maude.sty: added \maudeEllipsis
+
+2023-10-17  Steven Eker  <eker@pup>
+
+	* maude.sty: use \textnormal{:} for \maudeVariableColon;
+	use \mid for \maudeStratUnion
+	added ASCII versions for \maudeOneStep, \maudeAtLeastOneStep,
+	\maudeAnySteps, \maudeToNormalForm, \maudeIsAssigned
+	added ASCII versions for \maudePathWithLabel, \maudePathWithoutLabel
+	added ASCII versions for \maudePathLeft, \maudePathRight,
+	\maudeArcArrow
+
+2023-10-16  Steven Eker  <eker@pup>
+
+	* maude.sty: add space before --> for \maudeFunction in ASCII mode;
+	added \maudeConstantDecl
+
+2023-10-13  Steven Eker  <eker@pup>
+
+	* maude.sty: added \maudeTilde
+
+2023-10-11  Steven Eker  <eker@pup>
+
+	* maude.sty: added ASCII option
+
+2023-10-10  Steven Eker  <eker@pup>
+
+	* maude.sty: added \maudeRaw, \maudePipe
+
+2023-10-05  Steven Eker  <eker@pup>
+
+	* maude.sty: added \maudePrefixLabel
+
+2023-10-04  Steven Eker  <eker@pup>
+
+	* maude.sty: added \maudeIter
+
+===================================Maude153===========================================
+
+2023-09-15  Steven Eker  <eker@pup>
+
+	* maude.sty: add \maudeUnify
+
+2023-09-14  Steven Eker  <eker@pup>
+
+	* maude.sty: added \maudeMatch
+
+2023-09-12  Steven Eker  <eker@pup>
+
+	* maude.sty: added comments to explain maudeShowParagraph
+	and maudeResultParagraph
+
+2023-09-11  Steven Eker  <eker@pup>
+
+	* maude.sty: require tabto package
+
+===================================Maude152===========================================
+
+2023-08-11  Steven Eker  <eker@pup>
+
+	* maude.sty: use longtable, added \maudeBigIndent
+
+2023-08-10  Steven Eker  <eker@pup>
+
+	* maude.sty: fix \maudeArcArrow
+
+2023-08-09  Steven Eker  <eker@pup>
+
+	* maude.sty: made pretty using extarrows; added
+	\maudeArcArrow
+
+2023-08-08  Steven Eker  <eker@pup>
+
+	* maude.sty: added \maudePathLeft, \maudePathRight,
+	\maudePathWithLabel, \maudePathWithoutLabel
+
+2023-08-07  Steven Eker  <eker@pup>
+
+	* prelude.maude: added op-hook disjunctionSymbol tp .=.
+
+2023-08-03  Steven Eker  <eker@pup>
+
+	* maude.sty: change spacing around search arrows; added
+	\maudeIsAssigned
+
+2023-08-02  Steven Eker  <eker@pup>
+
+	* maude.sty: added \maudeOneStep, \maudeAtLeastOneStep,
+	\maudeAnySteps, \maudeToNormalForm
+
+2023-08-01  Steven Eker  <eker@pup>
+
+	* maude.sty: added \endCommand
+
+2023-07-31  Steven Eker  <eker@pup>
+
+	* maude.sty: add space to \maudeStratUnion and \maudeStratQuery
+
+2023-07-28  Steven Eker  <eker@pup>
+
+	* maude.sty: added \maudeStratAssign, \maudeStratConcat,
+	\maudeStratQuery, \maudeStratColon, \maudeStratBang
+	increase space in \maudeStratAt
+	increase space in \maudeStratConcat
+	added \maudeStratUnion
+
+	* main.cc (printHelp): add -latex-log=<filename>
+
+2023-07-27  Steven Eker  <eker@pup>
+
+	* maude.sty: added \maudeStratAt
+
+	* prelude.maude: added fmod INITIAL-EQUALITY-PREDICATE
+
+===================================Maude151===========================================
+
+2023-07-21  Steven Eker  <eker@pup>
+
+	* maude.sty: added \maudeRenaming and \maudeSummation; deleted
+	\maudeStructuredConstant
+
+2023-07-17  Steven Eker  <eker@pup>
+
+	* maude.sty: reorganized with explanations for font choices;
+	put \small inside of \textnormal so it works in math mode
+
+2023-07-14  Steven Eker  <eker@pup>
+
+	* maude.sty: use \small \textnormal for \maudeParameter
+
+2023-06-26  Steven Eker  <eker@pup>
+
+	* maude.sty: added \maudeBannerIndent; added maudeBanner
+	environment; added \maudeNormal
+
+	* main.cc (main): call outputBanner()
+	(main): pass seconds to printBanner() and outputBanner()
+	(main): pass date and time to printBanner() and outputBanner()
+	so we have agreement
+
+2023-06-23  Steven Eker  <eker@pup>
+
+	* maude.sty: added \maudeStructuredConstant, \maudeDisambigDot
+
+2023-06-22  Steven Eker  <eker@pup>
+
+	* maude.sty: added \maudeLessThan, \maudeComma
+	added \maudeVariableColon
+	\maudeParameter -> maudeParameterColon
+	use \textsf for \maudeView
+
+2023-06-21  Steven Eker  <eker@pup>
+
+	* maude.sty: added \maudeEndStatement, \maudeLabel, use hanging
+	indent for maudeShowParagraph
+
+2023-06-20  Steven Eker  <eker@pup>
+
+	* maude.sty: added \maudeLeftBracket, \maudeRightBracket
+	added \maudeHasSort, \maudeAssign
+	added \maudeLeftBrace, \maudeRightBrace, \maudeIndent
+	added \maudeView
+
+2023-06-19  Steven Eker  <eker@pup>
+
+	* maude.sty: maudeParagraph -> maudeResultParagraph; added
+	maudeShowParagraph; added \maudeEquals, \maudeRewritesTo,
+	\maudeFunction, \maudePartialFunction, \maudeConjunction
+
+2023-06-15  Steven Eker  <eker@pup>
+
+	* maude.sty: added \maudeSingleQuote, \maudeBackquote, \maudeQid
+
+2023-06-13  Steven Eker  <eker@pup>
+
+	* maude.sty: use \small for maudeModule{}
+	added \maudeAllowBreak, \maudeSymbolic
+	added maudeParagraph environment
+	require comment package
+	use verbatim package instead of comment package because it defined
+	a comment environment with fewer issues
+	don't use fancyvrb after all
+	added \maudeString{}
+	added \maudeLeftParen, \maudeRightParen
+
+2023-06-12  Steven Eker  <eker@pup>
+
+	* maude.sty: added maudeNumber{}; added \maudeSpace; use fancyvrb
+	added maudeSingleChar{}
+	added maudeSort{}, maudeModule{}
+
+2023-06-08  Steven Eker  <eker@pup>
+
+	* maude.sty: require xcolor
+
+2023-06-07  Steven Eker  <eker@pup>
+
+	* maude.sty: created
+
+2023-06-06  Steven Eker  <eker@pup>
+
+	* main.cc (main): added -latex-log= command line option
+
+===================================Maude150===========================================
+
+2023-05-11  Steven Eker  <eker@pup>
+
+	* prng.maude: fixed bug where we had the wrong id-hook; fix hooks
+	for deletePrngMsg, deletedPrngMsg
+
+2023-05-10  Steven Eker  <eker@pup>
+
+	* prng.maude: added deletePrng() and deletedPrng() messages
+
+2023-05-09  Steven Eker  <eker@pup>
+
+	* prng.maude: created
+
+===================================Maude149===========================================
+
+2023-05-05  Steven Eker  <eker@pup>
+
+	* main.cc (printHelp): document -early-quit=N and make use of adjacent
+	string concatenation
+
+2023-05-03  Steven Eker  <eker@pup>
+
+	* main.cc (main): added -early-quit
+
+===================================Maude148===========================================
+
 2023-03-03  Steven Eker  <eker@pup>
 
 	* prelude.maude: update version number

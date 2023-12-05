@@ -56,6 +56,7 @@
 //
 //	C++ stuff.
 //
+#include <typeinfo> 
 #include <cstdint> 
 #include <cstring>
 #include <new>
@@ -107,10 +108,6 @@ typedef ptrdiff_t Index;
 typedef signed char Byte;
 typedef unsigned char Ubyte;
 //
-//	Types for speed.
-//
-typedef int FastBool;  // testing a one-byte bool return value is expensive on some architectures
-//
 //	Shorthand.
 //
 typedef unsigned int Uint;
@@ -133,16 +130,6 @@ typedef long long int Int64;
 #endif
 #define INT64_MIN		(-INT64_MAX-1)
 #define INT64_MIN_STRING	"-9223372036854775808"
-
-#if SIZEOF_UNSIGNED_LONG == 8
-typedef unsigned long Uint64;
-#else
-typedef unsigned long long int Uint64;
-#endif
-//
-//	32 bit arithmetic; sometime we need guarentee of left truncation.
-//
-typedef unsigned int Uint32;
 
 //
 //	floating point
@@ -179,6 +166,20 @@ typedef unsigned int Uint32;
 template <typename T, typename P>
 inline T
 safeCastNonNull(P p)
+{
+#ifndef NO_ASSERT
+  if (dynamic_cast<T>(p) == 0)
+    {
+      cerr << "unexpected null or cast error: "<< __FILE__ << ':' << __LINE__ << '\n';
+      abort();
+    }
+#endif
+  return static_cast<T>(p);
+}
+
+template <typename T, typename P>
+inline T
+downCast(P p)
 {
 #ifndef NO_ASSERT
   if (dynamic_cast<T>(p) == 0)
@@ -392,6 +393,19 @@ Verbose(output) \
 if (globalVerboseFlag) \
   (cerr << Tty(Tty::CYAN) << output << Tty(Tty::RESET) << '\n')
 
+#ifdef PROFILING
+
+#define \
+Profile(color, message) \
+  (cerr << Tty(Tty::color) << message << Tty(Tty::RESET))
+
+#else
+
+#define \
+Profile(color, message)
+
+#endif
+
 extern bool globalAdvisoryFlag;
 extern bool globalVerboseFlag;
 extern bool globalDebugFlag;
@@ -402,16 +416,6 @@ extern bool globalDebugFlag;
 //	or library author thinks.
 //
 extern int returnValueDump;
-
-
-//
-//	Macro for common const_iterator loop.
-//
-//	Too bad we don't have a portable typeof operator.
-//
-#define FOR_EACH_CONST(var, conType, container) \
-const conType::const_iterator var##_end = (container).end(); \
-for (conType::const_iterator var = (container).begin(); var != var##_end; ++var)
 
 inline int
 uplus(int a, int b)
@@ -452,19 +456,13 @@ ceilingDivision(int dividend, int divisor)
 }
 
 inline const char*
-pluralize(int quantity)
+pluralize(int_fast64_t quantity)
 {
   return (quantity == 1) ? "" : "s";
 }
 
-inline const char*
-pluralize(Int64 quantity)
-{
-  return (quantity == 1) ? "" : "s";
-}
-
-const char* int64ToString(Int64 i, int base = 10);
-Int64 stringToInt64(const char* s, bool& error, int base = 10);
+const char* int64ToString(int64_t i, int base = 10);
+int64_t stringToInt64(const char* s, bool& error, int base = 10);
 bool looksLikeFloat(const char* s);
 const char* doubleToString(double d);
 double stringToDouble(const char* s, bool& error);

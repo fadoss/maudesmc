@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2022 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -58,6 +58,8 @@ public:
     //
     BRANCH_SYMBOL,
     EQUALITY_SYMBOL,
+    DECOMPOSE_EQUALITY_SYMBOL,
+    COMMUTATIVE_DECOMPOSE_EQUALITY_SYMBOL,
     FLOAT_OP,
     STRING_OP,
     QUOTED_IDENTIFIER,
@@ -84,6 +86,7 @@ public:
     DIRECTORY_MANAGER_SYMBOL,
     PROCESS_MANAGER_SYMBOL,
     TIME_MANAGER_SYMBOL,
+    PRNG_MANAGER_SYMBOL,
     OBJECT_CONSTRUCTOR_SYMBOL,
 
     END_OF_SYMBOLS_WITH_ATTACHMENTS
@@ -111,22 +114,23 @@ public:
     CONFIG = 0x100,
     OBJECT = 0x200,
     MESSAGE = 0x400,
-    MSG_STATEMENT = 0x800,  // MESSAGE flag was set by msg statement rather than an attribute; only used by SyntacticPreModule
+    PORTAL = 0x800,
+    MSG_STATEMENT = 0x1000,  // MESSAGE flag was set by msg statement rather than an attribute; only used by SyntacticPreModule
     //
     //	Theory attributes.
     //
-    ASSOC = 0x1000,
-    COMM = 0x2000,
-    LEFT_ID = 0x4000,
-    RIGHT_ID = 0x8000,
-    IDEM = 0x10000,
-    ITER = 0x20000,
+    ASSOC = 0x2000,
+    COMM = 0x4000,
+    LEFT_ID = 0x8000,
+    RIGHT_ID = 0x10000,
+    IDEM = 0x20000,
+    ITER = 0x40000,
     //
     //	Misc.
     //
-    PCONST = 0x200000,
-    POLY = 0x400000,
-    DITTO = 0x800000,
+    PCONST = 0x80000,
+    POLY = 0x100000,
+    DITTO = 0x200000,
     //
     //	Conjunctions.
     //
@@ -135,7 +139,7 @@ public:
     //
     //	Simple attributes are just a flag without additional data. They produce a warning if given twice.
     //
-    SIMPLE_ATTRIBUTES = ASSOC | COMM | IDEM | MEMO | CTOR | CONFIG | OBJECT | MESSAGE | ITER | PCONST,
+    SIMPLE_ATTRIBUTES = ASSOC | COMM | IDEM | MEMO | CTOR | CONFIG | OBJECT | MESSAGE | PORTAL | ITER | PCONST,
     //
     //  All flagged attributes except ctor, poly, ditto. They need to agree between declarations of an operator.
     //
@@ -258,7 +262,7 @@ inline bool
 SymbolType::nonAlgebraic() const
 {
   //
-  //	These symbols with these types store nonalebraic "hidden" data.
+  //	These symbols with these types store nonalgebraic "hidden" data.
   //
   int t = getBasicType();
   return t == STRING || t == FLOAT || t == QUOTED_IDENTIFIER;

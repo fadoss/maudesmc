@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2003 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -60,7 +60,13 @@ public:
   static void collectGarbage();
 
   static void setShowGC(bool polarity);
-
+  static void setEarlyQuit(int_fast64_t count);
+  //
+  //	We put this here because we want to do it potentially every garbage collect.
+  //
+  static void setShowResources(bool polarity);
+  static void maybeShowResources();
+  static void showResources(ostream& s);
   //
   //	We provide functions for getting access to the MemoryInfo object
   //	corresponding the a memory block we allocated.
@@ -83,12 +89,19 @@ private:
   struct Arena;			// arena of fixed size nodes
   struct Bucket;		// bucket of variable length allocations
 
-  static bool showGC;		// do we report GC stats to user
+  static Arena* allocateNewArena();
+  static void tidyArenas();
+  static MemoryCell* slowNew();
+  static void* slowAllocateStorage(size_t bytesNeeded);
+  static pair<double, const char*> memConvert(uint_fast64_t nrBytes);
+  
+  static bool showGC;			// do we report GC stats to user
+  static bool showResourcesFlag;	// do we report resource usage to the user
+  static int_fast64_t earlyQuit;	// do we quit early for profiling purposes
   //
   //	Arena management variables.
   //
   static int nrArenas;
-  //static int nrNodesInUse;
   static bool currentArenaPastActiveArena;
   static bool needToCollectGarbage;
   static Arena* firstArena;
@@ -107,12 +120,7 @@ private:
   static size_t bucketStorage;	// total amount of bucket storage (bytes)
   static size_t storageInUse;	// amount of bucket storage in use (bytes)
   static size_t target;		// amount to use before GC (bytes)
-
-  static Arena* allocateNewArena();
-  static void tidyArenas();
-  static MemoryCell* slowNew();
-  static void* slowAllocateStorage(size_t bytesNeeded);
-
+  
 #ifdef GC_DEBUG
   static void stompArenas();
   static void checkArenas();
@@ -167,6 +175,25 @@ inline void
 MemoryCell::setShowGC(bool polarity)
 {
   showGC = polarity;
+}
+
+inline void
+MemoryCell::setShowResources(bool polarity)
+{
+  showResourcesFlag = polarity;
+}
+
+inline void
+MemoryCell::maybeShowResources()
+{
+  if (showResourcesFlag)
+    showResources(cout);
+}
+
+inline void
+MemoryCell::setEarlyQuit(int_fast64_t count)
+{
+  earlyQuit = count;
 }
 
 inline void*

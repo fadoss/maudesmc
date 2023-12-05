@@ -12,17 +12,17 @@ mod BAR is
   subsort Bar < Cid .
   subsorts Object Msg Portal < Configuration .
   op none : -> AttributeSet [ctor] .
-  op _`,_ : AttributeSet AttributeSet -> AttributeSet [ctor assoc comm id: (
-    none).AttributeSet prec 41 gather (e E) format (d d s d)] .
+  op _`,_ : AttributeSet AttributeSet -> AttributeSet [ctor assoc comm id: none
+    prec 41 gather (e E)] .
   op <_:_|_> : Oid Cid AttributeSet -> Object [ctor obj prec 0 gather (& & &)
     special (
     id-hook ObjectConstructorSymbol
     op-hook attributeSetSymbol (_`,_ : AttributeSet AttributeSet ~>
     AttributeSet))] .
   op none : -> Configuration [ctor] .
-  op __ : Configuration Configuration -> Configuration [ctor assoc comm id: (
-    none).Configuration config prec 41 gather (e E)] .
-  op <> : -> Portal [ctor] .
+  op __ : Configuration Configuration -> Configuration [ctor assoc comm id:
+    none config prec 41 gather (e E)] .
+  op <> : -> Portal [ctor portal] .
   op getClass : Object -> Cid .
   op m' : Oid Oid Quux -> Msg [ctor msg] .
   op Bar : -> Bar [ctor] .
@@ -34,6 +34,7 @@ fmod TRUTH-VALUE
 fmod BOOL-OPS
 fmod TRUTH
 fmod EXT-BOOL
+fmod INITIAL-EQUALITY-PREDICATE
 fmod NAT
 fmod INT
 fmod RAT
@@ -198,6 +199,7 @@ fmod TRUTH-VALUE
 fmod BOOL-OPS
 fmod TRUTH
 fmod EXT-BOOL
+fmod INITIAL-EQUALITY-PREDICATE
 fmod NAT
 fmod INT
 fmod RAT
@@ -364,6 +366,7 @@ fmod TRUTH-VALUE
 fmod BOOL-OPS
 fmod TRUTH
 fmod EXT-BOOL
+fmod INITIAL-EQUALITY-PREDICATE
 fmod NAT
 fmod INT
 fmod RAT
@@ -530,6 +533,7 @@ fmod TRUTH-VALUE
 fmod BOOL-OPS
 fmod TRUTH
 fmod EXT-BOOL
+fmod INITIAL-EQUALITY-PREDICATE
 fmod NAT
 fmod INT
 fmod RAT
@@ -694,17 +698,17 @@ mod BAR is
   subsort Attribute < AttributeSet .
   subsorts Object Msg Portal < Configuration .
   op none : -> AttributeSet [ctor] .
-  op _`,_ : AttributeSet AttributeSet -> AttributeSet [ctor assoc comm id: (
-    none).AttributeSet prec 41 gather (e E) format (d d s d)] .
+  op _`,_ : AttributeSet AttributeSet -> AttributeSet [ctor assoc comm id: none
+    prec 41 gather (e E)] .
   op <_:_|_> : Oid Cid AttributeSet -> Object [ctor obj prec 0 gather (& & &)
     special (
     id-hook ObjectConstructorSymbol
     op-hook attributeSetSymbol (_`,_ : AttributeSet AttributeSet ~>
     AttributeSet))] .
   op none : -> Configuration [ctor] .
-  op __ : Configuration Configuration -> Configuration [ctor assoc comm id: (
-    none).Configuration config prec 41 gather (e E)] .
-  op <> : -> Portal [ctor] .
+  op __ : Configuration Configuration -> Configuration [ctor assoc comm id:
+    none config prec 41 gather (e E)] .
+  op <> : -> Portal [ctor portal] .
   op getClass : Object -> Cid .
   eq getClass(< O:Oid : C:Cid | A:AttributeSet >) = C:Cid .
 endm
@@ -713,6 +717,7 @@ fmod TRUTH-VALUE
 fmod BOOL-OPS
 fmod TRUTH
 fmod EXT-BOOL
+fmod INITIAL-EQUALITY-PREDICATE
 fmod NAT
 fmod INT
 fmod RAT
@@ -875,17 +880,17 @@ mod BAR is
   subsort Attribute < AttributeSet .
   subsorts Object Msg Portal < Configuration .
   op none : -> AttributeSet [ctor] .
-  op _`,_ : AttributeSet AttributeSet -> AttributeSet [ctor assoc comm id: (
-    none).AttributeSet prec 41 gather (e E) format (d d s d)] .
+  op _`,_ : AttributeSet AttributeSet -> AttributeSet [ctor assoc comm id: none
+    prec 41 gather (e E)] .
   op <_:_|_> : Oid Cid AttributeSet -> Object [ctor obj prec 0 gather (& & &)
     special (
     id-hook ObjectConstructorSymbol
     op-hook attributeSetSymbol (_`,_ : AttributeSet AttributeSet ~>
     AttributeSet))] .
   op none : -> Configuration [ctor] .
-  op __ : Configuration Configuration -> Configuration [ctor assoc comm id: (
-    none).Configuration config prec 41 gather (e E)] .
-  op <> : -> Portal [ctor] .
+  op __ : Configuration Configuration -> Configuration [ctor assoc comm id:
+    none config prec 41 gather (e E)] .
+  op <> : -> Portal [ctor portal] .
   op getClass : Object -> Cid .
   op Bar : -> Bar .
   eq getClass(< O:Oid : C:Cid | A:AttributeSet >) = C:Cid .
@@ -895,6 +900,7 @@ fmod TRUTH-VALUE
 fmod BOOL-OPS
 fmod TRUTH
 fmod EXT-BOOL
+fmod INITIAL-EQUALITY-PREDICATE
 fmod NAT
 fmod INT
 fmod RAT
@@ -1063,6 +1069,7 @@ fmod TRUTH-VALUE
 fmod BOOL-OPS
 fmod TRUTH
 fmod EXT-BOOL
+fmod INITIAL-EQUALITY-PREDICATE
 fmod NAT
 fmod INT
 fmod RAT
@@ -1224,17 +1231,17 @@ mod BAR is
   subsort Attribute < AttributeSet .
   subsorts Object Msg Portal < Configuration .
   op none : -> AttributeSet [ctor] .
-  op _`,_ : AttributeSet AttributeSet -> AttributeSet [ctor assoc comm id: (
-    none).AttributeSet prec 41 gather (e E) format (d d s d)] .
+  op _`,_ : AttributeSet AttributeSet -> AttributeSet [ctor assoc comm id: none
+    prec 41 gather (e E)] .
   op <_:_|_> : Oid Cid AttributeSet -> Object [ctor obj prec 0 gather (& & &)
     special (
     id-hook ObjectConstructorSymbol
     op-hook attributeSetSymbol (_`,_ : AttributeSet AttributeSet ~>
     AttributeSet))] .
   op none : -> Configuration [ctor] .
-  op __ : Configuration Configuration -> Configuration [ctor assoc comm id: (
-    none).Configuration config prec 41 gather (e E)] .
-  op <> : -> Portal [ctor] .
+  op __ : Configuration Configuration -> Configuration [ctor assoc comm id:
+    none config prec 41 gather (e E)] .
+  op <> : -> Portal [ctor portal] .
   op getClass : Object -> Cid .
   op a`:_ : Foo -> Bar [prec 15 gather (E)] .
   eq getClass(< O:Oid : C:Cid | A:AttributeSet >) = C:Cid .
@@ -1244,6 +1251,7 @@ fmod TRUTH-VALUE
 fmod BOOL-OPS
 fmod TRUTH
 fmod EXT-BOOL
+fmod INITIAL-EQUALITY-PREDICATE
 fmod NAT
 fmod INT
 fmod RAT
@@ -1405,17 +1413,17 @@ mod BAR is
   subsort Attribute < AttributeSet .
   subsorts Object Msg Portal < Configuration .
   op none : -> AttributeSet [ctor] .
-  op _`,_ : AttributeSet AttributeSet -> AttributeSet [ctor assoc comm id: (
-    none).AttributeSet prec 41 gather (e E) format (d d s d)] .
+  op _`,_ : AttributeSet AttributeSet -> AttributeSet [ctor assoc comm id: none
+    prec 41 gather (e E)] .
   op <_:_|_> : Oid Cid AttributeSet -> Object [ctor obj prec 0 gather (& & &)
     special (
     id-hook ObjectConstructorSymbol
     op-hook attributeSetSymbol (_`,_ : AttributeSet AttributeSet ~>
     AttributeSet))] .
   op none : -> Configuration [ctor] .
-  op __ : Configuration Configuration -> Configuration [ctor assoc comm id: (
-    none).Configuration config prec 41 gather (e E)] .
-  op <> : -> Portal [ctor] .
+  op __ : Configuration Configuration -> Configuration [ctor assoc comm id:
+    none config prec 41 gather (e E)] .
+  op <> : -> Portal [ctor portal] .
   op getClass : Object -> Cid .
   op b`:_ : Foo -> Attribute [prec 15 gather (E)] .
   eq getClass(< O:Oid : C:Cid | A:AttributeSet >) = C:Cid .
@@ -1425,6 +1433,7 @@ fmod TRUTH-VALUE
 fmod BOOL-OPS
 fmod TRUTH
 fmod EXT-BOOL
+fmod INITIAL-EQUALITY-PREDICATE
 fmod NAT
 fmod INT
 fmod RAT
@@ -1587,17 +1596,17 @@ mod BAR is
   subsort Attribute < AttributeSet .
   subsorts Object Msg Portal < Configuration .
   op none : -> AttributeSet [ctor] .
-  op _`,_ : AttributeSet AttributeSet -> AttributeSet [ctor assoc comm id: (
-    none).AttributeSet prec 41 gather (e E) format (d d s d)] .
+  op _`,_ : AttributeSet AttributeSet -> AttributeSet [ctor assoc comm id: none
+    prec 41 gather (e E)] .
   op <_:_|_> : Oid Cid AttributeSet -> Object [ctor obj prec 0 gather (& & &)
     special (
     id-hook ObjectConstructorSymbol
     op-hook attributeSetSymbol (_`,_ : AttributeSet AttributeSet ~>
     AttributeSet))] .
   op none : -> Configuration [ctor] .
-  op __ : Configuration Configuration -> Configuration [ctor assoc comm id: (
-    none).Configuration config prec 41 gather (e E)] .
-  op <> : -> Portal [ctor] .
+  op __ : Configuration Configuration -> Configuration [ctor assoc comm id:
+    none config prec 41 gather (e E)] .
+  op <> : -> Portal [ctor portal] .
   op getClass : Object -> Cid .
   op f' : Oid -> Msg [ctor msg] .
   op g' : Oid -> Msg .
@@ -1608,6 +1617,7 @@ fmod TRUTH-VALUE
 fmod BOOL-OPS
 fmod TRUTH
 fmod EXT-BOOL
+fmod INITIAL-EQUALITY-PREDICATE
 fmod NAT
 fmod INT
 fmod RAT
@@ -1770,17 +1780,17 @@ mod BAZ is
   subsort Attribute < AttributeSet .
   subsorts Object Msg Portal < Configuration .
   op none : -> AttributeSet [ctor] .
-  op _`,_ : AttributeSet AttributeSet -> AttributeSet [ctor assoc comm id: (
-    none).AttributeSet prec 41 gather (e E) format (d d s d)] .
+  op _`,_ : AttributeSet AttributeSet -> AttributeSet [ctor assoc comm id: none
+    prec 41 gather (e E)] .
   op <_:_|_> : Oid Cid AttributeSet -> Object [ctor obj prec 0 gather (& & &)
     special (
     id-hook ObjectConstructorSymbol
     op-hook attributeSetSymbol (_`,_ : AttributeSet AttributeSet ~>
     AttributeSet))] .
   op none : -> Configuration [ctor] .
-  op __ : Configuration Configuration -> Configuration [ctor assoc comm id: (
-    none).Configuration config prec 41 gather (e E)] .
-  op <> : -> Portal [ctor] .
+  op __ : Configuration Configuration -> Configuration [ctor assoc comm id:
+    none config prec 41 gather (e E)] .
+  op <> : -> Portal [ctor portal] .
   op getClass : Object -> Cid .
   op f' : Oid -> Msg [ctor msg] .
   op g' : Oid -> Msg .
@@ -1791,6 +1801,7 @@ fmod TRUTH-VALUE
 fmod BOOL-OPS
 fmod TRUTH
 fmod EXT-BOOL
+fmod INITIAL-EQUALITY-PREDICATE
 fmod NAT
 fmod INT
 fmod RAT

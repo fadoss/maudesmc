@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2003 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -71,51 +71,54 @@ operator<<(ostream& s, const ConnectedComponent* component)
   return s << component->sort(Sort::KIND);
 }
 
+void
+MixfixModule::prettyPrint(ostream& s, const Term* term, bool rangeKnown)
+{
+  clearIndent();
+  MixfixModule* parentModule = safeCastNonNull<MixfixModule*>(term->symbol()->getModule());
+  const PrintSettings& printSettings = interpreter;  // HACK
+  parentModule->prettyPrint(s, printSettings, const_cast<Term*>(term), UNBOUNDED, UNBOUNDED, 0, UNBOUNDED, 0, rangeKnown);
+  clearColor(s);
+}
+
 ostream&
 operator<<(ostream& s, const Term* term)
 {
-  MixfixModule::globalIndent = 0;
-  static_cast<MixfixModule*>(term->symbol()->getModule())->
-    prettyPrint(s, const_cast<Term*>(term), UNBOUNDED, UNBOUNDED, 0, UNBOUNDED, 0, false);  // HACK
-  if (MixfixModule::attributeUsed)
-    {
-      MixfixModule::attributeUsed = false;
-      s << Tty(Tty::RESET);
-    }
+  MixfixModule::prettyPrint(s, term);
   return s;
+}
+
+void
+MixfixModule::prettyPrint(ostream& s, DagNode* dagNode, bool rangeKnown)
+{
+  if (dagNode == 0)
+    {
+      s << "(null DagNode*)";
+      return;
+    }
+  MixfixModule::clearIndent();
+  MixfixModule* module = safeCastNonNull<MixfixModule*>(dagNode->symbol()->getModule());
+  const PrintSettings& printSettings = interpreter;  // HACK
+  if (printSettings.getPrintFlag(PrintSettings::PRINT_GRAPH))
+    module->graphPrint(s, dagNode, printSettings);
+  else
+    {
+      MixfixModule::ColoringInfo coloringInfo;
+      if (printSettings.getPrintFlag(PrintSettings::PRINT_COLOR))
+	{
+	  MixfixModule::computeGraphStatus(dagNode, coloringInfo.visited, coloringInfo.statusVec);
+	  coloringInfo.reducedAbove = false;
+	  coloringInfo.reducedDirectlyAbove = false;
+	}
+      module->prettyPrint(s, coloringInfo, printSettings, dagNode, UNBOUNDED, UNBOUNDED, 0, UNBOUNDED, 0, rangeKnown);
+    }
+  MixfixModule::clearColor(s);
 }
 
 ostream&
 operator<<(ostream& s, DagNode* dagNode)
 {
-  if (dagNode == 0)
-    {
-      s << "(null DagNode*)";
-      return s;
-    }
-  MixfixModule::globalIndent = 0;
-  MixfixModule* module = static_cast<MixfixModule*>(dagNode->symbol()->getModule());
-  if (interpreter.getPrintFlag(Interpreter::PRINT_GRAPH))
-    module->graphPrint(s, dagNode);
-  else
-    {
-      MixfixModule::ColoringInfo coloringInfo;
-      if (interpreter.getPrintFlag(Interpreter::PRINT_COLOR))
-	{
-	  MixfixModule::computeGraphStatus(dagNode,
-					   coloringInfo.visited,
-					   coloringInfo.statusVec);
-	  coloringInfo.reducedAbove = false;
-	  coloringInfo.reducedDirectlyAbove = false;
-	}
-      module->prettyPrint(s, coloringInfo, dagNode,
-			  UNBOUNDED, UNBOUNDED, 0, UNBOUNDED, 0, false);
-    }
-  if (MixfixModule::attributeUsed)
-    {
-      MixfixModule::attributeUsed = false;
-      s << Tty(Tty::RESET);
-    }
+  MixfixModule::prettyPrint(s, dagNode);
   return s;
 }
 
@@ -123,7 +126,7 @@ void
 MixfixModule::printAttributes(ostream& s, const PreEquation* pe, ItemType itemType)
 {
   const Label& l = pe->getLabel();
-  int id = l.id();
+  int id = interpreter.getPrintFlag(PrintSettings::PRINT_LABEL_ATTRIBUTE) ? l.id() : NONE;
   const Equation* eq = dynamic_cast<const Equation*>(pe);
   const Rule* rl = dynamic_cast<const Rule*>(pe);
   bool owise = eq != 0 && eq->isOwise();
@@ -175,13 +178,21 @@ MixfixModule::printAttributes(ostream& s, const PreEquation* pe, ItemType itemTy
   s << ']';
 }
 
+
 ostream&
 operator<<(ostream& s, const SortConstraint* sc)
 {
   if (sc->hasCondition())
     s << 'c';
   s << "mb ";
-  s << sc->getLhs() << " : " << sc->getSort();
+  if (!interpreter.getPrintFlag(PrintSettings::PRINT_LABEL_ATTRIBUTE))
+    {
+      const Label& l = sc->getLabel();
+      if (l.id() != NONE)
+	s << "[" << &l << "] : ";
+    }
+  MixfixModule::prettyPrint(s, sc->getLhs(), true);
+  s << " : " << sc->getSort();
   if (sc->hasCondition())
     MixfixModule::printCondition(s, sc);
   MixfixModule* m = safeCast(MixfixModule*, sc->getModule());
@@ -196,7 +207,14 @@ operator<<(ostream& s, const Equation* e)
   if (e->hasCondition())
     s << 'c';
   s << "eq ";
-  s << e->getLhs() << " = " << e->getRhs();
+  if (!interpreter.getPrintFlag(PrintSettings::PRINT_LABEL_ATTRIBUTE))
+    {
+      const Label& l = e->getLabel();
+      if (l.id() != NONE)
+	s << "[" << &l << "] : ";
+    }
+  s << e->getLhs() << " = ";
+  MixfixModule::prettyPrint(s, e->getRhs(), true);
   if (e->hasCondition())
     MixfixModule::printCondition(s, e);
   MixfixModule* m = safeCast(MixfixModule*, e->getModule());
@@ -211,7 +229,14 @@ operator<<(ostream& s, const Rule* r)
   if (r->hasCondition())
     s << 'c';
   s << "rl ";
-  s << r->getLhs() << " => " << r->getRhs();
+  if (!interpreter.getPrintFlag(PrintSettings::PRINT_LABEL_ATTRIBUTE))
+    {
+      const Label& l = r->getLabel();
+      if (l.id() != NONE)
+	s << "[" << &l << "] : ";
+    }
+  s << r->getLhs() << " => ";
+  MixfixModule::prettyPrint(s, r->getRhs(), true);
   if (r->hasCondition())
     MixfixModule::printCondition(s, r);
   MixfixModule* m = safeCast(MixfixModule*, r->getModule());
@@ -223,18 +248,26 @@ operator<<(ostream& s, const Rule* r)
 ostream&
 operator<<(ostream& s, const ConditionFragment* c)
 {
-  if (const EqualityConditionFragment* e =
-      dynamic_cast<const EqualityConditionFragment*>(c))
-    s << e->getLhs() << " = " << e->getRhs();
-  else if (const SortTestConditionFragment* t =
-	   dynamic_cast<const SortTestConditionFragment*>(c))
-    s << t->getLhs() << " : " << t->getSort();
-  else if(const AssignmentConditionFragment* a =
-	  dynamic_cast<const AssignmentConditionFragment*>(c))
-    s << a->getLhs() << " := " << a->getRhs();
-  else if(const RewriteConditionFragment* r =
-	  dynamic_cast<const RewriteConditionFragment*>(c))
-    s << r->getLhs() << " => " << r->getRhs();
+  if (const EqualityConditionFragment* e = dynamic_cast<const EqualityConditionFragment*>(c))
+    {
+      s << e->getLhs() << " = ";
+      MixfixModule::prettyPrint(s, e->getRhs(), true);
+    }
+  else if (const SortTestConditionFragment* t = dynamic_cast<const SortTestConditionFragment*>(c))
+    {
+      MixfixModule::prettyPrint(s, t->getLhs(), true);
+      s <<  " : " << t->getSort();
+    }
+  else if(const AssignmentConditionFragment* a = dynamic_cast<const AssignmentConditionFragment*>(c))
+    {
+      s << a->getLhs() << " := ";
+      MixfixModule::prettyPrint(s, a->getRhs(), true);
+    }
+  else if(const RewriteConditionFragment* r = dynamic_cast<const RewriteConditionFragment*>(c))
+    {
+      s << r->getLhs() << " => ";
+      MixfixModule::prettyPrint(s, r->getRhs(), true);
+    }
   else
     CantHappen("bad condition fragment");
   return s;
@@ -327,7 +360,7 @@ MixfixModule::printCondition(ostream& s, const PreEquation* pe)
 }
 
 void
-MixfixModule::printVariable(ostream& s, int name, Sort* sort) const
+MixfixModule::printVariable(ostream& s, int name, Sort* sort, const PrintSettings& printSettings) const
 {
   if (Token::isFlagged(name))
     {
@@ -340,7 +373,7 @@ MixfixModule::printVariable(ostream& s, int name, Sort* sort) const
       name = Token::unflaggedCode(name);
     }
   s << Token::name(name);
-  if (interpreter.getPrintFlag(Interpreter::PRINT_WITH_ALIASES))
+  if (printSettings.getPrintFlag(PrintSettings::PRINT_WITH_ALIASES))
     {
       AliasMap::const_iterator i = variableAliases.find(name);
       if (i != variableAliases.end() && (*i).second == sort)
@@ -350,13 +383,13 @@ MixfixModule::printVariable(ostream& s, int name, Sort* sort) const
 }
 
 void
-MixfixModule::printPrefixName(ostream& s, const char* prefixName, SymbolInfo& si)
+MixfixModule::printPrefixName(ostream& s, const char* prefixName, SymbolInfo& si, const PrintSettings& printSettings)
 {
-  if (interpreter.getPrintFlag(Interpreter::PRINT_FORMAT) && (si.format.length() == 2))
+  if (printSettings.getPrintFlag(PrintSettings::PRINT_FORMAT) && (si.format.length() == 2))
     {
-      fancySpace(s, si.format[0]);
+      fancySpace(s, si.format[0], printSettings);
       s << prefixName;
-      fancySpace(s, si.format[1]);
+      fancySpace(s, si.format[1], printSettings);
     }
   else
     s << prefixName;
@@ -366,10 +399,11 @@ int
 MixfixModule::printTokens(ostream& s,
 			  const SymbolInfo& si,
 			  int pos,
-			  const char* color)
+			  const char* color,
+			  const PrintSettings& printSettings)
 {
   bool noSpace = (pos == 0);
-  bool hasFormat = interpreter.getPrintFlag(Interpreter::PRINT_FORMAT) && (si.format.length() > 0);
+  bool hasFormat = printSettings.getPrintFlag(PrintSettings::PRINT_FORMAT) && (si.format.length() > 0);
   for (;;)
     {
       int token = si.mixfixSyntax[pos++];
@@ -377,17 +411,17 @@ MixfixModule::printTokens(ostream& s,
 	break;
       bool special = (token == leftParen || token == rightParen ||
 		      token == leftBracket || token == rightBracket ||
-		      token == leftBrace || token == rightBrace || token == comma);
-      if (!((hasFormat && fancySpace(s, si.format[pos - 1])) || special || noSpace))
+		      token == leftBrace || token == rightBrace);
+      if (!((hasFormat && fancySpace(s, si.format[pos - 1], printSettings)) || special || noSpace || token == comma))
 	s << ' ';
-      noSpace = special;
+      noSpace = special || (hasFormat && token == comma);
       if (color != 0)
 	s << color;
       s << Token::name(token);
       if (color != 0)
 	s << Tty(Tty::RESET);
     }
-  if (!((hasFormat && fancySpace(s, si.format[pos - 1])) || noSpace))
+  if (!((hasFormat && fancySpace(s, si.format[pos - 1], printSettings)) || noSpace))
     s << ' ';
   return pos;
 }
@@ -399,9 +433,10 @@ MixfixModule::printTails(ostream& s,
 			 int nrTails,
 			 bool needAssocParen,
 			 bool checkForInterrupt,
-			 const char* color)
+			 const char* color,
+			 const PrintSettings& printSettings)
 {
-  bool hasFormat = interpreter.getPrintFlag(Interpreter::PRINT_FORMAT) && (si.format.length() > 0);
+  bool hasFormat = printSettings.getPrintFlag(PrintSettings::PRINT_FORMAT) && (si.format.length() > 0);
   int mixfixLength = si.mixfixSyntax.length();
   for (int i = 0;;)
     {
@@ -413,10 +448,10 @@ MixfixModule::printTails(ostream& s,
 	  int token = si.mixfixSyntax[j];
 	  bool special = (token == leftParen || token == rightParen ||
 			  token == leftBracket || token == rightBracket ||
-			  token == leftBrace || token == rightBrace || token == comma);
-	  if (!((hasFormat && fancySpace(s, si.format[j])) || special || noSpace))
+			  token == leftBrace || token == rightBrace);
+	  if (!((hasFormat && fancySpace(s, si.format[j], printSettings)) || special || noSpace || token == comma))
 	    s << ' ';
-	  noSpace = special;
+	  noSpace = special || (hasFormat && token == comma);
 	  if (color != 0)
 	    s << color;
 	  s << Token::name(token);
@@ -424,7 +459,7 @@ MixfixModule::printTails(ostream& s,
 	    s << Tty(Tty::RESET);
 	}
       if (hasFormat)
-	(void) fancySpace(s, si.format[mixfixLength]);
+	(void) fancySpace(s, si.format[mixfixLength], printSettings);
       if (++i == nrTails)
 	break;
       if (needAssocParen)
@@ -433,7 +468,7 @@ MixfixModule::printTails(ostream& s,
 }
 
 bool
-MixfixModule::fancySpace(ostream& s, int spaceToken)
+MixfixModule::fancySpace(ostream& s, int spaceToken, const PrintSettings& printSettings)
 {
   bool space = false;
   for (const char* cmd = Token::name(spaceToken); *cmd; cmd++)
@@ -482,7 +517,7 @@ MixfixModule::fancySpace(ostream& s, int spaceToken)
 	  }
 	default:
 	  {
-	    if (interpreter.getPrintFlag(Interpreter::PRINT_COLOR))
+	    if (printSettings.getPrintFlag(PrintSettings::PRINT_COLOR))
 	      break;
 	    switch (c)
 	      {
@@ -570,4 +605,19 @@ MixfixModule::computeGraphStatus(DagNode* dagNode,
     }
   statusVec[index] = status;
   return status;
+}
+
+void
+MixfixModule::printModifiers(ostream& s, Int64 number, Int64 number2)
+{
+  if (number != NONE || number2 != NONE)
+    {
+      s << '[';
+      if (number != NONE)
+	s << number;
+      if (number2 != NONE)
+	s << ", " << number2;
+      s << "] ";
+    }
+  s << "in " << this << " : ";
 }

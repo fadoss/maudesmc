@@ -3,16 +3,16 @@ Warning: <standard input>, line 12 (mod FOO): variable Z is used before it is
 crl f(X, Y, Y) => f(Z, X) if Z =/= Y = true .
 mod FOO is
   including INT .
-  sorts Foo .
-  subsorts Int < Foo .
+  sort Foo .
+  subsort Int < Foo .
   op f : Int Int -> Int [assoc comm id: 1] .
   vars X Y Z : Int .
-  eq f(f(X, Y), X) = f(Y, Y) .
-  cq f(f(X, Y), Y) = f(Y, X) if X =/= Y .
-  rl f(f(X, Y), X) => f(Y, Y) .
-  crl f(f(X, Y), Y) => f(Z, X) if Z =/= Y .
-  mb f(X, X) : NzInt .
-  cmb f(X, Y) : NzInt if X =/= Y .
+  eq f (f (X, Y), X) = f (Y, Y) .
+  cq f (f (X, Y), Y) = f (Y, X) if X =/= Y .
+  rl f (f (X, Y), X) => f (Y, Y) .
+  crl f (f (X, Y), Y) => f (Z, X) if Z =/= Y .
+  mb f (X, X) : NzInt .
+  cmb f (X, Y) : NzInt if X =/= Y .
 endm
 Warning: membership axioms are not guaranteed to work correctly for iterated
     symbol s_ as it has declarations that are not at the kind level.
@@ -541,16 +541,16 @@ fmod INT is
 endfm
 mod FOO is
   including INT .
-  sorts Foo .
-  subsorts Int < Foo .
+  sort Foo .
+  subsort Int < Foo .
   op f : Int Int -> Int [assoc comm id: 1] .
   vars X Y Z : Int .
-  eq f(f(X, Y), X) = f(Y, Y) .
-  cq f(f(X, Y), Y) = f(Y, X) if X =/= Y .
-  rl f(f(X, Y), X) => f(Y, Y) .
-  crl f(f(X, Y), Y) => f(Z, X) if Z =/= Y .
-  mb f(X, X) : NzInt .
-  cmb f(X, Y) : NzInt if X =/= Y .
+  eq f (f (X, Y), X) = f (Y, Y) .
+  cq f (f (X, Y), Y) = f (Y, X) if X =/= Y .
+  rl f (f (X, Y), X) => f (Y, Y) .
+  crl f (f (X, Y), Y) => f (Z, X) if Z =/= Y .
+  mb f (X, X) : NzInt .
+  cmb f (X, Y) : NzInt if X =/= Y .
 endm
 eq f(X, X, Y) = f(Y, Y) .
 ceq f(X, Y, Y) = f(X, Y) if X =/= Y = true .

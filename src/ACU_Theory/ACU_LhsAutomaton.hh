@@ -132,8 +132,9 @@ private:
     Sort* sort;
     int upperBound;
     AssociativeSymbol::Structure structure;
-    bool takeIdentity;
     LhsAutomaton* abstracted;	// automaton for abstracted term
+    bool takeIdentity;
+    bool willBeBound;  // will be bound at match time
     //
     //	Data storage for match-time use
     //
@@ -194,6 +195,15 @@ private:
   int eliminateBoundVariables(Substitution& solution);
   bool eliminateGroundAliens();
   bool eliminateGroundedOutAliens(Substitution& solution);
+  bool forcedLoneVariableCase(ACU_TreeDagNode* subject,
+			      const TopVariable& tv,
+			      Substitution& solution,
+			      Subproblem*& returnedSubproblem);
+  bool loneSubjectVariableCase(Substitution& solution);
+  bool loneSubjectNGA_Case(Substitution& solution, Subproblem*& returnedSubproblem);
+  //
+  //	Greedy tree matcher.
+  //
   int greedyMatch(ACU_TreeDagNode* subject,
 		  Substitution& solution,
 		  ACU_ExtensionInfo* extensionInfo);
@@ -204,10 +214,6 @@ private:
   bool greedyPureMatch(ACU_TreeDagNode* subject,
 		       Substitution& solution,
 		       ACU_ExtensionInfo* extensionInfo);
-  bool forcedLoneVariableCase(ACU_TreeDagNode* subject,
-			      const TopVariable& tv,
-			      Substitution& solution,
-			      Subproblem*& returnedSubproblem);
   //
   //	ArgVec greedy matcher.
   //
@@ -247,14 +253,15 @@ private:
   const bool matchAtTop;
   const bool collapsePossible;
   bool treeMatchOK;
-  bool collectorSeen;
+  int stripperIndex;
+  int collectorIndex;
   MatchStrategy matchStrategy;
   int totalLowerBound;  // must have at least this total mutiplicity of subjects
   int totalUpperBound;	// can't have more than this total mutiplicity of subjects
   int maxPatternMultiplicity;  // must have at least on subject with >= this multiplicity
   int totalNonGroundAliensMultiplicity;
   int nrIndependentAliens;
-  int nrExpectedUnboundVariables;  // used at semicompile time only
+  int nrExpectedUnboundVariables;  // used at semicompile time only, for red-black case only
   LhsAutomaton* uniqueCollapseAutomaton;
   Vector<TopVariable> topVariables;
   Vector<GroundAlien> groundAliens;

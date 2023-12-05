@@ -1,3 +1,115 @@
+2023-11-21  Steven Eker  <eker@pup>
+
+	* rope.hh (class Rope): added decl for ctor from std::string
+
+	* rope.cc (Rope::Rope): added ctor from std::string
+
+===================================Maude154===================================
+
+2023-09-28  Steven Eker  <eker@pup>
+
+	* macros.hh: #include <typeinfo> 
+
+===================================Maude152===================================
+
+2023-08-04  Steven Eker  <eker@pup>
+
+	* timer.cc: added comments
+
+2023-07-14  Steven Eker  <eker@pup>
+
+	* natSet.hh (NatSet::containsSmall): return int_fast8_t to avoid
+	converting a Word result into a bool
+	(class NatSet): turn size_type into an int - we're not trying to
+	duplicate an STL container so there's no need to return an unsigned
+	with all its issues
+	(NatSet::empty): use Vector::empty()
+	(NatSet::max): use Index and Vector::size()
+	(NatSet::NatSet): deleted copy ctor version
+	(class NatSet): declare copy and move ctors to be default
+	(class NatSet): declare copy and move assignment operators to be default
+	(NatSet::operator=): deleted copy assignment
+
+2023-06-13  Steven Eker  <eker@pup>
+
+	* tty.cc: added def for Tty::savedFlag
+
+	* tty.hh (Tty::blockEscapeSequences)
+	(Tty::unblockEscapeSequences): added
+	(class Tty): added static data member savedFlag
+
+2023-06-06  Steven Eker  <eker@pup>
+
+	* decBuf.cc (DecBuf::shiftAndAdd): uint64_t -> uint_fast64_t
+
+	* decBuf.hh (class DecBuf): updated decl for shiftAndAdd()
+
+	* binBuf.cc (BinBuf::init): uint64_t -> uint_fast64_t
+	(BinBuf::times10): uint64_t -> uint_fast64_t, uint32_t -> uint_fast32_t
+
+	* binBuf.hh (class BinBuf): updated decl for init()
+	(class BinBuf): uint32_t -> uint_fast32_t
+
+2023-06-02  Steven Eker  <eker@pup>
+
+	* macros.hh (FOR_EACH_CONST): deleted
+
+===================================Maude150===================================
+
+2023-05-12  Steven Eker  <eker@pup>
+
+	* macros.hh: use int64_t for stringToInt64(() decl
+	(pluralize): use int64_t
+	(pluralize): use int32_t rather than int since int cannot be
+	overloaded with int64_t since they could be the same type
+	(pluralize): get rid of int32_t version to appease clang
+	(pluralize): use int_fast64 for 64-bit version
+
+	* natSet.hh (NatSet::contains): FastBool -> int_fast8_t
+
+	* macros.hh: deleted typedef FastBool
+
+	* natSet.cc (NatSet::arrayContains): FastBool -> int_fast8_t
+
+	* natSet.hh (class NatSet): FastBool -> int_fast8_t
+
+	* macros.hh: fix decl for int64ToString()
+
+	* variableConstraint.cc (VariableConstraint::absorb): deleted (already
+	commented out)
+
+	* variableConstraint.hh (class VariableConstraint): deleted commented
+	out decl for absorb()
+
+	* macros.hh: deleted typedef Uint32
+
+	* variableConstraint.hh (class VariableConstraint): Uint32 -> uint32_t
+
+	* binBuf.hh (class BinBuf): Uint32 -> uint32_t
+
+	* macros.hh: deleted typedef Uint64
+
+	* macros.cc (correctEcvt): Uint64 -> uint64_t
+	(int64ToString): Uint64 -> uint64_t, Int64 -> int64_t
+	(stringToInt64): Int64 -> unint64_t
+
+	* decBuf.cc (DecBuf::shiftAndAdd): Uint64 -> uint64_t
+
+	* decBuf.hh (class DecBuf): Uint64 -> uint64_t
+
+	* binBuf.hh (class BinBuf): Uint64 -> uint64_t
+
+	* binBuf.cc (BinBuf::init): Uint64 -> uint64_t
+	(BinBuf::times10): Uint64 -> uint64_t, Uint32 -> uint32_t
+
+===================================Maude149===================================
+
+2023-05-01  Steven Eker  <eker@pup>
+
+	* macros.hh: added Profile() macro
+
+===================================Maude148===================================
+
 2023-04-13  Steven Eker  <eker@pup>
 
 	* intSet.cc (IntSet::findEntry): use empty()

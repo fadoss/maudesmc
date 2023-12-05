@@ -96,7 +96,8 @@ cd Opt
 --prefix=$OPTLIB \
 --enable-cxx \
 --enable-fat \
---enable-shared=yes
+--enable-shared=yes \
+--build=x86_64-pc-linux-gnu
 
 make
 make check
@@ -131,7 +132,7 @@ tar xvf libtecla-1.6.3.tar.gz
 cd libtecla
 
 ./configure \
-CFLAGS="-fno-stack-protector -O3" \
+CFLAGS="-g -fno-stack-protector -O3" \
 --prefix=$OPTLIB
 
 make
@@ -154,7 +155,7 @@ autoconf
 --prefix=$OPTLIB \
 --with-static-gmp=$OPTLIB/lib/libgmp.a \
 --with-static-gmp-include-dir=$OPTLIB/include \
-CFLAGS="-fno-stack-protector -O3" \
+CFLAGS="-g -fno-stack-protector -O3" \
 LDFLAGS="-L$OPTLIB/lib" \
 CPPFLAGS="-I$OPTLIB/include"
 
@@ -182,7 +183,7 @@ cd Opt
 --with-yices2=yes \
 --with-cvc4=no \
 --enable-compiler \
-CXXFLAGS="-Wall -O3 -fno-stack-protector" \
+CXXFLAGS="-g -Wall -O3 -fno-stack-protector" \
 CPPFLAGS="-I$OPTLIB/include" \
 LDFLAGS="-L$OPTLIB/lib" \
 GMP_LIBS="$OPTLIB/lib/libgmpxx.a $OPTLIB/lib/libgmp.a"
@@ -299,7 +300,7 @@ CFLAGS="-fno-stack-protector -O3 -mmacosx-version-min=10.13" \
 --prefix=$HSLIB
 
 make
-makde install
+make install
 
 
 Yices2
@@ -356,7 +357,8 @@ make
 make check
 cd src/Main
 cp maude maude.darwin64
-strip maude.darwin64
+
+Note that stripping the binary on Macs seems to break libsigsegv for some reason.
 
 Check dependencies:
 

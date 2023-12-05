@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 2019 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 2019-2023 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -45,6 +45,7 @@ MetaLevelOpSymbol::metaSrewrite(FreeDagNode* subject,
 	  while (lastSolutionNr < solutionNr)
 	    {
 	      result = state->findNextSolution();
+	      context.transferCountFrom(*(state->getContext()));
 	      if (result == 0)
 		{
 		  delete state;
@@ -90,6 +91,11 @@ MetaLevelOpSymbol::makeStrategicSearch(MetaModule* m,
 	  VariableInfo vinfo;
 	  if (s->check(vinfo, boundVars))
 	    {
+	      //
+	      //	Because StrategicSearch objects can be many GB, we purge
+	      //	any existing one from the MetaOpCache of any cached MetaModule.
+	      //
+	      //metaLevel->purge<StrategicSearch>();
 	      m->protect();
 	      s->process();
 

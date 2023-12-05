@@ -136,6 +136,7 @@
 #include "directoryManagerSymbol.hh"
 #include "processManagerSymbol.hh"
 #include "timeManagerSymbol.hh"
+#include "prngManagerSymbol.hh"
 
 //	strategy language class definitions
 #include "trivialStrategy.hh"
@@ -164,6 +165,8 @@
 #include "userLevelRewritingContext.hh"
 #include "freshVariableSource.hh"
 #include "objectConstructorSymbol.hh"
+#include "commutativeDecomposeEqualitySymbol.hh"
+#include "importModule.hh"
 
 #include "interpreter.hh"
 #include "global.hh"  // HACK shouldn't be accessing global variables
@@ -201,6 +204,9 @@ MixfixModule::nonTerminal(const Sort* sort, NonTerminalType type)
 }
 
 //	our stuff
+#include "latexCommon.cc"
+#include "latexTermPrint.cc"
+#include "latexDagNodePrint.cc"
 #include "makeGrammar.cc"
 #include "doParse.cc"
 #include "entry.cc"
@@ -371,6 +377,8 @@ MixfixModule::closeSignature()
 	{
 	  cs->addObjects(objectSymbols);
 	  cs->addMessages(messageSymbols);
+	  cs->addPortals(portalSymbols);
+	  DebugInfo("added " << portalSymbols.size() << " portals");
 	}
     }
 }

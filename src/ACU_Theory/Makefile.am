@@ -28,7 +28,8 @@ libACU_Theory_a_SOURCES = \
 	ACU_TreeDagArgumentIterator.cc \
 	ACU_LazySubproblem.cc \
 	ACU_UnificationSubproblem2.cc \
-	ACU_BndVarLhsAutomaton.cc
+	ACU_BndVarLhsAutomaton.cc \
+	ACU_TreeVariableSubproblem.cc
 
 EXTRA_DIST = \
 	ACU_LhsCompiler0.cc \
@@ -39,6 +40,7 @@ EXTRA_DIST = \
 	ACU_GreedyMatcher.cc \
 	ACU_CollapseMatcher.cc \
 	ACU_TreeMatcher.cc \
+	ACU_TreeGreedyMatcher.cc \
 	ACU_DagOperations.cc \
 	ACU_FastMerge.cc \
 	ACU_Normalize.cc \
@@ -66,4 +68,5 @@ noinst_HEADERS = \
 	ACU_TreeDagNode.hh \
 	ACU_VarLhsAutomaton.hh \
 	ACU_UnificationSubproblem2.hh \
-	ACU_BndVarLhsAutomaton.hh
+	ACU_BndVarLhsAutomaton.hh \
+	ACU_TreeVariableSubproblem.hh

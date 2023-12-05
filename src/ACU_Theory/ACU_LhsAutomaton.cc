@@ -69,10 +69,12 @@
 #include "ACU_LhsAutomaton.hh"
 #include "ACU_Subproblem.hh"
 #include "ACU_LazySubproblem.hh"
+#include "ACU_TreeVariableSubproblem.hh"
 #include "ACU_ExtensionInfo.hh"
 
 //	our stuff
 #include "ACU_TreeMatcher.cc"
+#include "ACU_TreeGreedyMatcher.cc"
 #include "ACU_CollapseMatcher.cc"
 #include "ACU_Matcher.cc"
 #include "ACU_GreedyMatcher.cc"
@@ -93,7 +95,8 @@ ACU_LhsAutomaton::ACU_LhsAutomaton(ACU_Symbol* symbol,
   totalNonGroundAliensMultiplicity = 0;
   uniqueCollapseAutomaton = 0;
   treeMatchOK = true;
-  collectorSeen = matchAtTop;
+  stripperIndex = NONE;
+  collectorIndex = NONE;
   nrExpectedUnboundVariables = 0;
 } 
 
@@ -130,11 +133,8 @@ ACU_LhsAutomaton::addTopVariable(const VariableTerm* variable,
 {
   Sort* s = variable->getSort();
   int bound = topSymbol->sortBound(s);
-  collectorSeen = collectorSeen ||
-    (!willBeBound && bound == UNBOUNDED && multiplicity == 1);
-  if (!willBeBound)
-    ++nrExpectedUnboundVariables;
   bool takeIdentity = topSymbol->takeIdentity(s);
+
   int nrTopVariables = topVariables.length();
   topVariables.expandBy(1);
   TopVariable& tv = topVariables[nrTopVariables];
@@ -143,8 +143,10 @@ ACU_LhsAutomaton::addTopVariable(const VariableTerm* variable,
   tv.sort = s;
   tv.upperBound = bound;
   tv.structure = topSymbol->sortStructure(s);
-  tv.takeIdentity = takeIdentity;
   tv.abstracted = 0;
+  tv.takeIdentity = takeIdentity;
+  tv.willBeBound = willBeBound;
+
   updateTotals(takeIdentity ? 0 : multiplicity,
 	       (bound == UNBOUNDED) ? UNBOUNDED : (bound * multiplicity));
 }
@@ -224,6 +226,10 @@ ACU_LhsAutomaton::complete(MatchStrategy strategy,
 			   int nrIndependent)
 {
   //
+  //	We need to sort variables before storing indices to variables.
+  //
+  sort(topVariables.begin(), topVariables.end(), topVariableLt);
+  //
   //	For red-black greedy matching to be correct we require that
   //	(1) unbound top variables are quasi-linear and don't occur in the
   //	    condition;
@@ -246,29 +252,55 @@ ACU_LhsAutomaton::complete(MatchStrategy strategy,
   //
   if (treeMatchOK)
     {
+      Index nrVariables = topVariables.size();
+      for (Index i = 0; i < nrVariables; ++i)
+	{
+	  const TopVariable& tv = topVariables[i];
+	  if (!tv.willBeBound)
+	    {
+	      //
+	      //	We don't expect the variable to be bound at match time before doing
+	      //	a match with this automaton.
+	      //
+	      ++nrExpectedUnboundVariables;
+	      if (tv.multiplicity == 1)
+		{
+		  if (stripperIndex == NONE && !tv.takeIdentity && tv.upperBound == 1)
+		    stripperIndex = i;
+		  else if (collectorIndex == NONE && tv.upperBound == UNBOUNDED)
+		    collectorIndex = i;
+		}
+	    }
+	}
       if (strategy == LONE_VARIABLE || strategy == GREEDY)
-	treeMatchOK = collectorSeen;
+	treeMatchOK = collectorIndex != NONE || matchAtTop;
       else if (strategy == FULL)
 	{
 	  //
-	  //	We now allow non-greedy tree matching if there is a single
-	  //	NGA with multiplicity 1, a single unbound variable with
-	  //	multiplicity 1 and no extension.
+	  //	We now allow full tree matching in two common special cases.
 	  //
-	  treeMatchOK = collectorSeen &&
-	    !matchAtTop &&
-	    nrExpectedUnboundVariables == 1 &&
-	    nonGroundAliens.length() == 1 &&
-	    nonGroundAliens[0].multiplicity == 1;
+	  //	We potentially have an variable stripper-collector situation if we have two unbound
+	  //	variables and one is element variable, and no NGAs.
+	  //
+	  bool varStripper = nrExpectedUnboundVariables == 2 && nonGroundAliens.length() == 0 && stripperIndex != NONE;
+	  //
+	  //	We potentially have an NGA stripper-collector situation if we have one unbound variable
+	  //	and a single NGA which must have multiplicity 1.
+	  //
+	  bool ngaStripper = nrExpectedUnboundVariables == 1 && nonGroundAliens.length() == 1 && nonGroundAliens[0].multiplicity == 1;
+	  //
+	  //	In either situation, we need a collector variable and we cannot be at the top (since
+	  //	extension would provided multiple ways of splitting the remaining subterm arguments between
+	  //	the collector variable and extension).
+	  //
+	  treeMatchOK = collectorIndex != NONE && !matchAtTop && (varStripper || ngaStripper);
 	}
       else
 	treeMatchOK = false;
     }
-
   matchStrategy = strategy;
   Assert(nrIndependent <= nonGroundAliens.length(), "too many independent");
   nrIndependentAliens = nrIndependent;
-  sort(topVariables.begin(), topVariables.end(), topVariableLt);
 }
 
 #ifdef DUMP
@@ -281,7 +313,8 @@ ACU_LhsAutomaton::dump(ostream& s, const VariableInfo& variableInfo, int indentL
     "\"\tmatchAtTop = " << static_cast<bool>(matchAtTop) <<
     "\tcollapsePossible = " << static_cast<bool>(collapsePossible) << '\n';
   s << Indent(indentLevel) << "treeMatchOK = " << static_cast<bool>(treeMatchOK) <<
-    "\tcollectorSeen = " << static_cast<bool>(collectorSeen) <<
+    "\tstripperIndex = " << stripperIndex <<
+    "\tcollectorIndex = " << collectorIndex <<
     "\tmatchStrategy = " << static_cast<MatchStrategy>(matchStrategy) << '\n';
   if (uniqueCollapseAutomaton != 0)
     {

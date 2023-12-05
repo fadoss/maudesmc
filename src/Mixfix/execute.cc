@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2017 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -112,6 +112,38 @@ Interpreter::printTiming(Int64 nrRewrites, Int64 cpu, Int64 real)
 }
 
 void
+Interpreter::printStats(const Timer& timer, RewritingContext& context)
+{
+  bool showTiming = getFlag(SHOW_TIMING);
+  bool showBreakdown = getFlag(SHOW_BREAKDOWN);
+  Int64 nrRewrites = context.getTotalCount();
+  cout << "rewrites: " << nrRewrites;
+
+  Int64 real;
+  Int64 virt;
+  Int64 prof;
+  if (showTiming)
+    {
+      showTiming = timer.getTimes(real, virt, prof);
+      if (showTiming)
+	printTiming(nrRewrites, prof, real);
+    }
+
+  cout << '\n';
+  if (getFlag(SHOW_BREAKDOWN))
+    {
+      cout << "mb applications: " << context.getMbCount() <<
+	"  equational rewrites: " << context.getEqCount() <<
+	"  rule rewrites: " << context.getRlCount() <<
+	"  variant narrowing steps: " << context.getVariantNarrowingCount() <<
+	"  narrowing steps: " << context.getNarrowingCount() << '\n';
+    }
+
+  if (latexBuffer)
+    latexBuffer->generateStats(context, prof, real, showTiming, showBreakdown);
+}
+
+void
 Interpreter::printStats(const Timer& timer, RewritingContext& context, bool timingFlag)
 {
   Int64 nrRewrites = context.getTotalCount();
@@ -121,6 +153,30 @@ Interpreter::printStats(const Timer& timer, RewritingContext& context, bool timi
   Int64 prof;
   if (timingFlag && timer.getTimes(real, virt, prof))
     printTiming(nrRewrites, prof, real);
+  cout << '\n';
+  if (getFlag(SHOW_BREAKDOWN))
+    {
+      cout << "mb applications: " << context.getMbCount() <<
+	"  equational rewrites: " << context.getEqCount() <<
+	"  rule rewrites: " << context.getRlCount() <<
+	"  variant narrowing steps: " << context.getVariantNarrowingCount() <<
+	"  narrowing steps: " << context.getNarrowingCount() << '\n';
+    }
+}
+
+void
+Interpreter::printStats(RewritingContext& context,
+			int64_t cpuTime,
+			int64_t realTime,
+			bool timingFlag,
+			int64_t nrStates)
+{  
+  Int64 nrRewrites = context.getTotalCount();
+  if (nrStates != NONE)
+    cout << "states: " << nrStates << "  ";
+  cout << "rewrites: " << nrRewrites;
+  if (timingFlag)
+    printTiming(nrRewrites, cpuTime, realTime);
   cout << '\n';
   if (getFlag(SHOW_BREAKDOWN))
     {
@@ -147,27 +203,20 @@ Interpreter::endRewriting(Timer& timer,
     {
       delete context;
       (void) module->unprotect();
+      if (latexBuffer != 0)
+	latexBuffer->cleanUp();
     }
   else
     {
+      Int64 real = 0;
+      Int64 virt = 0;
+      Int64 prof = 0;
+      bool showTiming = getFlag(SHOW_TIMING) && timer.getTimes(real, virt, prof);
       if (getFlag(SHOW_STATS))
-	printStats(timer, *context, getFlag(SHOW_TIMING));
+	printStats(*context, prof, real, showTiming);
+
       DagNode* r = context->root();
       cout << "result " << r->getSort() << ": " << r << '\n';
-      // SERIALIZATION
-      // TEST
-      // CODE
-      /*
-      Rope ser = module->serialize(r);
-      cout << module->serialize(r) << endl;
-      string mess;
-      Token::ropeToString(ser, mess);
-      cout << "string: " << mess << endl;
-
-      DagNode* d = module->deserialize(ser);
-      cout << "read back: " << d << endl;
-            */
-
       cout.flush();
       if (xmlBuffer != 0)
 	{
@@ -177,7 +226,17 @@ Interpreter::endRewriting(Timer& timer,
 				    getFlag(SHOW_TIMING),
 				    getFlag(SHOW_BREAKDOWN));
 	}
-      
+      if (latexBuffer != 0)
+	{
+	  latexBuffer->generateResult(*context,
+				      context->root(),
+				      prof,
+				      real,
+				      getFlag(SHOW_STATS),
+				      showTiming,
+				      getFlag(SHOW_BREAKDOWN));
+	  latexBuffer->cleanUp();
+	}
       if (cf == 0)
 	{
 	  delete context;
@@ -203,13 +262,19 @@ Interpreter::reduce(const Vector<Token>& subject, bool debug)
   if (DagNode* d = makeDag(subject))
     {
       CacheableRewritingContext* context = new CacheableRewritingContext(d);
-      if (getFlag(SHOW_COMMAND))
+      bool showCommand = getFlag(SHOW_COMMAND);
+      if (showCommand)
 	{
 	  UserLevelRewritingContext::beginCommand();
+	  if (debug)
+	    cout << "debug ";
 	  cout << "reduce in " << currentModule << " : " << d << " ." << endl;
 	  if (xmlBuffer != 0)
 	    xmlBuffer->generateReduce(d);
 	}
+      if (latexBuffer != 0)
+	latexBuffer->generateCommand(showCommand, debug ? "debug reduce" : "reduce", d);
+
       VisibleModule* fm = currentModule->getFlatModule();
       startUsingModule(fm);
       beginRewriting(debug);
@@ -255,9 +320,12 @@ Interpreter::rewrite(const Vector<Token>& subject, Int64 limit, bool debug)
 {
   if (DagNode* d = makeDag(subject))
     {
-      if (getFlag(SHOW_COMMAND))
+      bool showCommand = getFlag(SHOW_COMMAND);
+      if (showCommand)
 	{
 	  UserLevelRewritingContext::beginCommand();
+	  if (debug)
+	    cout << "debug ";
 	  cout << "rewrite ";
 	  if (limit != NONE)
 	    cout  << '[' << limit << "] ";
@@ -265,7 +333,9 @@ Interpreter::rewrite(const Vector<Token>& subject, Int64 limit, bool debug)
 	  if (xmlBuffer != 0)
 	    xmlBuffer->generateRewrite(d, limit);
 	}
-      
+      if (latexBuffer != 0)
+	latexBuffer->generateCommand(showCommand, debug ? "debug rewrite" : "rewrite", d, limit);
+
       CacheableRewritingContext* context = new CacheableRewritingContext(d);
       VisibleModule* fm = currentModule->getFlatModule();
 
@@ -289,6 +359,8 @@ Interpreter::rewriteCont(Int64 limit, bool debug)
   continueFunc = 0;
   if (xmlBuffer != 0 && getFlag(SHOW_COMMAND))
     xmlBuffer->generateContinue("rewrite", fm, limit);
+  if (latexBuffer)
+    latexBuffer->generateContinue(getFlag(SHOW_COMMAND), limit, debug);
   context->clearCount();
   beginRewriting(debug);
   Timer timer(getFlag(SHOW_TIMING));
@@ -301,15 +373,21 @@ Interpreter::fRewrite(const Vector<Token>& subject, Int64 limit, Int64 gas, bool
 {
   if (DagNode* d = makeDag(subject))
     {
-      if (getFlag(SHOW_COMMAND))
+      bool showCommand = getFlag(SHOW_COMMAND);
+      if (showCommand)
 	{
 	  UserLevelRewritingContext::beginCommand();
+	  if (debug)
+	    cout << "debug ";
 	  cout << "frewrite ";
 	  printModifiers(limit, gas);
 	  cout << d << " ." << endl;
 	  if (xmlBuffer != 0)
 	    xmlBuffer->generateFrewrite(d, limit, gas);
 	}
+      if (latexBuffer != 0)
+	latexBuffer->generateCommand(showCommand, debug ? "debug frewrite" : "frewrite", d, limit, gas);
+
       CacheableRewritingContext* context = new CacheableRewritingContext(d);
       context->setObjectMode(ObjectSystemRewritingContext::FAIR);
       VisibleModule* fm = currentModule->getFlatModule();
@@ -334,6 +412,8 @@ Interpreter::fRewriteCont(Int64 limit, bool debug)
   continueFunc = 0;
   if (xmlBuffer != 0 && getFlag(SHOW_COMMAND))
     xmlBuffer->generateContinue("frewrite", fm, limit);
+  if (latexBuffer)
+    latexBuffer->generateContinue(getFlag(SHOW_COMMAND), limit, debug);
   context->clearCount();
   beginRewriting(debug);
   Timer timer(getFlag(SHOW_TIMING));

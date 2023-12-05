@@ -25,7 +25,7 @@
 //
 
 bool
-MixfixModule::ambiguous(int iflags)
+MixfixModule::ambiguous(int iflags) const
 {
   //
   //	If there is an operator with the same name and domain kinds then
@@ -99,7 +99,7 @@ MixfixModule::decideIteratedAmbiguity(bool rangeKnown,
 				      Symbol* symbol,
 				      const mpz_class& number,
 				      bool& needToDisambiguate,
-				      bool& argumentRangeKnown)
+				      bool& argumentRangeKnown) const
  
 {
   needToDisambiguate = false;
@@ -158,4 +158,14 @@ MixfixModule::decideIteratedAmbiguity(bool rangeKnown,
 
   if ((overloadType & RANGE_OVERLOADED) || (!rangeKnown && !needToDisambiguate))
     argumentRangeKnown = false;
+}
+
+Sort*
+MixfixModule::disambiguatorSort(const Term* term)
+{
+  Symbol* symbol = term->symbol();
+  int sortIndex = term->getSortIndex();
+  if (sortIndex <= Sort::ERROR_SORT)
+    sortIndex = chooseDisambiguator(symbol);
+  return symbol->rangeComponent()->sort(sortIndex);
 }

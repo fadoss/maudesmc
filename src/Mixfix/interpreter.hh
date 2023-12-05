@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2003 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@
 #include "viewCache.hh"
 //#include "syntacticView.hh"
 #include "parameterDatabase.hh"
+#include "printSettings.hh"
 #include "SMT.hh"
 
 class Interpreter
@@ -45,7 +46,8 @@ class Interpreter
 #endif
     public ViewDatabase,
     public ViewCache,
-    public ParameterDatabase
+    public ParameterDatabase,
+    public PrintSettings
 {
   NO_COPYING(Interpreter);
 
@@ -114,6 +116,10 @@ public:
     PRINT_ATTRIBUTE_RL = 0x8000000,
     */
     //
+    //	Cache flags.
+    //
+    AUTO_CLEAR_CACHES = 0x10000000,
+    //
     //	Counter flags.
     //
     AUTO_CLEAR_RULES = 0x40000000,
@@ -129,46 +135,23 @@ public:
     DEFAULT_FLAGS = SHOW_COMMAND | SHOW_STATS | SHOW_TIMING | SHOW_LOOP_TIMING |
     COMPILE_COUNT |
     TRACE_CONDITION | TRACE_SUBSTITUTION | TRACE_MB | TRACE_EQ | TRACE_RL | TRACE_SD | TRACE_REWRITE | TRACE_BODY | TRACE_BUILTIN |
-    AUTO_CLEAR_PROFILE | AUTO_CLEAR_RULES | PRINT_ATTRIBUTE_NEWLINE
-  };
-
-  enum PrintFlags
-  {
-    //
-    //	General prettyprinter flags.
-    //
-    PRINT_GRAPH = 0x1,		// print as a set of DAG nodes
-    PRINT_CONCEAL = 0x2,	// respect concealed argument lists
-    PRINT_FORMAT = 0x4,		// respect format attribute
-    PRINT_MIXFIX = 0x8,		// mixfix notation
-    PRINT_WITH_PARENS = 0x10,	// maximal parens
-    PRINT_COLOR = 0x20,		// dag node coloring based on ctor/reduced status
-    PRINT_DISAMBIG_CONST = 0x40,	// (c).s for every constant c
-    //
-    //	Prettyprinter flags for particular symbol types.
-    //
-    PRINT_WITH_ALIASES = 0x100,	// for variables
-    PRINT_FLAT = 0x200,		// for assoc symbols
-    PRINT_NUMBER = 0x400,	// for nats & ints
-    PRINT_RAT = 0x800,		// for rats
-
-    DEFAULT_PRINT_FLAGS = PRINT_FORMAT | PRINT_MIXFIX | PRINT_WITH_ALIASES |
-    PRINT_FLAT | PRINT_NUMBER | PRINT_RAT
+    AUTO_CLEAR_PROFILE | AUTO_CLEAR_CACHES | AUTO_CLEAR_RULES | PRINT_ATTRIBUTE_NEWLINE
   };
 
   Interpreter();
   ~Interpreter();
 
+  void outputBanner(const char* date, const char* time, time_t seconds);
+
   void beginXmlLog(const char* fileName);
   void endXmlLog();
+  void beginLatexLog(const char* fileName);
+  void endLatexLog();
   MaudemlBuffer* getXmlBuffer() const;
 
   void cleanCaches();
   void setFlag(Flags flag, bool polarity);
   bool getFlag(Flags flag) const;
-  void setPrintFlag(PrintFlags flag, bool polarity);
-  bool getPrintFlag(PrintFlags flag) const;
-  int getPrintFlags() const;
 
   SyntacticPreModule* getCurrentModule() const;
   bool setCurrentModule(const Vector<Token>& moduleExpr, int start = 0);
@@ -224,13 +207,13 @@ public:
   bool traceId(int id);
   bool breakId(int id);
   bool excludedModule(int id);
-  bool concealedSymbol(Symbol* symbol);
 
   void showProfile() const;
   void showKinds() const;
   void showSummary() const;
   void showSortsAndSubsorts() const;
   void showModule(bool all = true) const;
+  void showPreModule() const;
   void showModules(bool all) const;
   void showView() const;
   void showProcessedView() const;
@@ -262,6 +245,12 @@ private:
   void startUsingModule(VisibleModule* module);
   void printModifiers(Int64 number, Int64 number2);
   void printStats(const Timer& timer, RewritingContext& context, bool timingFlag);
+  void printStats(const Timer& timer, RewritingContext& context);
+  void printStats(RewritingContext& context,
+		  int64_t cpuTime,
+		  int64_t realTime,
+		  bool timingFlag,
+		  int64_t nrStates = NONE);
   void beginRewriting(bool debug);
   void endRewriting(Timer& timer,
 		    CacheableRewritingContext* context,
@@ -311,8 +300,7 @@ private:
 			    Int64 solutionCount,
 			    Int64 limit);
   void variantUnifyCont(Int64 limit, bool debug);
-  void doVariantMatching(Timer& timer,
-			 VisibleModule* module,
+  void doVariantMatching(VisibleModule* module,
 			 VariantSearch* state,
 			 Int64 solutionCount,
 			 Int64 limit);
@@ -331,7 +319,6 @@ private:
 			 Int64 limit,
 			 bool depthSearch);
   void printDecisionTime(const Timer& timer);
-  void printSearchTiming(const Timer& timer,  RewriteSequenceSearch* state);
   void doMatching(Timer& timer,
 		  VisibleModule* module,
 		  MatchSearchState* state,
@@ -354,9 +341,10 @@ private:
 
   ofstream* xmlLog;
   MaudemlBuffer* xmlBuffer;
+  MaudeLatexBuffer* latexBuffer;
 
   int flags;
-  int printFlags;
+  //int printFlags;
   SyntacticPreModule* currentModule;
   SyntacticView* currentView;
   //
@@ -372,7 +360,6 @@ private:
   set<int> traceIds;		// names of symbols/labels selected for tracing
   set<int> breakIds;		// names of symbols/labels selected as break points
   set<int> excludedModules;	// names of modules to be excluded from tracing
-  set<int> concealedSymbols;	// names of symbols to have their arguments concealed during printing
 };
 
 inline void
@@ -391,12 +378,6 @@ inline void
 Interpreter::traceExclude(bool add)
 {
   updateSet(excludedModules, add);
-}
-
-inline void
-Interpreter::printConceal(bool add)
-{
-  updateSet(concealedSymbols, add);
 }
 
 inline bool
@@ -427,18 +408,6 @@ inline bool
 Interpreter::getFlag(Flags flag) const
 {
   return flags & flag;
-}
-
-inline bool
-Interpreter::getPrintFlag(PrintFlags flag) const
-{
-  return printFlags & flag;
-}
-
-inline int
-Interpreter::getPrintFlags() const
-{
-  return printFlags;
 }
 
 inline SyntacticPreModule*

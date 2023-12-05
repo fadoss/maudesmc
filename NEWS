@@ -1,3 +1,101 @@
+Overview of Changes in alpha154
+============================================
+* conventions for printing spaces around unparsed tokens made
+uniform
+* fixed bug where set print const with sorts on . did not work
+for built-in constants in terms
+* new with-sorts PrintOption constant
+* added metaPrintToString() descent function
+* added printToString() message
+* metaPrettyPrint() descent function supports concealed
+argument lists via an extra argument
+* printTerm() message supports concealed argument lists via an
+extra argument
+* concealed argument lists support for printing terms in modules
+* fixed bug where color for terms in modules produces bad LaTeX
+* fixed bug in LaTeX for disambiguation of iter operators
+
+Overview of Changes in alpha153 (2023-11-07)
+============================================
+* smarter sort disambiguation for printing statements and
+operator identities
+* set print label attribute on/off .
+* refinements to show module output
+* ASCII option for maude.sty LaTeX package
+* fixed various bugs in LaTeX output
+* LaTeX support for more commands
+* set clear module caches on/off .
+* set print hooks on/off .
+* space printed after comma by default in mixfix syntax
+* portal attribute and enforcement of portal requirement
+* uniform order for operator attributes
+* _|=_ in model checker is now partial
+* set print combine vars on/off .
+* new line breaking rules for LaTeX output
+* backquotes removed in LaTeX output for op-hooks
+
+Overview of Changes in alpha152 (2023-10-02)
+============================================
+* more LaTeX support
+* fixed bug in the LaTeX printing of view instantiations
+* fixed bug in LaTeX printing of one strategy
+* fixed bug in LaTeX printing of srew/dsrew commands
+* fixed a termination bug in filtered variant unify
+* optimizations to semi-compilation of free theory equations
+* fixed compile time error for 32-bits targets
+* updated config.guess
+
+Overview of Changes in alpha151 (2023-08-11)
+============================================
+* fmod INITIAL-EQUALITY-PREDICATE added to prelude
+* more LaTeX support
+* fixed bug where debug modifier wasn't being printed
+* fixed break deselect, trace deselect, trace include, print reveal bugs
+* fixed LaTeX timing bugs
+
+Overview of Changes in alpha150 (2023-07-21)
+============================================
+* added set show resources command
+* intial support for LaTeX
+* fixed bug in free theory discrimination nets for huge
+number of patterns
+* fixed bug in free theory discrimination nets for large
+patterns
+
+Overview of Changes in alpha149 (2023-05-12)
+============================================
+* added pseudo-random number generator objects
+
+Overview of Changes in alpha148 (2023-05-05)
+============================================
+* fixed a bug in compilation of ACU patterns introduced by the
+last alpha that caused matches to be missed
+* fixed a bug in thew functional meta-level where rewrite count
+from metaSrewrite() was lost
+* more optimizations for ACU red-black matching
+* smarter scheme for deciding how many dag nodes the memory manager
+should allocate
+* fixed a bug in the rewrite count values returned by the
+meta-interpeter in response to the srewriteTerm() message
+* more information shown in garbage collection reporting
+* -early-quit=N flag for developer use
+
+Overview of Changes in alpha147 (2023-04-28)
+============================================
+* fixed bug in new ACU matching code where stripper variable
+was not required to have multiplicity 1
+* fixed bug in new ACU matching code where it didn't handle
+0 or 1 subject arguments left
+* fixed bug in new ACU matching code where it could be used
+even if a non-ground alien was present
+* optimizations for ACU red-black matching
+
+Overview of Changes in alpha146 (2023-04-26)
+============================================
+* overparsing for commands that end in on/off
+* optimizations for AC/ACU matching
+* optimizations for token handling
+
 Overview of Changes in Maude 3.3.1 (alpha145) (2023-04-13)
 ==========================================================
 * fixed a bug where internal error and stack overflow messages
@@ -25,7 +123,7 @@ for various operations
 
 Overview of Changes in Maude 3.3 (alpha143) (2023-03-22)
 ========================================================
-* overparsing for omiting -> in constant mapping removed due
+* overparsing for omitting -> in constant mapping removed due
 to ambiguity
 * various gcc/clang warnings fixed
 * show path states command now shows rule labels

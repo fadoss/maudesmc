@@ -74,7 +74,7 @@
 #ifdef COMPILER
 #include "freePreNetFullCompiler.cc"
 #endif
-
+    
 FreePreNet::FreePreNet(bool expandRemainderNodes)
   : expandRemainderNodes(expandRemainderNodes)
 {
@@ -212,7 +212,7 @@ FreePreNet::makeNode(const LiveSet& liveSet,
       //
       //	Match node case; choose a test position.
       //
-      int positionIndex = findBestPosition(key, n);
+      int positionIndex = findBestPosition(key, n);  // fills out n.sons
       NatSet newPositionsTested(positionsTested);
       newPositionsTested.insert(positionIndex);
       n.testPositionIndex = positionIndex;
@@ -221,8 +221,8 @@ FreePreNet::makeNode(const LiveSet& liveSet,
       //	prevents a quadratic blow up on certain examples with
       //	huge pattern set.
       //
-      int totalSymbols = topSymbol->getModule()->getSymbols().size();
-      Vector<LiveSet> liveSets(totalSymbols);
+      Index nrArcs = n.sons.size();
+      Vector<LiveSet> liveSets(nrArcs);
       LiveSet defaultLiveSet;
       partitionLiveSet(liveSet,
 		       positionIndex,
@@ -232,10 +232,10 @@ FreePreNet::makeNode(const LiveSet& liveSet,
       //
       //	Make an arc for each symbol we must check for.
       //
-      int nrSymbols = n.sons.length();
-      for (int i = 0; i < nrSymbols; i++)
+      for (Index i = 0; i < nrArcs; ++i)
 	{
-	  Symbol* symbol = n.sons[i].label;
+	  Arc& son = n.sons[i];
+	  Symbol* symbol = son.label;
 	  //
 	  //	Make a new fringe:
 	  //	(1) Remove tested position from old fringe.
@@ -249,16 +249,14 @@ FreePreNet::makeNode(const LiveSet& liveSet,
 	  newFringe.subtract(positionIndex);
 	  expandFringe(positionIndex, symbol, newFringe);
 	  LiveSet newLiveSet;
-	  findLiveSet(liveSets[symbol->getIndexWithinModule()],
+	  findLiveSet(liveSets[i],
 		      positionIndex,
 		      symbol, 
 		      newFringe,
 		      newLiveSet);
 	  reduceFringe(newLiveSet, newFringe);
-	  Assert(!(newLiveSet.empty()),
-		 "empty live set on arc labeled with symbol");
-	  int t = makeNode(newLiveSet, newFringe, newPositionsTested);
-	  n.sons[i].target = t;
+	  Assert(!(newLiveSet.empty()), "empty live set on arc labeled with symbol");
+	  son.target = makeNode(newLiveSet, newFringe, newPositionsTested);
 	}
       //
       //	Make an arc for the default case.
@@ -306,31 +304,33 @@ FreePreNet::expandFringe(int positionIndex, Symbol* symbol, NatSet& fringe)
 void
 FreePreNet::reduceFringe(const LiveSet& liveSet, NatSet& fringe) const
 {
+  NatSet useless;
   //
   //	For each position in the fringe.
   //
-  const NatSet::const_iterator ei = fringe.end();
-  for (NatSet::const_iterator i = fringe.begin(); i != ei; ++i)
+  for (int i : fringe)
     {
-      const Vector<int>& position = positions.index2Position(*i);
+      const Vector<int>& position = positions.index2Position(i);
       //
       //	See if at least one live pattern has a stable symbol at this position.
       //
       for (int j : liveSet)
 	{
-	  if (FreeTerm* f = dynamic_cast<FreeTerm*>(patterns[j].term))
+	  Term* p = patterns[j].term;
+	  if (typeid(*p) == typeid(FreeTerm))
 	    {
-	      if (Term* t = f->locateSubterm(position))
+	      if (Term* t = static_cast<FreeTerm*>(p)->locateSubterm(position))
 		{
 		  if (t->stable())
 		    goto survive;
 		}
 	    }
 	}
-      fringe.subtract(*i);  // eliminate useless pattern from fringe
+      useless.insert(i);  // useless position
     survive:
       ;
     }
+  fringe.subtract(useless);
 }
 
 void
@@ -385,7 +385,14 @@ FreePreNet::partitionLiveSet(const LiveSet& original,
 			     LiveSet& defaultLiveSet)
 {
   const Vector<int>& position = positions.index2Position(positionIndex);  // safe because we won't add new positions
-  
+  //
+  //	We want to efficiently map symbols to arc indices in the case there are many arcs.
+  //
+  map<Symbol*, Index> arcIndexLookup;
+  Index nrArcs = arcs.size();  // number of symbols we need to consider
+  for (Index i = 0; i < nrArcs; ++i)
+    arcIndexLookup[arcs[i].label] = i;
+
   for (int patternIndex : original)
     {
       if (FreeTerm* f = dynamic_cast<FreeTerm*>(patterns[patternIndex].term))
@@ -393,7 +400,7 @@ FreePreNet::partitionLiveSet(const LiveSet& original,
 	  if (Term* t = f->locateSubterm(position))
 	    {
 	      if (t->stable())
-		liveSets[t->symbol()->getIndexWithinModule()].insert(patternIndex);
+		liveSets[arcIndexLookup[t->symbol()]].insert(patternIndex);
 	      else
 		{
 		  //
@@ -405,11 +412,11 @@ FreePreNet::partitionLiveSet(const LiveSet& original,
 		  //	Need to consider pattern for the live set of each active
 		  //	symbol that could match our unstable subpattern.
 		  //
-		  for (const Arc& j : arcs)
+		  for (Index i = 0; i < nrArcs; ++i)
 		    {
-		      Symbol* symbol = j.label;
+		      Symbol* symbol = arcs[i].label;
 		      if (symbol->mightMatchPattern(t))
-			liveSets[symbol->getIndexWithinModule()].insert(patternIndex);
+			liveSets[i].insert(patternIndex);
 		    }
 		}
 	      continue;
@@ -420,8 +427,8 @@ FreePreNet::partitionLiveSet(const LiveSet& original,
       //	Either way we add it to all live sets.
       //
       defaultLiveSet.insert(patternIndex);
-      for (const Arc& j : arcs)
-	liveSets[j.label->getIndexWithinModule()].insert(patternIndex);
+      for (LiveSet& l : liveSets)
+	l.insert(patternIndex);
     }
 }
 

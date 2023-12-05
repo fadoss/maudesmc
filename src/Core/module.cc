@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2020 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -240,6 +240,7 @@ Module::closeFixUps()
 void
 Module::closeTheory()
 {
+  DebugInfo("semi-compiling " << this);
   //
   //	This is where most of the work for analyzing and (semi-)compiling
   //	a module is done.
@@ -430,7 +431,7 @@ Module::indexRules()
 }
 
 void
-Module::insertLateSymbol(Symbol*s)
+Module::insertLateSymbol(Symbol* s)
 {
   Assert(status >= SIGNATURE_CLOSED, "bad status");
   s->setModuleInfo(this, symbols.length());
@@ -539,22 +540,6 @@ Module::resetRules()
   for (Symbol* s : symbols)
     s->resetRules();
 }
-
-/*
-void
-Module::saveHiddenState()
-{
-  FOR_EACH_CONST(i, Vector<Symbol*>, symbols)
-    (*i)->saveHiddenState();
-}
-
-void
-Module::restoreHiddenState()
-{
-  FOR_EACH_CONST(i, Vector<Symbol*>, symbols)
-    (*i)->restoreHiddenState();
-}
-*/
 
 #ifdef DUMP
 void

@@ -48,6 +48,7 @@
 
 //	our stuff
 #include "ooRenaming.cc"
+#include "latexRenaming.cc"
 
 Renaming::~Renaming() 
 {
@@ -743,7 +744,7 @@ Renaming::renameOp(int id, const Vector<int>& sortNames) const
 	      IssueWarning("multiple renamings apply to " << QUOTE(Token::name(id)) << " : " <<
 			   QUOTE(Token::name(getOpTo(index))) << " vs " <<
 			   QUOTE(Token::name(i->second.name)) << ".");
-	      DebugAlways("renaming is\n\n" << this << "\n");
+	      DebugInfo("renaming is\n\n" << this << "\n");
 	      break;
 	    }
 	}
@@ -1161,7 +1162,7 @@ Renaming::purgeGeneratedMappings()
 }
 
 void
-Renaming::printRenamingType(ostream& s, const set<int>& sorts) const
+Renaming::printRenamingType(ostream& s, const set<int>& sorts)
 {
   char sep = '[';
   for (int i : sorts)

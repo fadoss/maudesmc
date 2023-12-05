@@ -52,6 +52,7 @@ libmixfix_a_SOURCES = \
 	quotedIdentifierDagNode.cc \
 	quotedIdentifierTerm.cc \
 	quotedIdentifierOpSymbol.cc \
+	commutativeDecomposeEqualitySymbol.cc \
 	mixfixModule.cc \
 	token.cc \
 	global.cc \
@@ -78,6 +79,7 @@ libmixfix_a_SOURCES = \
 	freshVariableSource.cc \
 	variableGenerator.cc \
 	objectConstructorSymbol.cc \
+	maudeLatexBuffer.cc \
 	$(COMPILER_SRC)
 
 EXTRA_libmixfix_a_SOURCES = \
@@ -179,7 +181,19 @@ EXTRA_DIST = \
 	yices2_Bindings.cc \
 	quotedIdentifierOpSignature.cc \
 	serialize.cc \
-	pseudoParameters.cc
+	pseudoParameters.cc \
+	latexDagNodePrint.cc \
+	latexCommon.cc \
+	latexTermPrint.cc \
+	latexModulePrint.cc \
+	latexViewPrint.cc \
+	latexToken.cc \
+	latexRenaming.cc \
+	latexImportModule.cc \
+	latexStrategyPrint.cc \
+	latexResult.cc \
+	latexCommand.cc \
+	latexPreModulePrint.cc
 
 noinst_HEADERS = \
 	renaming.hh \
@@ -214,6 +228,7 @@ noinst_HEADERS = \
 	quotedIdentifierOpSymbol.hh \
 	quotedIdentifierSymbol.hh \
 	quotedIdentifierTerm.hh \
+	commutativeDecomposeEqualitySymbol.hh \
 	symbolType.hh \
 	token.hh \
 	userLevelRewritingContext.hh \
@@ -230,4 +245,6 @@ noinst_HEADERS = \
 	parameter.hh \
 	parameterDatabase.hh \
 	objectConstructorSymbol.hh \
-	statementTransformer.hh
+	statementTransformer.hh \
+	maudeLatexBuffer.hh \
+	printSettings.hh
