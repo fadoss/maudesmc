@@ -182,12 +182,12 @@ Renaming::makeCanonicalName() const
 		*j += ")";
 		attr = true;
 	      }
-	    if (!(i.second.latexMacro.empty()))
+	    if (i.second.latexMacro != NONE)
 	      {
 		*j += attr ? " " : " [";
-		*j += "latex \"";
-		*j += i.second.latexMacro.c_str();
-		*j += "\"";
+		*j += "latex (";
+		*j += Token::name(i.second.latexMacro);
+		*j += ")";
 		attr = true;
 	      }
 	    if (attr)
@@ -318,7 +318,7 @@ Renaming::isIdentityOpMapping(const ImportModule* module, const OpMapping& om, c
   if (om.name == symbol->id() &&
       (om.prec < MixfixModule::MIN_PREC || om.prec == module->getPrec(symbol)) &&
       (om.format.empty() || equal(om.format, module->getFormat(symbol))) &&
-      om.latexMacro.empty())
+      om.latexMacro == module->getLatexMacro(symbol))
     {
       if (om.gather.empty())
 	return true;
@@ -342,7 +342,7 @@ Renaming::isIdentityOpMapping(const ImportModule* module, const OpMapping& om, i
   if (om.name == module->getPolymorphName(index).code() &&
       (om.prec < MixfixModule::MIN_PREC || om.prec == module->getPolymorphPrec(index)) &&
       (om.format.empty() || equal(om.format, module->getPolymorphFormat(index))) &&
-       om.latexMacro.empty())
+      om.latexMacro == module->getPolymorphLatexMacro(index))
     {
       if (om.gather.empty())
 	return true;
@@ -845,7 +845,7 @@ Renaming::addSortConstantAndLabelMappings(const Renaming* original)
       Assert(m.second.prec == MixfixModule::MIN_PREC - 1, "shouldn't change prec");
       Assert(m.second.gather.empty(), "shouldn't change gather");
       Assert(m.second.format.empty(), "shouldn't change format");
-      Assert(m.second.latexMacro.empty(), "shouldn't change latexMacro");
+      Assert(m.second.latexMacro == NONE, "shouldn't change latexMacro");
       if (opMap.find(m.first) == opMap.end())
 	{
 	  //
@@ -1139,7 +1139,10 @@ Renaming::setFormat(const Vector<Token>& format)
 void
 Renaming::setLatexMacro(const string& latexMacro)
 {
-  lastOpMapping->second.latexMacro = latexMacro;
+  if (latexMacro.empty())
+    lastOpMapping->second.latexMacro = NONE;
+  else
+    lastOpMapping->second.latexMacro = Token::encode(latexMacro.c_str());
 }
 
 void
@@ -1177,6 +1180,13 @@ void
 Renaming::printRenaming(ostream& s, const char* sep, const char* sep2, bool showProcessed) const
 {
   DebugEnter("this = " << (void*) this);
+  //
+  //	Problem situations that pretty op printing needs to handle.
+  //
+  const int fromOpProblems = Token::EXPOSED_COLON | Token::EXPOSED_TO; // colons and "to" in from operators names are always a problem
+  int toOpProblems = (typeid(*this) == typeid(Renaming)) ?
+    (Token::EXPOSED_COMMA | Token::EXPOSED_LEFT_BRACKET) :  // commas and left brackets in target operator names are a problem for renamings
+    (Token::EXPOSED_TERM | Token::EXPOSED_DOT);  // "term" and dots in target operator names are a problem for views
   //
   //	If we are printing the unprocessing renaming, include class mappings.
   //
@@ -1218,12 +1228,8 @@ Renaming::printRenaming(ostream& s, const char* sep, const char* sep2, bool show
   for (Index i = 0; i < nrOpMappings; ++i)
     {
       auto om = opMapIndex[i];
-      s << sep << ((!showProcessed && om->second.mappingType == MappingType::MSG) ? "msg " : "op ");
-      if (om->second.types.size() == 1)
-	s << Token::sortName(om->first);
-      else
-	s << Token::name(om->first);
-
+      s << sep << ((!showProcessed && om->second.mappingType == MappingType::MSG) ? "msg " : "op ") <<
+	MixfixModule::prettyOpName(om->first, fromOpProblems);
       if (!om->second.types.empty())
 	{
 	  s << " :";
@@ -1248,14 +1254,14 @@ Renaming::printRenaming(ostream& s, const char* sep, const char* sep2, bool show
 	  continue;
 	}
 #endif
-      if (om->second.types.size() == 1)
-	s << " to " << Token::sortName(om->second.name);  // constant mapping - might be a parameterized constant
-      else
-	s << " to " << Token::name(om->second.name);
+      s << " to " << MixfixModule::prettyOpName(om->second.name, toOpProblems);
       //
       //	If we have any attributes in target, print them inside []s.
       //
-      if (om->second.prec >= MixfixModule::MIN_PREC || !om->second.gather.empty() || !om->second.format.empty())
+      if (om->second.prec >= MixfixModule::MIN_PREC ||
+	  !om->second.gather.empty() ||
+	  !om->second.format.empty() ||
+	  om->second.latexMacro != NONE)
 	{
 	  sep = " [";
 	  if (om->second.prec >= MixfixModule::MIN_PREC)
@@ -1273,6 +1279,12 @@ Renaming::printRenaming(ostream& s, const char* sep, const char* sep2, bool show
 	    {
 	      s << sep;
 	      SyntacticPreModule::printFormat(s, om->second.format);
+	      sep = " ";
+	    }
+	  if (om->second.latexMacro != NONE)
+	    {
+	      s << sep;
+	      s << "latex (" << Token::name(om->second.latexMacro) << ")";
 	      sep = " ";
 	    }
 	  s << ']';

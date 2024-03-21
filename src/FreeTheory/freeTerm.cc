@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2024 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -101,7 +101,7 @@ FreeTerm::~FreeTerm()
 }
 
 RawArgumentIterator*
-FreeTerm::arguments()
+FreeTerm::arguments() const
 {
   if (argArray.empty())
     return 0;
@@ -164,8 +164,8 @@ FreeTerm::compareArguments(const Term* other) const
 {
   Assert(symbol() == other->symbol(), "symbols differ");
   int nrArgs = argArray.length();
-  Vector<Term*>& ta = (const_cast<FreeTerm*>(static_cast<const FreeTerm*>(other)))->argArray;
-  for (int i = 0; i < nrArgs; i++)
+  const Vector<Term*>& ta = safeCastNonNull<const FreeTerm*>(other)->argArray;
+  for (int i = 0; i < nrArgs; ++i)
     {
       int r = argArray[i]->compare(ta[i]);
       if (r != 0)
@@ -352,9 +352,8 @@ FreeTerm::earlyMatchFailOnInstanceOf(const Term* other) const
   if (symbol() != other->symbol())
     return other->stable();  // terms headed by free symbols are always stable
   int nrArgs = argArray.length();
-  Vector<Term*>& argArray2 =
-    const_cast<FreeTerm*>(static_cast<const FreeTerm*>(other))->argArray;
-  for (int i = 0; i < nrArgs; i++)
+  const Vector<Term*>& argArray2 = safeCastNonNull<const FreeTerm*>(other)->argArray;
+  for (int i = 0; i < nrArgs; ++i)
     {
       if (argArray[i]->earlyMatchFailOnInstanceOf(argArray2[i]))
 	return true;

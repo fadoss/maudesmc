@@ -1,3 +1,55 @@
+2024-03-11  Steven Eker  <eker@pup>
+
+	* maude.sty: added \maudeShowSpace
+
+2024-02-20  Steven Eker  <eker@pup>
+
+	* maude.sty: adjust the spacing around, and hieght of * in
+	\maudeRenaming
+
+===================================Maude157===========================================
+
+2024-01-29  Steven Eker  <eker@pup>
+
+	* maude.sty: added \maudeTinySpace; put extra space after ,
+	in \maudeComma
+
+2024-01-09  Steven Eker  <eker@pup>
+
+	* maude.sty: added \maudeToBranch; increased \maudeInterwordSpace to
+	0.4em; added \maudeBigSpace and use it for ASCII mode; adjusted space
+	in ASCII version of \maudeConstantDecl
+
+2024-01-05  Steven Eker  <eker@pup>
+
+	* maude.sty: added \maudeNewline; protect against doubled dollar signs
+	in \maudeBigString, \maudeBigQid, \maudeBigRaw
+
+2023-12-19  Steven Eker  <eker@pup>
+
+	* maude.sty: added \maudeBigQid, \maudeBigRaw
+
+2023-12-18  Steven Eker  <eker@pup>
+
+	* maude.sty: added \maudeBigString
+
+2023-12-15  Steven Eker  <eker@pup>
+
+	* maude.sty: require seqsplit; added \maudeBigNumber
+
+===================================Maude156===========================================
+
+2023-12-12  Steven Eker  <eker@pup>
+
+	* maude.sty: use \hspace rather than \hskip for \maudeInterwordSpace;
+	added \maudeHardSpace
+
+2023-11-30  Steven Eker  <eker@pup>
+
+	* prelude.maude: added op latex : String -> Attr [ctor]
+
+===================================Maude155===========================================
+
 2023-11-22  Steven Eker  <eker@pup>
 
 	* metaInterpreter.maude: added printTermToString, printedTermToString
@@ -20,7 +72,6 @@
 	* main.cc (main): Interpreter::PRINT_MIXFIX ->
 	PrintSettings::PRINT_MIXFIX
 
-===================================Maude154===========================================
 
 2023-11-06  Steven Eker  <eker@pup>
 

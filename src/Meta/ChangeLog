@@ -1,3 +1,76 @@
+2024-03-06  Steven Eker  <eker@pup>
+
+	* metaUp.cc (MetaLevel::upQid): got rid of const_cast<>
+
+2024-03-05  Steven Eker  <eker@pup>
+
+	* metaUp.cc (MetaLevel::upTerm): remove const_cast<>
+
+===================================Maude158===========================================
+
+2024-01-09  Steven Eker  <eker@pup>
+
+	* metaLevel.hh (MetaLevel::downSearchType): support '#
+	(MetaLevel::downSearchType): reimplemented to avoid encode()
+
+	* metaSearch.cc (MetaLevelOpSymbol::downSearchType): deleted
+
+	* metaLevelOpSymbol.hh (class MetaLevelOpSymbol): deleted
+	decl for downSearchType()
+
+	* metaNarrow.cc (MetaLevelOpSymbol::makeNarrowingSequenceSearch):
+	use MetaLevel::downSearchType()
+	(MetaLevelOpSymbol::makeNarrowingSequenceSearchAlt): use
+	MetaLevel::downSearchType()
+
+	* metaNewNarrow2.cc
+	(MetaLevelOpSymbol::makeNarrowingSequenceSearch3): use
+	MetaLevel::downSearchType()
+
+	* metaSearch.cc (MetaLevelOpSymbol::makeRewriteSequenceSearch):
+	use MetaLevel::downSearchType()
+	(MetaLevelOpSymbol::makeSMT_RewriteSequenceSearch): use
+	MetaLevel::downSearchType()
+
+===================================Maude156===========================================
+
+2023-12-12  Steven Eker  <eker@pup>
+
+	* metaDownRenamings.cc (MetaLevel::downRenamingAttribute):
+	handle latexSymbol
+
+	* metaDownOps.cc (MetaLevel::downAttr): added support for latex;
+	use Token::ropeToCode() for metadata
+	(MetaLevel::downOpDecl): pass ai.latex to addPolymorph() and
+	m->addOpDeclaration()
+
+	* metaLevel.hh (class MetaLevel): added latex field to
+	struct AttributeInfo; added explicit intializers to struct
+	AttributeInfo and StatementAttributeInfo deleted ctor decls
+	(MetaLevel::AttributeInfo::AttributeInfo): deleted
+	(MetaLevel::StatementAttributeInfo::StatementAttributeInfo):
+	deleted
+
+	* metaUpModule.cc (MetaLevel::upRenamingAttributeSet):
+	handle latex attribute
+
+2023-12-11  Steven Eker  <eker@pup>
+
+	* metaUpModule.cc (MetaLevel::upOpDecl): support latex
+	attribute
+	(MetaLevel::upPolymorphDecl): handle latex attribute
+
+2023-12-05  Steven Eker  <eker@pup>
+
+	* metaDownOps.cc (MetaLevel::downOpDecl): pass latexMacro
+	= NONE to addPolymorph() and addOpDeclaration()
+
+2023-11-30  Steven Eker  <eker@pup>
+
+	* metaLevelSignature.cc: added latexSymbol
+
+===================================Maude155===========================================
+
 2023-11-29  Steven Eker  <eker@pup>
 
 	* descentFunctions.cc (MetaLevelOpSymbol::metaPrintToString):
@@ -5386,13 +5459,13 @@
 	upLabel(), upCondition(), upConditionFragment(),  upRls()
 
 	* metaUpModule.cc (upRls): created
-	
+
 ===================================Maude71a==================================================
 
 2002-03-22  Steven Eker  <eker@goo.csl.sri.com>
 
 	* meta.hh: created
-	
+
 ===================================Maude71==================================================
 
 2002-03-10  Steven Eker  <eker@goo.csl.sri.com>
@@ -5505,7 +5578,7 @@
 	* metaDownFixUps.cc (downOpHook): use new findSymbol()
 
 	* metaDown.cc (downTerm): use new findSymbol() (2 places)
-	
+
 ===================================Maude70==================================================
 
 2002-01-24  Steven Eker  <eker@goo.csl.sri.com>
@@ -5603,4 +5676,3 @@
 	count()
 	(metaApply): use addInCount() instead of incrementCount() and
 	count()
-

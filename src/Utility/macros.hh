@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2024 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -108,10 +108,6 @@ typedef ptrdiff_t Index;
 typedef signed char Byte;
 typedef unsigned char Ubyte;
 //
-//	Shorthand.
-//
-typedef unsigned int Uint;
-//
 //	64 bit arithmetic; since it's now practical to deal with quantities
 //	of rewrites/matchers/unifiers etc that overflow 32 bits.
 //
@@ -166,20 +162,6 @@ typedef long long int Int64;
 template <typename T, typename P>
 inline T
 safeCastNonNull(P p)
-{
-#ifndef NO_ASSERT
-  if (dynamic_cast<T>(p) == 0)
-    {
-      cerr << "unexpected null or cast error: "<< __FILE__ << ':' << __LINE__ << '\n';
-      abort();
-    }
-#endif
-  return static_cast<T>(p);
-}
-
-template <typename T, typename P>
-inline T
-downCast(P p)
 {
 #ifndef NO_ASSERT
   if (dynamic_cast<T>(p) == 0)

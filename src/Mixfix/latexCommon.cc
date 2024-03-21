@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 2023 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 2023-2024 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,13 +23,63 @@
 //
 //	Common functionality for LaTeX pretty printing.
 //
-const char* MixfixModule::latexRed = "{\\color{red}";
-const char* MixfixModule::latexGreen = "{\\color{green}";
-const char* MixfixModule::latexBlue = "{\\color{blue}";
-const char* MixfixModule::latexCyan = "{\\color{cyan}";
-const char* MixfixModule::latexMagenta = "{\\color{magenta}";
-const char* MixfixModule::latexYellow = "{\\color{yellow}";
-const char* MixfixModule::latexResetColor = "}";
+const char* MixfixModule::latexRed = "\\color{red}";
+const char* MixfixModule::latexGreen = "\\color{green}";
+const char* MixfixModule::latexBlue = "\\color{blue}";
+const char* MixfixModule::latexCyan = "\\color{cyan}";
+const char* MixfixModule::latexMagenta = "\\color{magenta}";
+const char* MixfixModule::latexYellow = "\\color{yellow}";
+const char* MixfixModule::latexResetColor = "\\color{black}";
+
+const char* MixfixModule::restoreColor = "";
+
+string
+MixfixModule::latexNumber(const mpz_class& number)
+{
+  //
+  //	We want to be able to break very large numbers over multiple lines but we want to
+  //	avoid breaking smaller numbers in a arbitrary way.
+  //
+  const int BIG_NUM_CUTOFF = 30;
+  string str = number.get_str();
+  string result = (str.length() >= BIG_NUM_CUTOFF) ? "\\maudeBigNumber{" : "\\maudeNumber{";
+  result += str;
+  result += "}";
+  return result;
+}
+
+string
+MixfixModule::latexString(const string& str)
+{
+  const int BIG_STRING_CUTOFF = 30;
+  string result = (str.length() >= BIG_STRING_CUTOFF) ? "\\maudeBigString{" : "\\maudeString{";
+  result += Token::latexName(str);
+  result += "}";
+  return result;
+}
+
+string
+MixfixModule::latexQid(int idCode)
+{
+  const int BIG_QID_CUTOFF = 29;
+  const char* str = Token::name(idCode);
+  string result = (strlen(str) >= BIG_QID_CUTOFF) ? "\\maudeBigQid{" : "\\maudeQid{";
+  result += "\\maudeSingleQuote ";
+  result += Token::latexName(str);
+  result += "}";
+  return result;
+}
+
+string
+MixfixModule::latexRaw(int idCode)
+{
+  const int BIG_RAW_CUTOFF = 30;
+  const char* str = Token::name(idCode);
+  string result = (strlen(str) >= BIG_RAW_CUTOFF) ? "\\maudeBigRaw{" : "\\maudeRaw{";
+  result += Token::latexName(str);
+  result += "}";
+  return result;
+}
 
 string
 MixfixModule::latexStructuredName(const Vector<int>& codes, const Module* m)
@@ -124,7 +174,7 @@ MixfixModule::latexType(const Sort* sort)
 }
 
 string
-MixfixModule::latexConstant(int code, const Module* module)
+MixfixModule::latexConstant(int code, const Module* module, int situations)
 {
   if (Token::auxProperty(code) == Token::AUX_STRUCTURED_SORT)
     {
@@ -138,7 +188,7 @@ MixfixModule::latexConstant(int code, const Module* module)
 	}
       return safeCastNonNull<const MixfixModule*>(module)->latexStructuredConstant(code);
     }
-  return latexPrettyOp(code);
+  return latexPrettyOpName(code, situations);
 }
 
 string
@@ -151,12 +201,72 @@ MixfixModule::latexStructuredConstant(int code) const
 }
 
 string
-MixfixModule::latexPrettyOp(int code)
+MixfixModule::latexPrettyOpName(int code, int situations)
 {
-  string pretty = Token::prettyOpName(code);
-  if (pretty.empty())
-    return Token::latexIdentifier(code);
-  return "\\maudeSymbolic{" + Token::latexName(pretty)  + "}";
+  auto pair = Token::makePrettyOpName(code, situations);
+  //
+  //	If making the pretty name returned the problematic flag, we need to fix the problem in some way.
+  //
+  if (pair.second)
+    {
+      //
+      //	We have a problem. If we're concerned about BARE_COLON we're in an op-hook and we return the single token
+      //	ugly name. Otherwise we just put a set of parentheses around the pretty name if it exists or the original
+      //	name if it doesn't. For original names we use Token::latexIdentifier() which may use a different font.
+      //
+      if (situations & Token::BARE_COLON)
+	return Token::latexIdentifier(code);
+      string nameToUse = pair.first.empty() ? Token::latexIdentifier(code) : ("\\maudeSymbolic{" + Token::latexName(pair.first) + "}");
+      return "\\maudeLeftParen" + nameToUse + "\\maudeRightParen";
+    }
+  //
+  //	If we didn't prettify the name, use Token::latexIdentifier() on the original name; otherwise print the
+  //	the prettified name using \maudeSymbolic.
+  //
+  return pair.first.empty() ? Token::latexIdentifier(code) : ("\\maudeSymbolic{" + Token::latexName(pair.first)  + "}");
+}
+
+void
+MixfixModule::latexPrintStructuredConstant(ostream& s, Symbol* symbol, const char* color, const PrintSettings& printSettings) const
+{
+  const SymbolInfo& si = symbolInfo[symbol->getIndexWithinModule()];
+  if (printSettings.getPrintFlag(PrintSettings::PRINT_FORMAT) && (si.format.length() > 0))
+    {
+      //
+      //	We want to do the special fonts for a structured constant but we also want
+      //	to support the format commands.
+      //
+      int nrTokens = si.mixfixSyntax.size();
+      for (int i = 0;; ++i)
+	{
+	  (void) latexFancySpace(s, si.format[i], printSettings);
+	  if (i == nrTokens)
+	    break;
+	  if (color != nullptr)
+	    s << color;
+	  int token = si.mixfixSyntax[i];
+	  if (token == leftBrace)
+	    s <<  "\\maudeLeftBrace";
+	  else if (token == rightBrace)
+	    s <<  "\\maudeRightBrace";
+	  else if (token == comma)
+	    s <<  "\\maudeComma";
+	  else
+	    {
+	      if (i == 0)
+		s << Token::latexIdentifier(token);
+	      else
+		{
+		  s << ((safeCastNonNull<const ImportModule*>(this)->findParameterIndex(token) == NONE) ? "\\maudeView{" : "\\maudeParameter{");
+		  s << Token::latexName(token) << "}";
+		}
+	    }
+	  if (color != nullptr)
+	    s << latexResetColor;
+	}
+    }
+  else
+    s << latexStructuredConstant(symbol->id());
 }
 
 bool
@@ -185,19 +295,24 @@ MixfixModule::latexFancySpace(ostream& s, int spaceToken, const PrintSettings& p
 	  }
 	case 'n':
 	  {
-	    s << "\\newline";
+	    //
+	    //	\maudeNewline drops out of inline math mode to start a new paragraph and then restarts
+	    //	inline math mode, forgetting about any color change, so we need to remember and restore
+	    //	the current color.
+	    //
+	    s << "\\maudeNewline" << restoreColor;
 	    space = true;
 	    break;
 	  }
 	case 't':
 	  {
-	    s << "\\;";  // no good way to do a tab without a tabbing environment - do a thick space
+	    s << "\\maudeIdent";  // no good way to do a tab without a tabbing environment - do a thick space
 	    space = true;
 	    break;
 	  }
 	case 's':
 	  {
-	    s << "\\:";  // math mode medium space
+	    s << "\\maudeHardSpace";  // so it works at the start of a line
 	    space = true;
 	    break;
 	  }
@@ -206,7 +321,7 @@ MixfixModule::latexFancySpace(ostream& s, int spaceToken, const PrintSettings& p
 	    if (globalIndent > 0)
 	      {
 		for (int i = 0; i < globalIndent; i++)
-		  s << "\\:";
+		  s << "\\maudeHardSpace";
 		space = true;
 	      }
 	    break;
@@ -214,43 +329,43 @@ MixfixModule::latexFancySpace(ostream& s, int spaceToken, const PrintSettings& p
 	default:
 	  {
 	    if (printSettings.getPrintFlag(PrintSettings::PRINT_COLOR))
-	      break;
+	      break;  // if we have system provided color we switch off user provided format color
 	    switch (c)
 	      {
 	      case 'r':
 		{
-		  s << "\\color{red}";
+		  s << (restoreColor = latexRed);
 		  break;
 		}
 	      case 'g':
 		{
-		  s << "\\color{green}";
+		  s << (restoreColor = latexGreen);
 		  break;
 		}
 	      case 'b':
 		{
-		  s << "\\color{blue}";
+		  s << (restoreColor = latexBlue);
 		  break;
 		}
 	      case 'c':
 		{
-		  s << "\\color{cyan}";
+		  s << (restoreColor = latexCyan);
 		  break;
 		}
 	      case 'm':
 		{
-		  s << "\\color{magenta}";
+		  s << (restoreColor = latexMagenta);
 		  break;
 		}
 	      case 'y':
 		{
-		  s << "\\color{yellow}";
+		  s << (restoreColor = latexYellow);
 		  break;
 		}
 	      case 'p':
 	      case 'o':
 		{
-		  s << "\\color{black}";
+		  latexClearColor(s);
 		  break;
 		}
 	      }
@@ -261,11 +376,6 @@ MixfixModule::latexFancySpace(ostream& s, int spaceToken, const PrintSettings& p
 case m: { s << Tty(Tty::t); attributeUsed = true; break; }
 #include "ansiEscapeSequences.cc"
 #undef MACRO
-	      case 'o':
-		{
-		  s << Tty(Tty::RESET);
-		  break;
-		}
 	      }
 	    */
 	  }
@@ -388,7 +498,7 @@ MixfixModule::latexPrintTails(ostream& s,
 			      const PrintSettings& printSettings)
 {
   //
-  //	We output nrTails copies of the user syntax from  pos to si.mixfixSyntax.size() - 1
+  //	We output nrTails copies of the user syntax from pos to si.mixfixSyntax.size() - 1
   //	Usually nrTails will be 1 unless we are unflattening a flattened associative operator.
   //
   bool previousOpenOrComma = false;
@@ -405,7 +515,7 @@ MixfixModule::latexPrintTails(ostream& s,
 	  bool open = token == leftParen || token == leftBracket || token == leftBrace;
 	  bool close = token == rightParen || token == rightBracket || token == rightBrace;
 	  bool isComma = token == comma;
-	  if (!(hasFormat && latexFancySpace(s, si.format[pos - 1], printSettings)))
+	  if (!(hasFormat && latexFancySpace(s, si.format[j], printSettings)))
 	    {
 	      //
 	      //	format didn't produce a space; do we need one?
@@ -484,6 +594,12 @@ MixfixModule::latexPrintFormat(ostream& s, const Vector<int>& format)
   s << "\\maudeRightParen";
 }
 
+void
+MixfixModule::latexPrintLatexMacro(ostream& s, int latexMacro)
+{
+  s << "\\maudeKeyword{latex}\\maudeSpace\\maudeLeftParen\\maudeSymbolic{" << Token::latexName(latexMacro) << "}\\maudeRightParen";
+}
+
 string
 MixfixModule::latexTokenVector(const Vector<Token>& tokens, Index first, Index last)
 {
@@ -495,17 +611,168 @@ MixfixModule::latexTokenVector(const Vector<Token>& tokens, Index first, Index l
       int code = tokens[i].code();
       if (code == rightParen || code == rightBracket || code == rightBrace || code == comma)
 	needSpace = false;
-      else if (code == leftParen)
-	{
-	  needSpace = false;
-	  nextNeedSpace = false;
-	}
-      else if (code == leftBracket || code == leftBrace)
+      else if (code == leftParen || code == leftBracket || code == leftBrace)
 	nextNeedSpace = false;
+      
+
+
+      
       if (needSpace)
 	bubble += "\\maudeSpace";
-      bubble += "\\maudeRaw{" + Token::latexName(tokens[i].code()) +  "}";
+      bubble += latexRaw(code);
       needSpace = nextNeedSpace;
     }
   return bubble;
+}
+
+void
+MixfixModule::latexPrintBubble(ostream& s, const Vector<int>& bubble)
+{
+  //
+  //	We duplicate the idiosyncratic spacing conventions and character translations
+  //	from Interpreter::printBubble() for loop mode support.
+  //
+  bool needSpace = false;
+  for (int code : bubble)
+    {
+      if (code == rightParen || code == rightBracket || code == rightBrace || code == comma ||
+	  code == leftParen || code == leftBracket || code == leftBrace)
+	{
+	  s << latexRaw(code);
+	  needSpace = false;
+	  continue;
+	}
+      const char* n = Token::name(code);
+      if (n[0] == '\\')
+	{
+	  //
+	  //	Special token starting with backslash.
+	  //
+	  if (n[2] == 0)
+	    {
+	      switch (n[1])
+		{
+		case 'n':
+		  {
+		    //
+		    //	\maudeNewline drops out of inline math mode to start a new paragraph and then restarts
+		    //	inline math mode, forgetting about any color change, so we need to remember and restore
+		    //	the current color.
+		    //
+		    s << "\\maudeNewline" << restoreColor;
+		    needSpace = false;
+		    continue;
+		  }
+		case 't':
+		  {
+		    s << "\\maudeIdent";  // no good way to do a tab without a tabbing environment - do a thick space
+		    needSpace = false;
+		    continue;
+		  }
+		case 's':
+		  {
+		    s << "\\maudeHardSpace";  // for symmetry with format but \maudeSpace also seems to work
+		    needSpace = false;
+		    continue;
+		  }
+		case '\\':
+		  {
+		    if (needSpace)
+		      s << "\\maudeSpace";
+		    s << "\\maudeRaw{\\textbackslash}";
+		    needSpace = true;
+		    continue;
+		  }
+		case 'r':
+		  {
+		    s << (restoreColor = latexRed);
+		    continue;
+		  }
+		case 'g':
+		  {
+		    s << (restoreColor = latexGreen);
+		    continue;
+		  }
+		case 'b':
+		  {
+		    s << (restoreColor = latexBlue);
+		    continue;
+		  }
+		case 'c':
+		  {
+		    s << (restoreColor = latexCyan);
+		    continue;
+		  }
+		case 'm':
+		  {
+		    s << (restoreColor = latexMagenta);
+		    continue;
+		  }
+		case 'y':
+		  {
+		    s << (restoreColor = latexYellow);
+		    continue;
+		  }
+		case 'p':
+		case 'o':
+		  {
+		    latexClearColor(s);
+		    continue;
+		  }
+		}
+	    }
+	  else if (n[1] == '`' &&  n[3] == 0)
+	    {
+	      //
+	      //	\`<char> is converted to <char> with non-special spacing if <char> is one of ( ) [ ] { } ,
+	      //
+	      switch (n[2])
+		{
+		case '(':
+		  {
+		    code = leftParen;
+		    break;
+		  }
+		case ')':
+		  {
+		    code = rightParen;
+		    break;
+		  }
+		case '[':
+		  {
+		    code = leftBracket;
+		    break;
+		  }
+		case ']':
+		  {
+		    code = rightBracket;
+		    break;
+		  }
+		case '{':
+		  {
+		    code = leftBrace;
+		    break;
+		  }
+		case '}':
+		  {
+		    code = rightBrace;
+		    break;
+		  }
+		case ',':
+		  {
+		    code = comma;
+		    break;
+		  }
+		}
+	    }
+	}
+      if (needSpace)
+	s << "\\maudeSpace";
+      s << latexRaw(code);
+      needSpace = true;
+    }
+  //
+  //	For cleanliness, but mostly to reset restoreColor if needed.
+  //
+  latexClearColor(s);
 }

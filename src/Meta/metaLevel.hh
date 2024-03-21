@@ -413,27 +413,24 @@ private:
 
   struct AttributeInfo
   {
-    AttributeInfo();
-    
     SymbolType symbolType;
     Vector<int> strategy;
     NatSet frozen;
     NatSet polyArgs;
-    int prec;
+    int prec = DEFAULT;
     Vector<int> gather;
     Vector<int> format;
-    int metadata;
-    DagNode* identity;
-    DagNode* fixUpInfo;
+    int latex = NONE;
+    int metadata = NONE;
+    DagNode* identity = nullptr;
+    DagNode* fixUpInfo = nullptr;
   };
 
   struct StatementAttributeInfo
   {
-    StatementAttributeInfo();
-
     FlagSet flags;
-    int label;
-    int metadata;
+    int label = NONE;
+    int metadata = NONE;
     Vector<int> printNames;
     Vector<Sort*> printSorts;
   };
@@ -676,22 +673,6 @@ MetaLevel::purge()
   return cache.purge<T>();
 }
 
-inline
-MetaLevel::AttributeInfo::AttributeInfo()
-{
-  prec = DEFAULT;
-  metadata = NONE;
-  identity = 0;
-  fixUpInfo = 0;
-}
-
-inline
-MetaLevel::StatementAttributeInfo::StatementAttributeInfo()
-{
-  label = NONE;
-  metadata = NONE;
-}
-
 inline DagNode*
 MetaLevel::upGroup(const Vector<DagNode*>& args,
 		   Symbol* emptyCase,
@@ -754,15 +735,33 @@ MetaLevel::downSearchType(DagNode* arg, SequenceSearch::SearchType& searchType)
   int qid;
   if (downQid(arg, qid))
     {
-      if (qid == Token::encode("+"))
-	searchType = SequenceSearch::AT_LEAST_ONE_STEP;
-      else if (qid == Token::encode("*"))
-	searchType = SequenceSearch::ANY_STEPS;
-      else if (qid == Token::encode("!"))
-	searchType = SequenceSearch::NORMAL_FORM;
-      else
-	return false;
-      return true;
+      const char* str = Token::name(qid);
+      if (str[1] == '\0')
+	{
+	  switch(str[0])
+	    {
+	    case '+':
+	      {
+		searchType = SequenceSearch::AT_LEAST_ONE_STEP;
+		return true;
+	      }
+	    case '*':
+	      {
+		searchType = SequenceSearch::ANY_STEPS;
+		return true;
+	      }
+	    case '!':
+	      {
+		searchType = SequenceSearch::NORMAL_FORM;
+		return true;
+	      }
+	    case '#':
+	      {
+		searchType = SequenceSearch::BRANCH;
+		return true;
+	      }
+	    }
+	}
     }
   return false;
 }

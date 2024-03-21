@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 2023 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 2023-2024 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -53,24 +53,23 @@ MaudeLatexBuffer::generateGetVariants(bool showCommand,
   //
   //	Print comment.
   //
-  Tty::blockEscapeSequences();
-  output << "\\begin{comment}\n%\n%  ";
+  startComment();
   output << command << " ";
   safeCastNonNull<MixfixModule*>(module)->printModifiers(output, limit);
-  output << dag;
+  commentDagNode(dag);
   if (!constraint.empty())
     {
       output << " such that ";
       const char* sep = "";
-      for (const Term* t : constraint)
+      for (Term* t : constraint)
 	{
-	  output << sep << t;
+	  output << sep;
+	  commentTerm(t);
 	  sep = ", ";
 	}
       output << " irreducible" << endl;
     }
-  output << " .\n%\n\\end{comment}\n";
-  Tty::unblockEscapeSequences();
+  endComment();
   //
   //	Print latex version of command.
   //
@@ -95,9 +94,7 @@ MaudeLatexBuffer::generateGetVariants(bool showCommand,
       output << "$\\maudeEndCommand\n";
     }
   needNewline = showCommand;
-  pendingClose = "\\end{maudeResultParagraph}\n%\n%  End of ";
-  pendingClose += command;
-  pendingClose += "\n%\n";
+  pendingCloseStack.push("\\end{maudeResultParagraph}\n%\n%  End of " + command + "\n%\n");
 }
 
 void
@@ -115,25 +112,29 @@ MaudeLatexBuffer::generateVariantMatch(bool showCommand,
   //
   //	Print comment.
   //
-  Tty::blockEscapeSequences();
-  output << "\\begin{comment}\n%\n%  ";
+  startComment();
   output << command << " ";
   safeCastNonNull<MixfixModule*>(module)->printModifiers(output, limit);
   for (Index i = 0; i < nrPairs; ++i)
-    output << lhs[i] << " <=? " << rhs[i] << ((i == nrPairs - 1) ? " " : " /\\ ");
+    {
+      commentTerm(lhs[i]);
+      output << " <=? ";
+      commentTerm(rhs[i]);
+      output << ((i == nrPairs - 1) ? "" : " /\\ ");
+    }
   if (!constraint.empty())
     {
       output << " such that ";
       const char* sep = "";
-      for (const Term* t : constraint)
+      for (Term* t : constraint)
 	{
-	  output << sep << t;
+	  output << sep;
+	  commentTerm(t);
 	  sep = ", ";
 	}
       output << " irreducible" << endl;
     }
-  output << ".\n%\n\\end{comment}\n";
-  Tty::unblockEscapeSequences();
+  endComment();
   //
   //	Print latex version of command.
   //
@@ -165,9 +166,7 @@ MaudeLatexBuffer::generateVariantMatch(bool showCommand,
       output << "$\\maudeEndCommand\n";
     }
   needNewline = showCommand;
-  pendingClose = "\\end{maudeResultParagraph}\n%\n%  End of ";
-  pendingClose += command;
-  pendingClose += "\n%\n";
+  pendingCloseStack.push("\\end{maudeResultParagraph}\n%\n%  End of " + command + "\n%\n");
 }
 
 void
@@ -188,25 +187,29 @@ MaudeLatexBuffer::generateVariantUnify(bool showCommand,
   //
   //	Print comment.
   //
-  Tty::blockEscapeSequences();
-  output << "\\begin{comment}\n%\n%  ";
+  startComment();
   output << command << " ";
   safeCastNonNull<MixfixModule*>(module)->printModifiers(output, limit);
   for (Index i = 0; i < nrPairs; ++i)
-    output << lhs[i] << " =? " << rhs[i] << ((i == nrPairs - 1) ? " " : " /\\ ");
+    {
+      commentTerm(lhs[i]);
+      output << " =? ";
+      commentTerm(rhs[i]);
+      output << ((i == nrPairs - 1) ? "" : " /\\ ");
+    }
   if (!constraint.empty())
     {
       output << " such that ";
       const char* sep = "";
-      for (const Term* t : constraint)
+      for (Term* t : constraint)
 	{
-	  output << sep << t;
+	  output << sep;
+	  commentTerm(t);
 	  sep = ", ";
 	}
       output << " irreducible" << endl;
     }
-  output << ".\n%\n\\end{comment}\n";
-  Tty::unblockEscapeSequences();
+  endComment();
   //
   //	Print latex version of command.
   //
@@ -238,9 +241,7 @@ MaudeLatexBuffer::generateVariantUnify(bool showCommand,
       output << "$\\maudeEndCommand\n";
     }
   needNewline = showCommand;
-  pendingClose = "\\end{maudeResultParagraph}\n%\n%  End of ";
-  pendingClose += command;
-  pendingClose += "\n%\n";
+  pendingCloseStack.push("\\end{maudeResultParagraph}\n%\n%  End of " + command + "\n%\n");
 }
 
 void
@@ -256,13 +257,17 @@ MaudeLatexBuffer::generateUnify(bool showCommand,
   //
   //	Print comment.
   //
-  Tty::blockEscapeSequences();
-  output << "\\begin{comment}\n%\n%  " << command << " ";
+  startComment();
+  output << command << " ";
   safeCastNonNull<MixfixModule*>(module)->printModifiers(output, limit);
   for (Index i = 0; i < nrPairs; ++i)
-    output << lhs[i] << " =? " << rhs[i] << ((i == nrPairs - 1) ? " ." : " /\\ ");
-  output << "\n%\n\\end{comment}\n";
-  Tty::unblockEscapeSequences();
+    {
+      commentTerm(lhs[i]);
+      output << " =? ";
+      commentTerm(rhs[i]);
+      output << ((i == nrPairs - 1) ? "" : " /\\ ");
+    }
+  endComment();
   //
   //	Print latex version of command.
   //
@@ -282,9 +287,7 @@ MaudeLatexBuffer::generateUnify(bool showCommand,
       output << "$\\maudeEndCommand\n";
     }
   needNewline = showCommand;
-  pendingClose = "\\end{maudeResultParagraph}\n%\n%  End of ";
-  pendingClose += command;
-  pendingClose += "\n%\n";
+  pendingCloseStack.push(string("\\end{maudeResultParagraph}\n%\n%  End of ") + command + "\n%\n");
 }
 
 void
@@ -300,17 +303,18 @@ MaudeLatexBuffer::generateMatch(bool showCommand,
   //
   //	Print comment.
   //
-  Tty::blockEscapeSequences();
-  output << "\\begin{comment}\n%\n%  " << command << " ";
+  startComment();
+  output << command << " ";
   safeCastNonNull<MixfixModule*>(module)->printModifiers(output, limit);
-  output << pattern << " <=? " << subject;
+  commentTerm(pattern);
+  output << " <=? ";
+  commentDagNode(subject);
   if (!condition.empty())
     {
       output << " such that ";
-      MixfixModule::printCondition(output, condition);	  
+      MixfixModule::printCondition(output, condition, commentSettings);
     }
-  output << " .\n%\n\\end{comment}\n";
-  Tty::unblockEscapeSequences();
+  endComment();
   //
   //	Print latex version of command.
   //
@@ -330,9 +334,7 @@ MaudeLatexBuffer::generateMatch(bool showCommand,
       output << "$\\maudeEndCommand\n";
     }
   needNewline = showCommand;
-  pendingClose = "\\end{maudeResultParagraph}\n%\n%  End of ";
-  pendingClose += command;
-  pendingClose += "\n%\n";
+  pendingCloseStack.push(string("\\end{maudeResultParagraph}\n%\n%  End of ") + command + "\n%\n");
 }
 
 void
@@ -352,15 +354,14 @@ MaudeLatexBuffer::generateSearch(bool showCommand,
   //	  <command and options> in <module> : <subject> <searchType> <target> .
   //
   static const char* searchKindName[] = { "search", "narrow", "xg-narrow", "smt-search", "vu-narrow", "fvu-narrow"};
-  static const char* searchTypeSymbol[] = { "=>1", "=>+", "=>*", "=>!" };
-  static const char* searchTypeLatex[] = { "\\maudeOneStep", "\\maudeAtLeastOneStep", "\\maudeAnySteps", "\\maudeToNormalForm" };
+  static const char* searchTypeSymbol[] = { "=>1", "=>+", "=>*", "=>!", "=>#" };
+  static const char* searchTypeLatex[] = { "\\maudeOneStep", "\\maudeAtLeastOneStep", "\\maudeAnySteps", "\\maudeToNormalForm", "\\maudeToBranch"};
 
   Module* module = subject->symbol()->getModule();
   //
   //	Print comment.
   //
-  Tty::blockEscapeSequences();
-  output << "\\begin{comment}\n%\n%  ";
+  startComment();
   if (debug)
     output << "debug ";
   if (variantFlags & NarrowingSequenceSearch3::FOLD)
@@ -380,14 +381,15 @@ MaudeLatexBuffer::generateSearch(bool showCommand,
       output << "} ";
     }
   safeCastNonNull<MixfixModule*>(module)->printModifiers(output, limit, depth);
-  output << subject << ' ' << searchTypeSymbol[searchType] << ' ' << target;
+  commentDagNode(subject);
+  output << ' ' << searchTypeSymbol[searchType] << ' ';
+  commentTerm(target);
   if (!condition.empty())
     {
       output << " such that ";
-      MixfixModule::printCondition(output, condition);	  
+      MixfixModule::printCondition(output, condition, commentSettings);
     }
-  output << " .\n%\n\\end{comment}\n";
-  Tty::unblockEscapeSequences();
+  endComment();
   //
   //	Print latex version of command.
   //
@@ -427,9 +429,30 @@ MaudeLatexBuffer::generateSearch(bool showCommand,
       output << "$\\maudeEndCommand\n";
     }
   needNewline = showCommand;
-  pendingClose = "\\end{maudeResultParagraph}\n%\n%  End of ";
-  pendingClose += searchKindName[searchKind];
-  pendingClose += "\n%\n";
+  pendingCloseStack.push(string("\\end{maudeResultParagraph}\n%\n%  End of ") + searchKindName[searchKind] + "\n%\n");
+}
+
+void
+MaudeLatexBuffer::generateLoopTokens(bool showCommand, const Vector<Token>& tokens)
+{
+  //
+  //	Print comment.
+  //
+  output << "%  loop tokens: (";
+  int nrTokens = tokens.size();  // might be 0 so must be signed
+  Token::printTokenVector(output, tokens, 0, nrTokens - 1, true);
+  output << ")\n%\n";
+  //
+  //	Print latex version.
+  //
+  output << "\\begin{maudeResultParagraph}\n";
+  if (showCommand)
+    {
+      output << "$\\maudeKeyword{\\maudeLeftParen}" <<
+	MixfixModule::latexTokenVector(tokens, 0, nrTokens - 1) <<
+	"\\maudeKeyword{\\maudeRightParen}$\n";
+    }
+  pendingCloseStack.push("\\end{maudeResultParagraph}\n%\n%  End of loop execution\n%\n");
 }
 
 void
@@ -439,11 +462,11 @@ MaudeLatexBuffer::generateCommand(bool showCommand, const string& command, Term*
   //
   //	Print comment.
   //
-  Tty::blockEscapeSequences();
-  output << "\\begin{comment}\n%\n%  " << command << " ";
+  startComment();
+  output << command << " ";
   safeCastNonNull<MixfixModule*>(module)->printModifiers(output);
-  output << subject << " .\n%\n\\end{comment}\n";
-  Tty::unblockEscapeSequences();
+  commentTerm(subject);
+  endComment();
   //
   //	Print latex version of command.
   //
@@ -456,7 +479,7 @@ MaudeLatexBuffer::generateCommand(bool showCommand, const string& command, Term*
       output << "$\\maudeEndCommand\n";
     }
   needNewline = showCommand;  // for results that need a newline after the command
-  pendingClose = "\\end{maudeResultParagraph}\n%\n%  End of " + command + "\n%\n";
+  pendingCloseStack.push("\\end{maudeResultParagraph}\n%\n%  End of " + command + "\n%\n");
 }
 
 void
@@ -471,11 +494,16 @@ MaudeLatexBuffer::generateCommand(bool showCommand,
   //
   //	Print comment.
   //
-  Tty::blockEscapeSequences();
-  output << "\\begin{comment}\n%\n%  " << command << " ";
+  startComment();
+  output << command << " ";
   safeCastNonNull<MixfixModule*>(module)->printModifiers(output, number, number2);
-  output << subject << " .\n%\n\\end{comment}\n";
-  Tty::unblockEscapeSequences();
+  commentDagNode(subject);
+  if (strategy != nullptr)
+    {
+      output << " using ";
+      MixfixModule::prettyPrint(output, strategy, UNBOUNDED, commentSettings);
+    }
+  endComment();
   //
   //	Print latex version of command.
   //
@@ -485,7 +513,7 @@ MaudeLatexBuffer::generateCommand(bool showCommand,
       output << "$\\maudeKeyword{" << command << "}\\maudeSpace";
       generateModifiers(module, number, number2);
       MixfixModule::latexPrintDagNode(output, subject);
-      if (strategy != 0)
+      if (strategy != nullptr)
 	{
 	  output << "\\maudeSpace\\maudeKeyword{using}\\maudeSpace";
 	  safeCastNonNull<const VisibleModule*>(subject->symbol()->getModule())->latexPrintStrategy(output, strategy);
@@ -493,52 +521,62 @@ MaudeLatexBuffer::generateCommand(bool showCommand,
       output << "$\\maudeEndCommand\n";
     }
   needNewline = showCommand;  // for results that need a newline after the command
-  pendingClose = "\\end{maudeResultParagraph}\n%\n%  End of " + command + "\n%\n";
+  pendingCloseStack.push("\\end{maudeResultParagraph}\n%\n%  End of " + command + "\n%\n");
 }
 
 void
 MaudeLatexBuffer::generateContinue(bool showCommand, Int64 limit, bool debug)
 {
-  string command = debug ? "debug continue" : "continue";    
-  Tty::blockEscapeSequences();
-  output << "\\begin{comment}\n%\n%  " << command << " " << limit << " .\n%\n\\end{comment}\n\\begin{maudeResultParagraph}\n";
-  Tty::unblockEscapeSequences();
+  string command = debug ? "debug continue" : "continue";
+  startComment();
+  output << command << " " << limit;
+  endComment();
+  output << "\\begin{maudeResultParagraph}\n";
   if (showCommand)
     output << "\\maudeKeyword{" << command << "} \\maudeNumber{" << limit << "}\\maudeEndCommand\n";
   //
   //	We might be continuing a command that separates solutions by a blank line.
   //
   needNewline = showCommand;
-  pendingClose = "\\end{maudeResultParagraph}\n%\n%  End of " + command + "\n%\n";
+  pendingCloseStack.push("\\end{maudeResultParagraph}\n%\n%  End of " + command + "\n%\n");
 }
 
 void
 MaudeLatexBuffer::generateShow(bool showCommand, const string& command, NamedEntity* module)
 {
-  output << "\\begin{comment}\n%\n%  " << command << " " << module << " .\n%\n\\end{comment}\n\\begin{maudeShowParagraph}";
+  startComment();
+  output << command << " " << module;
+  endComment();
+  output << "\\begin{maudeShowParagraph}";
   if (showCommand)
     {
       output << "\\maudeKeyword{" << command << "}\\maudeSpace";
       generateModuleName(module);
-      output << "\\maudeEndCommand\\newline\n";
+      output << "\\maudeEndCommand\\maudeShowSpace\n";
     }
-  pendingClose = "\\end{maudeShowParagraph}\n%\n%  End of " + command + "\n%\n";
+  pendingCloseStack.push("\\end{maudeShowParagraph}\n%\n%  End of " + command + "\n%\n");
 }
 
 void
 MaudeLatexBuffer::generateShow(bool showCommand, const string& command, View* view)
 {
-  output << "\\begin{comment}\n%\n%  " << command << " " << view << " .\n%\n\\end{comment}\n\\begin{maudeShowParagraph}";
+  startComment();
+  output << command << " " << view;
+  endComment();
+  output << "\\begin{maudeShowParagraph}";
   if (showCommand)
-    output << "\\maudeKeyword{" << command << "}\\maudeSpace\\maudeView{" << view << "}\\maudeEndCommand\\newline\n";
-  pendingClose = "\\end{maudeShowParagraph}\n%\n%  End of " + command + "\n%\n";
+    output << "\\maudeKeyword{" << command << "}\\maudeSpace\\maudeView{" << view << "}\\maudeEndCommand\\maudeShowSpace\n";
+  pendingCloseStack.push("\\end{maudeShowParagraph}\n%\n%  End of " + command + "\n%\n");
 }
 
 void
 MaudeLatexBuffer::generateShow(bool showCommand, const string& command)
 {
-  output << "\\begin{comment}\n%\n%  " << command << " .\n%\n\\end{comment}\n\\begin{maudeShowParagraph}";
+  startComment();
+  output << command;
+  endComment();
+  output << "\\begin{maudeShowParagraph}";
   if (showCommand)
-    output << "\\maudeKeyword{" << command << "}\\maudeEndCommand\\newline\n";
-  pendingClose = "\\end{maudeShowParagraph}\n%\n%  End of " + command + "\n%\n";
+    output << "\\maudeKeyword{" << command << "}\\maudeEndCommand\\maudeShowSpace\n";
+  pendingCloseStack.push("\\end{maudeShowParagraph}\n%\n%  End of " + command + "\n%\n");
 }

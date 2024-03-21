@@ -196,13 +196,17 @@ VisibleModule::showSortsAndSubsorts(ostream& s) const
 void
 VisibleModule::showImports(ostream& s) const
 {
+  //
+  //	Imports are always indented.
+  //
   int nrImports = getNrImports();
   for (int i = 0; i < nrImports; i++)
     {
       if (UserLevelRewritingContext::interrupted())
 	return;
-      s << "  " << importModeString(getImportMode(i)) <<
-	' ' << Token::removeBoundParameterBrackets(getImportedModule(i)->id()) << " .\n";
+      s << "  " << importModeString(getImportMode(i)) << " ";
+      getImportedModule(i)->printModuleExpression(s, false);
+      s << " .\n";
     }
 }
 
@@ -407,7 +411,7 @@ VisibleModule::showPolymorphAttributes(ostream& s, int index) const
       //	A polymorphic symbol can only have a left identity or a right identity - not both.
       //
       s << (st.hasFlag(SymbolType::LEFT_ID) ? " left" : " right") << " id: ";
-      MixfixModule::prettyPrint(s, getPolymorphIdentity(index), true);  // assume range kind is known
+      MixfixModule::prettyPrint(s, getPolymorphIdentity(index), *owner, true);  // assume range kind is known
     }
   if (st.hasFlag(SymbolType::IDEM))
     s << " idem";
@@ -503,7 +507,8 @@ VisibleModule::showPolymorphAttributes(ostream& s, int index) const
 	}
       s << ')';
     }
-
+  if (st.hasFlag(SymbolType::LATEX))
+    s << " latex (" << Token::name(getPolymorphLatexMacro(index)) << ")";
   int metadata = getPolymorphMetadata(index);
   if (metadata != NONE)
     s << " metadata " << Token::name(metadata);
@@ -533,7 +538,7 @@ VisibleModule::showPolymorphAttributes(ostream& s, int index) const
 	    for (int i = 0; getPolymorphSymbolAttachment(index, i, purpose, op); ++i)
 	      {
 		s << "\n    " << "op-hook " << Token::name(purpose) << " (" <<
-		  op << " : ";
+		  prettyOpName(op->id(), Token::BARE_COLON) << " : ";
 		const Vector<Sort*>& domainAndRange =
 		  op->getOpDeclarations()[0].getDomainAndRange();
 		int nrSorts = domainAndRange.length() - 1;
@@ -583,15 +588,10 @@ void
 VisibleModule::showPolymorphDecl(ostream& s, bool indent, int index) const
 {
   const char* ind = indent ? "  " : "";
-  s << ind << "op ";
+  s << ind << "op " << prettyOpName(getPolymorphName(index).code(), Token::EXPOSED_COLON) << " :";
   
   const Vector<Sort*>& domainAndRange = getPolymorphDomainAndRange(index);
   int nrArgs = domainAndRange.length() - 1;
-  if (nrArgs == 0)
-    s << Token::sortName(getPolymorphName(index).code()) << " :";
-  else
-    s << getPolymorphName(index) << " :";
-
   for (int i = 0; i < nrArgs; i++)
     {
       if (Sort* sort = domainAndRange[i])
@@ -623,9 +623,8 @@ VisibleModule::showPolymorphDecl(ostream& s, bool indent, int index) const
 void
 VisibleModule::showOps(ostream& s, bool indent, bool all) const
 {
-  int begin = all ? 0 : getNrImportedSymbols();
   int end = getNrUserSymbols();
-  for (int i = begin; i < end; i++)
+  for (int i = 0; i < end; ++i)
     {
       if (UserLevelRewritingContext::interrupted())
 	return;
@@ -649,7 +648,7 @@ VisibleModule::showDecls(ostream& s, bool indent, int index, bool all) const
       if (UserLevelRewritingContext::interrupted())
 	return;
       const Vector<Sort*>& dec = opDecls[i].getDomainAndRange();
-      s << ind << "op " << symbol << " :";
+      s << ind << "op " << prettyOpName(symbol->id(), Token::EXPOSED_COLON) << " :";
       for (int j = 0; j < nrArgs; j++)
 	s << ' ' << dec[j];
       s << " -> " << dec[nrArgs];
@@ -708,7 +707,7 @@ VisibleModule::showAttributes(ostream& s, Symbol* symbol, int opDeclIndex) const
       s << "id: ";
       Term* id = safeCastNonNull<BinarySymbol*>(symbol)->getIdentity();
       if (id != 0)
-	MixfixModule::prettyPrint(s, id, true);  // assume range kind is known
+	MixfixModule::prettyPrint(s, id, *owner, true);  // assume range kind is known
     }
   if (st.hasFlag(SymbolType::IDEM))
     {
@@ -829,6 +828,11 @@ VisibleModule::showAttributes(ostream& s, Symbol* symbol, int opDeclIndex) const
 	}
       s << ')';
     }
+  if (st.hasFlag(SymbolType::LATEX))
+    {
+      s << space << "latex (" << Token::name(getLatexMacro(symbol)) << ")";
+      space = " ";
+    }
   if (metadata != NONE)
     {
       s << space << "metadata " << Token::name(metadata);
@@ -866,7 +870,7 @@ VisibleModule::showAttributes(ostream& s, Symbol* symbol, int opDeclIndex) const
 	      {
 		Symbol* op = symbols[i];
 		s << "\n    " << "op-hook " << purposes[i] << " (" <<
-		  op << " : ";
+		  prettyOpName(op->id(), Token::BARE_COLON) << " : ";
 		const Vector<Sort*>& domainAndRange =
 		  op->getOpDeclarations()[0].getDomainAndRange();
 		int nrSorts = domainAndRange.length() - 1;

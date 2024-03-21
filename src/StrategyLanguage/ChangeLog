@@ -1,3 +1,44 @@
+2024-03-04  Steven Eker  <eker@pup>
+
+	* subtermProcess.hh (class SubtermProcess): SharedValue -> shared_ptr
+
+	* applicationProcess.hh (class ApplicationProcess): SharedValue ->
+	shared_ptr
+
+	* matchProcess.hh (class MatchProcess): SharedValue -> shared_ptr
+
+	* subtermTask.hh (class SubtermTask): SharedValue -> shared_ptr
+
+	* rewriteTask.hh (class RewriteTask): SharedValue -> shared_ptr
+
+	* matchProcess.cc (MatchProcess::MatchProcess): SharedValue -> shared_ptr
+
+	* applicationProcess.cc (ApplicationProcess::doRewrite)
+	(ApplicationProcess::resolveRemainingConditionFragments): SharedValue ->
+	shared_ptr
+
+	* rewriteTask.cc (RewriteTask::RewriteTask): SharedValue -> shared_ptr
+
+	* subtermTask.cc (SubtermTask::SubtermTask): SharedValue -> shared_ptr
+
+	* sharedValue.hh: deleted
+
+===================================Maude158===========================================
+
+2024-01-23  Steven Eker  <eker@pup>
+
+	* applicationProcess.cc (ApplicationProcess::ApplicationProcess): always
+	PositionState::RESPECT_FROZEN; this means in the no label case we can also
+	PositionState::RESPECT_UNSTACKABLE
+
+2024-01-17  Steven Eker  <eker@pup>
+
+	* applicationProcess.cc (ApplicationProcess::ApplicationProcess): new
+	rule for passing flags to RewriteSearchState(): if we are applying rules
+	without a specific label we now explicitly allow setting and respecting
+	unrewritable flags, and setting unstackable flags; we never respect
+	unstackable flags to avoid missing frozen positions
+
 2023-05-15  Steven Eker  <eker@pup>
 
 	* applicationStrategy.cc (ApplicationStrategy::decompose): added comment to
@@ -46,7 +87,7 @@
 	(executionSucceeded): check for iteration cycles and interrupt them
 
 	* branchTask.hh: added attribute iterationCheckpoint
-	(BrachTask): added argument iterationCheckpoint
+	(BranchTask): added argument iterationCheckpoint
 
 ===================================Maude132===========================================
 

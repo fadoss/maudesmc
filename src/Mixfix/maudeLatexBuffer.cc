@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 2023 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 2023-2024 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@
 #include "S_Theory.hh"
 #include "higher.hh"
 #include "mixfix.hh"
+#include "SMT.hh"
 
 //      interface class definitions
 #include "symbol.hh"
@@ -97,6 +98,10 @@
 #include "testStrategy.hh"
 #include "unionStrategy.hh"
 
+//	SMT class definitions
+#include "SMT_RewriteSequenceSearch.hh"
+//#include "SMT_Info.hh"
+
 //	front end class definitions
 #include "token.hh"
 #include "timer.hh"
@@ -112,7 +117,8 @@
 #include "latexResult.cc"
 
 MaudeLatexBuffer::MaudeLatexBuffer(const char* fileName)
-: output(fileName)
+: output(fileName),
+  commentSettings(PrintSettings::PLAIN_PRINT_FLAGS)  // no color, format or graph printing in comments
 {
   needNewline = false;
   output << "\\documentclass{article}\n";
@@ -123,7 +129,12 @@ MaudeLatexBuffer::MaudeLatexBuffer(const char* fileName)
 
 MaudeLatexBuffer::~MaudeLatexBuffer()
 {
-  output << pendingClose << "\\end{document}\n";
+  while (!pendingCloseStack.empty())
+    {
+      output << pendingCloseStack.top();
+      pendingCloseStack.pop();
+    }
+  output << "\\end{document}\n";
 }
 
 void
@@ -133,8 +144,8 @@ MaudeLatexBuffer::generateBanner(const char* date, const char* time, time_t seco
   output << "\\maudeBannerIndent\\hspace{6em}\\textbackslash||||||||||||||||||/\n";
   output << "\\maudeBannerIndent\\hspace{5em}--- Welcome to \\color{red}M\\color{cyan}a\\color{blue}u\\color{magenta}d\\color{green}e\\color{black} ---\n";
   output << "\\maudeBannerIndent\\hspace{6em}/||||||||||||||||||\\textbackslash\n";
-  output << "\\maudeBannerIndent\\hspace{0.5em}" <<  PACKAGE_STRING << " built: " << date << ' ' << time << '\n';
-  output << "\\maudeBannerIndent\\hspace{1.5em}Copyright 1997-2023 SRI International\n";
+  output << "\\maudeBannerIndent\\hspace{2em}" <<  PACKAGE_STRING << " built: " << date << ' ' << time << '\n';
+  output << "\\maudeBannerIndent\\hspace{2em}Copyright 1997-2024 SRI International\n";
   output << "\\maudeBannerIndent\\hspace{5em}" << ctime(&seconds);
   output << "\\end{maudeBanner}\n";
 }

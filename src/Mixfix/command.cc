@@ -136,22 +136,15 @@ SyntacticPreModule::showModule(ostream& s)
 	    s << "  op";
 	  s << (newFollow ? "s " : " ");
 	}
-      if (st.getBasicType() != SymbolType::VARIABLE &&
-	  opDef.types.size() == 1 &&
-	  (Token::auxProperty(opDecl.prefixName.code()) & Token::AUX_STRUCTURED_SORT))
+      
+      if (st.getBasicType() == SymbolType::VARIABLE)
+	s << opDecl.prefixName;  // don't prettify variable names
+      else
 	{
-	  //
-	  //	Looks like a parameterized constant so use parameterized sort printing code.
-	  //
-	  if (follow || newFollow)
-	    s << '(';
-	  s << Token::sortName(opDecl.prefixName.code());
-	  if (follow || newFollow)
-	    s << ')';
-	  s << ' ';
+	  s << MixfixModule::prettyOpName(opDecl.prefixName.code(),
+					  (follow || newFollow) ? (Token::EXPOSED_COLON | Token::MULTIPLE_TOKENS) : Token::EXPOSED_COLON);
 	}
-      else 
-	s << opDecl.prefixName << ' ';
+      s << ' ';
       follow = newFollow;
       if (!follow)
 	{
@@ -375,6 +368,11 @@ SyntacticPreModule::printAttributes(ostream& s, const OpDef& opDef) const
       s << space;
       space = " ";
       printFormat(s, opDef.format);
+    }
+  if (st.hasFlag(SymbolType::LATEX))
+    {
+      s << space << "latex (" << Token::name(opDef.latexMacro) << ")";
+      space = " ";
     }
   if (opDef.metadata != NONE)
     {

@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2024 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 
 ***
 ***	Maude interpreter standard prelude.
-***	Version alpha154.
+***	Version 3.4.
 ***
 ***	Some of the overall structure is taken from the OBJ3
 ***	interpreter standard prelude.
@@ -1846,6 +1846,7 @@ fmod META-MODULE is
   op prec : Nat -> Attr [ctor] .
   op gather : QidList -> Attr [ctor] .
   op format : QidList -> Attr [ctor] .
+  op latex : String -> Attr [ctor] .
   op ctor : -> Attr [ctor] .
   op config : -> Attr [ctor] .
   op object : -> Attr [ctor] .
@@ -2521,6 +2522,7 @@ fmod META-LEVEL is
         op-hook precSymbol		(prec : Nat ~> Attr)
         op-hook gatherSymbol		(gather : QidList ~> Attr)
         op-hook formatSymbol		(format : QidList ~> Attr)
+        op-hook latexSymbol		(latex : String ~> Attr)
         op-hook ctorSymbol		(ctor : ~> Attr)
         op-hook frozenSymbol		(frozen : NeNatList ~> Attr)
         op-hook polySymbol		(poly : NeNatList ~> Attr)

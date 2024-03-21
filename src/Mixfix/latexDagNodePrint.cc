@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 2023 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 2023-2024 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -25,40 +25,12 @@
 //
 
 void
-MixfixModule::latexPrettyPrint(ostream& s, DagNode* dagNode)
-{
-  if (dagNode == 0)
-    {
-      s << "\\maudeMisc{(null DagNode*)}";
-      return;
-    }
-  const PrintSettings& printSettings = interpreter;  // HACK
-  MixfixModule* module = static_cast<MixfixModule*>(dagNode->symbol()->getModule());
-  if (printSettings.getPrintFlag(PrintSettings::PRINT_GRAPH))
-    /*module->latexGraphPrint(s, dagNode)*/;
-  else
-    {
-      clearIndent();
-      s << "$";
-      ColoringInfo coloringInfo;
-      if (printSettings.getPrintFlag(PrintSettings::PRINT_COLOR))
-	{
-	  computeGraphStatus(dagNode, coloringInfo.visited, coloringInfo.statusVec);
-	  coloringInfo.reducedAbove = false;
-	  coloringInfo.reducedDirectlyAbove = false;
-	}
-      module->latexPrettyPrint(s, printSettings, coloringInfo, dagNode, UNBOUNDED, UNBOUNDED, 0, UNBOUNDED, 0, false);
-      s << "$";
-    }
-}
-
-void
 MixfixModule::latexPrintDagNode(ostream& s, DagNode* dagNode)
 {
   const PrintSettings& printSettings = interpreter;  // HACK
   MixfixModule* module = safeCastNonNull<MixfixModule*>(dagNode->symbol()->getModule());
   if (printSettings.getPrintFlag(PrintSettings::PRINT_GRAPH))
-    /*module->latexGraphPrint(s, dagNode)*/;
+    module->latexGraphPrint(s, dagNode, printSettings);
   else
     {
       clearIndent();
@@ -70,6 +42,7 @@ MixfixModule::latexPrintDagNode(ostream& s, DagNode* dagNode)
 	  coloringInfo.reducedDirectlyAbove = false;
 	}
       module->latexPrettyPrint(s, printSettings, coloringInfo, dagNode, UNBOUNDED, UNBOUNDED, 0, UNBOUNDED, 0, false);
+      latexClearColor(s);
     }
 }
 
@@ -148,7 +121,7 @@ MixfixModule::latexHandleIter(ostream& s,
 	  bool needDisambig = printSettings.getPrintFlag(PrintSettings::PRINT_DISAMBIG_CONST) ||
 	    (!rangeKnown && (kindsWithSucc.size() > 1 || overloadedIntegers.count(nat)));
 	  latexPrefix(s, needDisambig, color);
-	  s << "\\maudeNumber{" << nat << "}";
+	  s << latexNumber(nat);
 	  latexSuffix(s, dagNode, needDisambig, color);
 	  return true;
 	}
@@ -202,7 +175,7 @@ MixfixModule::latexHandleMinus(ostream& s,
 	  bool needDisambig = printSettings.getPrintFlag(PrintSettings::PRINT_DISAMBIG_CONST) ||
 	    (!rangeKnown && (kindsWithMinus.size() > 1 || overloadedIntegers.count(neg)));
 	  latexPrefix(s, needDisambig, color);
-	  s << "\\maudeNumber{" << neg << "}";
+	  s << latexNumber(neg);
 	  latexSuffix(s, dagNode, needDisambig, color);
 	  return true;
 	}
@@ -227,7 +200,7 @@ MixfixModule::latexHandleDivision(ostream& s,
 	  bool needDisambig = printSettings.getPrintFlag(PrintSettings::PRINT_DISAMBIG_CONST) ||
 	    (!rangeKnown && (kindsWithDivision.size() > 1 || overloadedRationals.count(rat)));
 	  latexPrefix(s, needDisambig, color);
-	  s << "\\maudeNumber{" << rat.first << "}/\\maudeNumber{"  << rat.second << "}";
+	  s << latexNumber(rat.first) << "/" << latexNumber(rat.second);
 	  latexSuffix(s, dagNode, needDisambig, color);
 	  return true;
 	}
@@ -262,7 +235,7 @@ MixfixModule::latexHandleString(ostream& s,
   bool needDisambig = printSettings.getPrintFlag(PrintSettings::PRINT_DISAMBIG_CONST) ||
     (!rangeKnown && (stringSymbols.size() > 1 || overloadedStrings.count(strValue)));
   latexPrefix(s, needDisambig, color);
-  s << "\\maudeString{" << Token::latexName(strValue) << "}";
+  s << latexString(strValue);
   latexSuffix(s, dagNode, needDisambig, color);
 }
 
@@ -277,7 +250,7 @@ MixfixModule::latexHandleQuotedIdentifier(ostream& s,
   bool needDisambig = printSettings.getPrintFlag(PrintSettings::PRINT_DISAMBIG_CONST) ||
     (!rangeKnown && (quotedIdentifierSymbols.size() > 1 || overloadedQuotedIdentifiers.count(qidCode)));
   latexPrefix(s, needDisambig, color);
-  s << "\\maudeQid{" << "\\maudeSingleQuote " << Token::latexName(qidCode) << "}";
+  s << latexQid(qidCode);
   latexSuffix(s, dagNode, needDisambig, color);
 }
 
@@ -336,7 +309,7 @@ MixfixModule::latexHandleSMT_Number(ostream& s,
       bool needDisambig = printSettings.getPrintFlag(PrintSettings::PRINT_DISAMBIG_CONST) ||
 	(!rangeKnown && (kindsWithSucc.size() > 1 || overloadedIntegers.count(integer)));
       latexPrefix(s, needDisambig, color);
-      s << "\\maudeNumber{" << integer << "}";
+      s << latexNumber(integer);
       latexSuffix(s, dagNode, needDisambig, color);
     }
   else
@@ -346,7 +319,7 @@ MixfixModule::latexHandleSMT_Number(ostream& s,
       bool needDisambig = printSettings.getPrintFlag(PrintSettings::PRINT_DISAMBIG_CONST) ||
 	(!rangeKnown && (kindsWithDivision.size() > 1 || overloadedRationals.count(rat)));
       latexPrefix(s, needDisambig, color);
-      s << "\\maudeNumber{" << rat.first << "}/\\maudeNumber{" << rat.second << "}";
+      s << latexNumber(rat.first) << "/" << latexNumber(rat.second);
       latexSuffix(s, dagNode, needDisambig, color);
     }
 }
@@ -440,11 +413,27 @@ MixfixModule::latexPrettyPrint(ostream& s,
 	coloringInfo.reducedDirectlyAbove;
     }
 
-  if (needDisambig)
-    s << "\\maudeLeftParen";
   bool printConceal = printSettings.concealedSymbol(symbol->id());
+  if (si.symbolType.hasFlag(SymbolType::LATEX) && !printConceal && printSettings.getPrintFlag(PrintSettings::PRINT_LATEX))
+    {
+      //
+      //	We don't put parentheses or sort disambiguation around user's latex code.
+      //
+      if (color != 0)
+	s << color;
+      DagArgumentIterator a(*dagNode);
+      latexAttributePrint(s, printSettings, coloringInfo, symbol, a);
+      if (color != 0)
+	s << latexResetColor;
+      return;
+    }
+  //
+  //	We handle disambiguation, but not color with latexPrefix()/latexSuffix().
+  //
+  latexPrefix(s, needDisambig);
   if (nrArgs == 0 && Token::auxProperty(symbol->id()) == Token::AUX_STRUCTURED_SORT)
-    s << latexStructuredConstant(symbol->id());
+    latexPrintStructuredConstant(s, symbol, color, printSettings);
+    //s << latexStructuredConstant(symbol->id());  // FIXME: need to handle color and format
   else if ((printSettings.getPrintFlag(PrintSettings::PRINT_MIXFIX) && !si.mixfixSyntax.empty() && !printConceal) ||
 	   (basicType == SymbolType::SORT_TEST))
     {
@@ -521,9 +510,10 @@ MixfixModule::latexPrettyPrint(ostream& s,
       //
       string prefixName = Token::latexIdentifier(symbol->id());
       if (color != 0)
-      	s << color << prefixName << latexResetColor;
-      else
-      	latexPrintPrefixName(s, prefixName.c_str(), si, printSettings);
+      	s << color;
+      latexPrintPrefixName(s, prefixName.c_str(), si, printSettings);
+      if (color != 0)
+	s << latexResetColor;
       DagArgumentIterator a(*dagNode);
       if (a.valid())
 	{
@@ -565,5 +555,80 @@ MixfixModule::latexPrettyPrint(ostream& s,
 	    }
 	}
     }
-  latexSuffix(s, dagNode, needDisambig, color);
+  latexSuffix(s, dagNode, needDisambig);
+}
+
+void
+MixfixModule::latexAttributePrint(ostream& s,
+				  const PrintSettings& printSettings,
+				  ColoringInfo& coloringInfo,
+				  Symbol* symbol,
+				  DagArgumentIterator& a)
+{
+  const SymbolInfo& si = symbolInfo[symbol->getIndexWithinModule()];
+  if (si.symbolType.hasFlag(SymbolType::ASSOC))
+    {
+      //
+      //	We need to convert flattened form in to right associative form on-the-fly.
+      //
+      DagNode* firstArg = a.argument();
+      a.next();
+      if (a.valid())
+        {
+	  //
+	  //	Traverse latex macro.
+	  //    Call latexPrettyPrint(s, printSettings, firstArg) for occurrences of #1
+	  //	Recursive call latexAttributePrint(s, printSettings, s, a) for occurrences of #2
+	  //
+	  for (int i : si.latexMacroUnpacked)
+	    {
+	      if (i >= 0)
+		s << static_cast<char>(i);
+	      else
+		{
+		  if (i == -1)
+		    {
+		      //
+		      //	First argument.
+		      //
+		      latexPrettyPrint(s, printSettings, coloringInfo, firstArg,
+				       UNBOUNDED, UNBOUNDED, 0, UNBOUNDED, 0, true);  // optimistic
+		    }
+		  else
+		    {
+		      //
+		      //	Second argument; make a recursive call to deal with the rest of the arguments.
+		      //
+		      Assert(i == -2, "bad argument number");
+		      latexAttributePrint(s, printSettings, coloringInfo, symbol, a);
+		    }
+		}
+	    }
+	}
+      else
+	{
+	  //
+	  //	Final argument, symbol not present.
+	  //
+	  latexPrettyPrint(s, printSettings, coloringInfo, firstArg,
+			   UNBOUNDED, UNBOUNDED, 0, UNBOUNDED, 0, true);  // optimistic
+	  
+	}
+    }
+  else
+    {
+      Vector<DagNode*> args;
+      for (; a.valid(); a.next())
+	args.push_back(a.argument());
+      for (int i : si.latexMacroUnpacked)
+	{
+	  if (i >= 0)
+	    s << static_cast<char>(i);
+	  else
+	    {
+	      latexPrettyPrint(s, printSettings, coloringInfo, args[-1 - i],
+			       UNBOUNDED, UNBOUNDED, 0, UNBOUNDED, 0, true);  // optimistic
+	    }
+	}
+    }
 }

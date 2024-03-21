@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2024 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -100,6 +100,7 @@ public:
 			   int prec,
 			   const Vector<int>& gather,
 			   const Vector<int>& format,
+			   int latexMacro,
 			   int metadata,
 			   bool& firstDecl);
   void addVariableAlias(Token name, Sort* sort);
@@ -111,6 +112,7 @@ public:
 		   int prec,
 		   const Vector<int>& gather,
 		   const Vector<int>& format,
+		   int latexMacro,
 		   int metadata);
   int addStrategy(Token name,
 		  const Vector<Sort*>& domainSorts,
@@ -144,9 +146,11 @@ public:
   DagNode* makeUnificationProblemDag(Vector<Term*>& lhs, Vector<Term*>& rhs);
   pair<DagNode*, DagNode*> makeMatchProblemDags(Vector<Term*>& lhs, Vector<Term*>& rhs);
   
-  static void printCondition(ostream& s, const Vector<ConditionFragment*>& condition);
-  static void printCondition(ostream& s, const PreEquation* pe);
-  void printAttributes(ostream& s, const PreEquation* pe, ItemType itemType);
+  static void printConditionFragment(ostream& s, const ConditionFragment* cf, const PrintSettings& printSettings);
+  static void printCondition(ostream& s, const Vector<ConditionFragment*>& condition, const PrintSettings& printSettings);
+  static void printCondition(ostream& s, const PreEquation* pe, const PrintSettings& printSettings);
+  
+  void printAttributes(ostream& s, const PreEquation* pe, ItemType itemType, const PrintSettings& printSettings);
   void printStrategyTerm(ostream& s, RewriteStrategy* strat, Term* term);
   //
   //	Parsing functions.
@@ -205,6 +209,7 @@ public:
   int getPrec(const Symbol* symbol) const;
   void getGather(const Symbol* symbol, Vector<int>& gather) const;
   const Vector<int>& getFormat(const Symbol* symbol) const;
+  int getLatexMacro(const Symbol* symbol) const;
   const AliasMap& getVariableAliases() const;
   void getParserStats(int& nrNonterminals, int& nrTerminals, int& nrProductions);
   void getDataAttachments(Symbol* symbol,
@@ -251,6 +256,7 @@ public:
   Term* getPolymorphIdentity(int index) const;
   const Vector<int>& getPolymorphStrategy(int index) const;
   const NatSet& getPolymorphFrozen(int index) const;
+  int getPolymorphLatexMacro(int index) const;
   int getPolymorphPrec(int index) const;
   void getPolymorphGather(int index, Vector<int>& gather) const;
   const Vector<int>& getPolymorphFormat(int index) const;
@@ -281,31 +287,38 @@ public:
   static Sort* disambiguatorSort(const Term* term);
   int getSMT_NumberToken(const mpq_class& value, Sort* sort);
   void printModifiers(ostream& s, Int64 number = NONE, Int64 number2 = NONE);
-  static void prettyPrint(ostream& s, const Term* term, bool rangeKnown = false);
-  static void prettyPrint(ostream& s, DagNode* dagNode, bool rangeKnown = false);
-  static bool prettyPrint(ostream& s, StrategyExpression* strategy, int requiredPrec);
+  static void prettyPrint(ostream& s, const Term* term, const PrintSettings& printSettings, bool rangeKnown = false);
+  static void prettyPrint(ostream& s, DagNode* dagNode, const PrintSettings& printSettings, bool rangeKnown = false);
+  static bool prettyPrint(ostream& s, StrategyExpression* strategy, int requiredPrec, const PrintSettings& printSettings);
   static void clearIndent();
   static void clearColor(ostream& s);
+  static string prettyOpName(int code, int situations = Token::UNKNOWN_CONTEXT);
   //
   //	LaTeX conversion functions.
   //
+  static string latexNumber(const mpz_class& number);
+  static string latexString(const string& str);
+  static string latexString(int code);
+  static string latexQid(int idCode);
+  static string latexRaw(int idCode);
+
   static string latexStructuredName(const Vector<int>& codes, const Module* m);
   static string latexSort(int code, const Module* module);
   static string latexSort(const Sort* sort);
   static string latexType(const Sort* sort);
   string latexStructuredConstant(int code) const;
-  static string latexPrettyOp(int code);
-  static string latexConstant(int code, const Module* module);
+  static string latexPrettyOpName(int code, int situations = Token::UNKNOWN_CONTEXT);
+  static string latexConstant(int code, const Module* module, int situations = Token::UNKNOWN_CONTEXT);
   static string latexTokenVector(const Vector<Token>& tokens, Index first, Index last);
-
   //
   //	Latex pretty print functions.
   //
-  static void latexPrettyPrint(ostream& s, DagNode* dagNode);
   static void latexPrettyPrint(ostream& s, Term* term, bool rangeKnown = false);
   static void latexPrintDagNode(ostream& s, DagNode* dagNode);
   static void latexPrintGather(ostream& s, const Vector<int>& gather);
   static void latexPrintFormat(ostream& s, const Vector<int>& format);
+  static void latexPrintLatexMacro(ostream& s, int latexMacro);
+  static void latexPrintBubble(ostream& s, const Vector<int>& bubble);
   //
   //	Misc.
   //
@@ -504,6 +517,8 @@ private:
     Vector<int> mixfixSyntax;
     Vector<int> gather;
     Vector<int> format;
+    Vector<int> latexMacroUnpacked;
+    int latexMacro = NONE;
     short prec;
     short polymorphIndex;  // for polymorphs and polymorph instances only
     SymbolType symbolType;
@@ -566,6 +581,7 @@ private:
 
   static int domainComponentIndex(const Symbol* symbol, int argNr);
   static int mayAssoc(Symbol* symbol, int argNr);
+  static bool unpackLatexMacro(SymbolInfo& si, int arity);
 
   Symbol* newFancySymbol(Token prefixName,
 			 const Vector<Sort*>& domainAndRange,
@@ -688,6 +704,7 @@ private:
   static Vector<int> gatherAny0;
   static int globalIndent;
   static bool attributeUsed;
+  static const char* restoreColor;
 
   ModuleType moduleType;
   Sort* boolSort;
@@ -876,43 +893,44 @@ private:
   //	Member functions for Term* -> ostream& pretty printer.
   //
   static const char* computeColor(SymbolType st, const PrintSettings& printSettings);
-  static void suffix(ostream& s, Term* term, bool needDisambig);
+  static void suffix(ostream& s, const Term* term, bool needDisambig);
   bool handleIter(ostream& s,
-		  Term* term,
+		  const Term* term,
 		  SymbolInfo& si,
 		  bool rangeKnown,
 		  const PrintSettings& printSettings);
-  bool handleMinus(ostream& s, Term* term,
+  bool handleMinus(ostream& s,
+		   const Term* term,
 		   bool rangeKnown,
 		   const PrintSettings& printSettings);
   bool handleDivision(ostream& s,
-		      Term* term,
+		      const Term* term,
 		      bool rangeKnown,
 		      const PrintSettings& printSettings);
   void handleFloat(ostream& s,
-		   Term* term,
+		   const Term* term,
 		   bool rangeKnown,
 		   const PrintSettings& printSettings);
   void handleString(ostream& s,
-		    Term* term,
+		    const Term* term,
 		    bool rangeKnown,
 		    const PrintSettings& printSettings);
   void handleQuotedIdentifier(ostream& s,
-			      Term* term,
+			      const Term* term,
 			      bool rangeKnown,
 			      const PrintSettings& printSettings);
   void handleVariable(ostream& s,
-		      Term* term,
+		      const Term* term,
 		      bool rangeKnown,
 		      const PrintSettings& printSettings);
   void handleSMT_Number(ostream& s,
-			Term* term,
+			const Term* term,
 			bool rangeKnown,
 			const PrintSettings& printSettings);
 public:
   void prettyPrint(ostream& s,
 		   const PrintSettings& printSettings,
-		   Term* term,
+		   const Term* term,
 		   int requiredPrec,
 		   int leftCapture,
 		   const ConnectedComponent* leftCaptureComponent,
@@ -936,6 +954,8 @@ private:
 			      const char* color,
 			      const PrintSettings& printSettings);
   static bool latexFancySpace(ostream& s, int spaceToken, const PrintSettings& printSettings);
+  void latexPrintStructuredConstant(ostream& s, Symbol* symbol, const char* color, const PrintSettings& printSettings) const;
+  static void latexClearColor(ostream& s);
   //
   //	Member functions for Term* -> LaTeX pretty printer.
   //
@@ -953,6 +973,10 @@ private:
   void latexHandleQuotedIdentifier(ostream& s, Term* term, bool rangeKnown, const PrintSettings& printSettings) const;
   void latexHandleVariable(ostream& s, Term* term, bool rangeKnown, const PrintSettings& printSettings) const;
   void latexHandleSMT_Number(ostream& s, Term* term, bool rangeKnown, const PrintSettings& printSettings);
+  void latexAttributePrint(ostream& s,
+			   const PrintSettings& printSettings,
+			   Symbol* symbol,
+			   ArgumentIterator& a);
 
 protected:
   void latexPrettyPrint(ostream& s,
@@ -971,7 +995,7 @@ private:
   //	Member functions for DagNode* -> LaTeX pretty printer.
   //
   static const char* latexComputeColor(ColoringInfo& coloringInfo, DagNode* dagNode, const PrintSettings& printSettings);
-  static void latexSuffix(ostream& s, DagNode* dagNode, bool needDisambig, const char* color);
+  static void latexSuffix(ostream& s, DagNode* dagNode, bool needDisambig, const char* color = nullptr);
   bool latexHandleIter(ostream& s,
 		       ColoringInfo& coloringInfo,
 		       DagNode* dagNode,
@@ -996,6 +1020,12 @@ private:
 			int rightCapture,
 			const ConnectedComponent* rightCaptureComponent,
 			bool rangeKnown);
+  void latexAttributePrint(ostream& s,
+			   const PrintSettings& printSettings,
+			   ColoringInfo& coloringInfo,
+			   Symbol* symbol,
+			   DagArgumentIterator& a);
+  void latexGraphPrint(ostream& s, DagNode* dagNode, const PrintSettings& printSettings);
 
   NatSet objectSymbols;
   NatSet messageSymbols;
@@ -1096,6 +1126,12 @@ MixfixModule::getPolymorphFormat(int index) const
 }
 
 inline int
+MixfixModule::getPolymorphLatexMacro(int index) const
+{
+  return polymorphs[index].symbolInfo.latexMacro;
+}
+
+inline int
 MixfixModule::getPolymorphMetadata(int index) const
 {
   return polymorphs[index].metadata;
@@ -1123,6 +1159,12 @@ inline const Vector<int>&
 MixfixModule::getFormat(const Symbol* symbol) const
 {
   return symbolInfo[symbol->getIndexWithinModule()].format;
+}
+
+inline int
+MixfixModule::getLatexMacro(const Symbol* symbol) const
+{
+  return symbolInfo[symbol->getIndexWithinModule()].latexMacro;
 }
 
 inline MixfixModule::ModuleType
@@ -1279,6 +1321,25 @@ MixfixModule::clearColor(ostream& s)
       attributeUsed = false;
       s << Tty(Tty::RESET);
     }
+}
+
+inline void
+MixfixModule::latexClearColor(ostream& s)
+{
+  if (*restoreColor != '\0')
+    {
+      //
+      //	If we are printing in color, reset the color to black.
+      //
+      restoreColor = "";
+      s << latexResetColor;
+    }
+}
+
+inline string
+MixfixModule::latexString(int code)
+{
+  return latexString(Token::name(code));
 }
 
 #endif

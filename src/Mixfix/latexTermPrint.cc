@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 2023 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 2023-2024 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@ MixfixModule::latexPrettyPrint(ostream& s, Term* term, bool rangeKnown)
   const PrintSettings& printSettings = interpreter;  // HACK
   MixfixModule* module = safeCastNonNull<MixfixModule*>(term->symbol()->getModule());
   module->latexPrettyPrint(s, printSettings, term, UNBOUNDED, UNBOUNDED, 0, UNBOUNDED, 0, rangeKnown);
+  latexClearColor(s);
 }
 
 void
@@ -117,7 +118,7 @@ MixfixModule::latexHandleIter(ostream& s,
 	  bool needDisambig = printSettings.getPrintFlag(PrintSettings::PRINT_DISAMBIG_CONST) ||
 	    (!rangeKnown && (kindsWithSucc.size() > 1 || overloadedIntegers.count(nat)));
 	  latexPrefix(s, needDisambig);
-	  s << "\\maudeNumber{" << nat << "}";
+	  s << latexNumber(nat);
 	  latexSuffix(s, term, needDisambig);
 	  return true;
 	}
@@ -161,7 +162,7 @@ MixfixModule::latexHandleMinus(ostream& s,
 	  bool needDisambig = printSettings.getPrintFlag(PrintSettings::PRINT_DISAMBIG_CONST) ||
 	    (!rangeKnown && (kindsWithMinus.size() > 1 || overloadedIntegers.count(neg)));
 	  latexPrefix(s, needDisambig);
-	  s << "\\maudeNumber{" << neg << "}";
+	  s << latexNumber(neg);
 	  latexSuffix(s, term, needDisambig);
 	  return true;
 	}
@@ -185,7 +186,7 @@ MixfixModule::latexHandleDivision(ostream& s,
 	  bool needDisambig = printSettings.getPrintFlag(PrintSettings::PRINT_DISAMBIG_CONST) ||
 	    (!rangeKnown && (kindsWithDivision.size() > 1 || overloadedRationals.count(rat)));
 	  latexPrefix(s, needDisambig);
-	  s << "\\maudeNumber{" << rat.first << "}/\\maudeNumber{"  << rat.second << "}";
+	  s << latexNumber(rat.first) << "/" << latexNumber(rat.second);
 	  latexSuffix(s, term, needDisambig);
 	  return true;
 	}
@@ -218,7 +219,7 @@ MixfixModule::latexHandleString(ostream& s,
   bool needDisambig = printSettings.getPrintFlag(PrintSettings::PRINT_DISAMBIG_CONST) ||
     (!rangeKnown && (stringSymbols.size() > 1 || overloadedStrings.count(strValue)));
   latexPrefix(s, needDisambig);
-  s << "\\maudeString{" << Token::latexName(strValue) << "}";
+  s << latexString(strValue);
   latexSuffix(s, term, needDisambig);
 }
 
@@ -232,7 +233,7 @@ MixfixModule::latexHandleQuotedIdentifier(ostream& s,
   bool needDisambig = printSettings.getPrintFlag(PrintSettings::PRINT_DISAMBIG_CONST) ||
     (!rangeKnown && (quotedIdentifierSymbols.size() > 1 || overloadedQuotedIdentifiers.count(qidCode)));
   latexPrefix(s, needDisambig);
-  s << "\\maudeQid{" << "\\maudeSingleQuote " << Token::latexName(qidCode) << "}";
+  s << latexQid(qidCode);
   latexSuffix(s, term, needDisambig);
 }
 
@@ -289,7 +290,7 @@ MixfixModule::latexHandleSMT_Number(ostream& s,
       bool needDisambig = printSettings.getPrintFlag(PrintSettings::PRINT_DISAMBIG_CONST) ||
 	(!rangeKnown && (kindsWithSucc.size() > 1 || overloadedIntegers.count(integer)));
       latexPrefix(s, needDisambig);
-      s << "\\maudeNumber{" << integer << "}";
+      s << latexNumber(integer);
       latexSuffix(s, term, needDisambig);
     }
   else
@@ -299,7 +300,7 @@ MixfixModule::latexHandleSMT_Number(ostream& s,
       bool needDisambig = printSettings.getPrintFlag(PrintSettings::PRINT_DISAMBIG_CONST) ||
 	(!rangeKnown && (kindsWithDivision.size() > 1 || overloadedRationals.count(rat)));
       latexPrefix(s, needDisambig);
-      s << "\\maudeNumber{" << rat.first << "}/\\maudeNumber{" << rat.second << "}";
+      s << latexNumber(rat.first) << "/" << latexNumber(rat.second);
       latexSuffix(s, term, needDisambig);
     }
 }
@@ -386,8 +387,19 @@ MixfixModule::latexPrettyPrint(ostream& s,
 
  latexPrefix(s, needDisambig);
  bool printConceal = printSettings.concealedSymbol(symbol->id());
+ if (si.symbolType.hasFlag(SymbolType::LATEX) && !printConceal && printSettings.getPrintFlag(PrintSettings::PRINT_LATEX))
+   {
+     //
+     //	We don't put parentheses or sort disambiguation around user's latex code.
+     //	Nor do we support automatic color based on symbol properties because this would affect subterms.
+     //	It's completely the user's responsibility.
+     //
+     ArgumentIterator a(*term);
+     latexAttributePrint(s, printSettings, symbol, a);
+       return;
+   }
  if (nrArgs == 0 && Token::auxProperty(symbol->id()) == Token::AUX_STRUCTURED_SORT)
-   s << latexStructuredConstant(symbol->id());
+   latexPrintStructuredConstant(s, symbol, color, printSettings);
  else if ((printSettings.getPrintFlag(PrintSettings::PRINT_MIXFIX) && !si.mixfixSyntax.empty() && !printConceal) ||
 	  basicType == SymbolType::SORT_TEST)
    {
@@ -507,4 +519,75 @@ MixfixModule::latexPrettyPrint(ostream& s,
        }
    }
  latexSuffix(s, term, needDisambig);
+}
+
+void
+MixfixModule::latexAttributePrint(ostream& s,
+				  const PrintSettings& printSettings,
+				  Symbol* symbol,
+				  ArgumentIterator& a)
+{
+  const SymbolInfo& si = symbolInfo[symbol->getIndexWithinModule()];
+  if (si.symbolType.hasFlag(SymbolType::ASSOC))
+    {
+      //
+      //	We need to convert flattened form in to right associative form on-the-fly.
+      //
+      Term* firstArg = a.argument();
+      a.next();
+      if (a.valid())
+        {
+	  //
+	  //	Traverse latex macro.
+	  //    Call latexPrettyPrint(s, printSettings, firstArg) for occurrences of #1
+	  //	Recursive call latexAttributePrint(s, printSettings, s, a) for occurrences of #2
+	  //
+	  for (int i : si.latexMacroUnpacked)
+	    {
+	      if (i >= 0)
+		s << static_cast<char>(i);
+	      else
+		{
+		  if (i == -1)
+		    {
+		      //
+		      //	First argument.
+		      //
+		      latexPrettyPrint(s, printSettings, firstArg, UNBOUNDED, UNBOUNDED, 0, UNBOUNDED, 0, true);  // optimistic
+		    }
+		  else
+		    {
+		      //
+		      //	Second argument; make a recursive call to deal with the rest of the arguments.
+		      //
+		      Assert(i == -2, "bad argument number");
+		      latexAttributePrint(s, printSettings, symbol, a);
+		    }
+		}
+	    }
+	}
+      else
+	{
+	  //
+	  //	Final argument, symbol not present.
+	  //
+	  latexPrettyPrint(s, printSettings, firstArg, UNBOUNDED, UNBOUNDED, 0, UNBOUNDED, 0, true);  // optimistic
+	  
+	}
+    }
+  else
+    {
+      Vector<Term*> args;
+      for (; a.valid(); a.next())
+	args.push_back(a.argument());
+      for (int i : si.latexMacroUnpacked)
+	{
+	  if (i >= 0)
+	    s << static_cast<char>(i);
+	  else
+	    {
+	      latexPrettyPrint(s, printSettings, args[-1 - i], UNBOUNDED, UNBOUNDED, 0, UNBOUNDED, 0, true);  // optimistic
+	    }
+	}
+    }
 }

@@ -24,6 +24,46 @@
 //	Code for entering stuff into a MixfixModule.
 //
 
+bool
+MixfixModule::unpackLatexMacro(SymbolInfo& si, int arity)
+{
+  Vector<int> unpacked;
+  bool backslashSeen = false;
+  for (const char* p = Token::name(si.latexMacro); *p;)
+    {
+      unsigned char c = *p;
+      if (backslashSeen)
+	backslashSeen = false;
+      else
+	{
+	  if (c == '\\')
+	    backslashSeen = true;
+	  else if (c == '#')
+	    {
+	      ++p;
+	      char c2 = *p;
+	      if (isdigit(c2) && c2 != '0')
+		{
+		  char* endPtr;
+		  int argNr = strtol(p, &endPtr, 10);
+		  if (argNr > 0 && argNr <= arity)
+		    {
+		      unpacked.push_back(- argNr);
+		      p = endPtr;
+		      continue;
+		    }
+		}
+	      --p;
+	      return false;
+	    }
+	}
+      unpacked.push_back(c);
+      ++p;
+    }
+  si.latexMacroUnpacked.swap(unpacked);
+  return true;
+}
+
 Sort*
 MixfixModule::addSort(int name)
 {
@@ -182,6 +222,7 @@ MixfixModule::addOpDeclaration(Token prefixName,
 			       int prec,
 			       const Vector<int>& gather,
 			       const Vector<int>& format,
+			       int latexMacro,
 			       int metadata,
 			       bool& firstDecl)
 {
@@ -249,8 +290,7 @@ MixfixModule::addOpDeclaration(Token prefixName,
 			    }
 			  if (metadata != NONE)
 			    insertMetadata(s, s->getOpDeclarations().length(), metadata);
-			  s->addOpDeclaration(domainAndRange,
-					      symbolType.hasFlag(SymbolType::CTOR));
+			  s->addOpDeclaration(domainAndRange, symbolType.hasFlag(SymbolType::CTOR));
 			  return s;
 			}
 		      else
@@ -259,8 +299,7 @@ MixfixModule::addOpDeclaration(Token prefixName,
 				       ": declaration for " << QUOTE(s) <<
 				       " clashes with declaration on " << *s <<
 				       " because of associativity.");
-			  overloadType =
-			    ADHOC_OVERLOADED | DOMAIN_OVERLOADED | RANGE_OVERLOADED;
+			  overloadType = ADHOC_OVERLOADED | DOMAIN_OVERLOADED | RANGE_OVERLOADED;
 			}
 		    }
 		  else
@@ -421,7 +460,13 @@ MixfixModule::addOpDeclaration(Token prefixName,
   symbolInfo.expandBy(1);
   SymbolInfo& si = symbolInfo[nrSymbols];
   int nrUnderscores = Token::extractMixfix(name, si.mixfixSyntax);
-  if (si.mixfixSyntax.empty())
+  if (nrUnderscores == Token::PAREN_MISMATCH)
+    {
+      IssueWarning(LineNumber(prefixName.lineNumber()) << ": mismatched parentheses in operator " <<
+		   QUOTE(prefixName) << ". It will be treated as having prefix syntax only.");
+      symbolType.clearFlags(SymbolType::PREC | SymbolType::GATHER | SymbolType::FORMAT);
+    }
+  else if (si.mixfixSyntax.empty())
     {
       si.prec = 0;
       WarningCheck(!(symbolType.hasFlag(SymbolType::PREC)),
@@ -451,8 +496,7 @@ MixfixModule::addOpDeclaration(Token prefixName,
     {
       if (si.mixfixSyntax.length() == 1 && nrUnderscores == 1)
 	{
-	  IssueWarning(*symbol <<
-		       ": empty syntax not allowed for single argument operators.");
+	  IssueWarning(*symbol << ": empty syntax not allowed for single argument operators.");
 	  si.mixfixSyntax.clear();
 	  si.prec = 0;
 	  symbolType.clearFlags(SymbolType::PREC | SymbolType::GATHER | SymbolType::FORMAT);
@@ -486,6 +530,13 @@ MixfixModule::addOpDeclaration(Token prefixName,
 		si.format = format;  // deep copy
 	    }
 	}
+    }
+  si.latexMacro = latexMacro;
+  if (symbolType.hasFlag(SymbolType::LATEX) && !unpackLatexMacro(si, nrArgs))
+    {
+      IssueWarning(*symbol << ": bad latex attribute for operator " << QUOTE(symbol) << '.');
+      si.latexMacro = NONE;
+      symbolType.clearFlags(SymbolType::LATEX);
     }
   si.polymorphIndex = NONE;
   si.symbolType = symbolType;
@@ -633,6 +684,7 @@ MixfixModule::addPolymorph(Token prefixName,
 			   int prec,
 			   const Vector<int>& gather,
 			   const Vector<int>& format,
+			   int latexMacro,
 			   int metadata)
 {
   int index = findPolymorphIndex(prefixName.code(), domainAndRange);
@@ -656,7 +708,13 @@ MixfixModule::addPolymorph(Token prefixName,
   p.identity = 0;
   p.metadata = metadata;
   int nrUnderscores = Token::extractMixfix(prefixName.code(), p.symbolInfo.mixfixSyntax);
-  if (p.symbolInfo.mixfixSyntax.empty())
+  if (nrUnderscores == Token::PAREN_MISMATCH)
+    {
+      IssueWarning(LineNumber(prefixName.lineNumber()) << ": mismatched parentheses in operator " <<
+		   QUOTE(prefixName) << ". It will be treated as having prefix syntax only.");
+      symbolType.clearFlags(SymbolType::PREC | SymbolType::GATHER | SymbolType::FORMAT);
+    }
+  else if (p.symbolInfo.mixfixSyntax.empty())
     {
       p.symbolInfo.prec = 0;
       WarningCheck(!(symbolType.hasFlag(SymbolType::PREC)),
@@ -715,6 +773,7 @@ MixfixModule::addPolymorph(Token prefixName,
 	    }
 	}
     }
+  p.symbolInfo.latexMacro = latexMacro;  // HACK
   p.symbolInfo.polymorphIndex = nrPolymorphs;  // our own index
   p.symbolInfo.symbolType = symbolType;
   p.symbolInfo.next = NONE;
