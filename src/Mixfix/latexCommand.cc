@@ -340,7 +340,7 @@ MaudeLatexBuffer::generateMatch(bool showCommand,
 void
 MaudeLatexBuffer::generateSearch(bool showCommand,
 				 Interpreter::SearchKind searchKind,
-				 DagNode* subject,
+				 const Vector<DagNode*>& subjects,
 				 int searchType,
 				 Term* target,
 				 const Vector<ConditionFragment*>& condition,
@@ -351,19 +351,32 @@ MaudeLatexBuffer::generateSearch(bool showCommand,
 {
   //
   //	These commands are for the form:
-  //	  <command and options> in <module> : <subject> <searchType> <target> .
+  //	  <command and options> in <module> : <subjects> <searchType> <target> .
   //
   static const char* searchKindName[] = { "search", "narrow", "xg-narrow", "smt-search", "vu-narrow", "fvu-narrow"};
   static const char* searchTypeSymbol[] = { "=>1", "=>+", "=>*", "=>!", "=>#" };
   static const char* searchTypeLatex[] = { "\\maudeOneStep", "\\maudeAtLeastOneStep", "\\maudeAnySteps", "\\maudeToNormalForm", "\\maudeToBranch"};
 
-  Module* module = subject->symbol()->getModule();
+  Module* module = subjects[0]->symbol()->getModule();
   //
   //	Print comment.
   //
   startComment();
   if (debug)
     output << "debug ";
+  if (variantFlags & (NarrowingSequenceSearch3::FOLD | NarrowingSequenceSearch3::VFOLD | NarrowingSequenceSearch3::KEEP_PATHS))
+    {
+      const char* sep = ", ";
+      if (variantFlags & NarrowingSequenceSearch3::FOLD)
+	output << "{fold";
+      else if (variantFlags & NarrowingSequenceSearch3::VFOLD)
+	output << "{vfold";
+      else
+	sep = "{";
+      if (variantFlags & NarrowingSequenceSearch3::KEEP_PATHS)
+	output << sep << "path";
+      output << "} ";
+    }
   if (variantFlags & NarrowingSequenceSearch3::FOLD)
     output << "{fold} ";
   output << searchKindName[searchKind] << ' ';
@@ -381,7 +394,14 @@ MaudeLatexBuffer::generateSearch(bool showCommand,
       output << "} ";
     }
   safeCastNonNull<MixfixModule*>(module)->printModifiers(output, limit, depth);
-  commentDagNode(subject);
+  {
+    const char* sep = "";
+    for (DagNode* d : subjects)
+      {
+	output << sep << d;
+	sep = " \\/ ";
+      }
+  }
   output << ' ' << searchTypeSymbol[searchType] << ' ';
   commentTerm(target);
   if (!condition.empty())
@@ -399,8 +419,20 @@ MaudeLatexBuffer::generateSearch(bool showCommand,
       output << "$";
       if (debug)
 	output << "\\maudeKeyword{debug}\\maudeSpace";
-      if (variantFlags & NarrowingSequenceSearch3::FOLD)
-	output << "\\maudeLeftBrace\\maudeKeyword{fold}\\maudeRightBrace\\maudeSpace";
+      if (variantFlags & (NarrowingSequenceSearch3::FOLD | NarrowingSequenceSearch3::VFOLD | NarrowingSequenceSearch3::KEEP_PATHS))
+	{
+	  const char* sep = "\\maudePunctuation{,}\\maudeSpace";
+	  if (variantFlags & NarrowingSequenceSearch3::FOLD)
+	    output << "\\maudeLeftBrace\\maudeKeyword{fold}";
+	  else if (variantFlags & NarrowingSequenceSearch3::VFOLD)
+	    output << "\\maudeLeftBrace\\maudeKeyword{vfold}";
+	  else
+	    sep = "\\maudeLeftBrace";
+	  if (variantFlags & NarrowingSequenceSearch3::KEEP_PATHS)
+	    output << sep << "\\maudeKeyword{path}";
+	  output << "\\maudeRightBrace\\maudeSpace";
+	}
+
       output << "\\maudeKeyword{" << searchKindName[searchKind] << "}\\maudeSpace";
 
       if (variantFlags & (VariantSearch::IRREDUNDANT_MODE | VariantUnificationProblem::FILTER_VARIANT_UNIFIERS))
@@ -414,10 +446,18 @@ MaudeLatexBuffer::generateSearch(bool showCommand,
 	    }
 	  if (variantFlags & VariantUnificationProblem::FILTER_VARIANT_UNIFIERS)
 	    output << sep << "\\maudeKeyword{filter}";
-	  output << "\\maudeRightBrace";
+	  output << "\\maudeRightBrace\\maudeSpace";
 	}
       generateModifiers(module, limit, depth);
-      MixfixModule::latexPrintDagNode(output, subject);
+      {
+	const char* sep = "";
+	for (DagNode* d : subjects)
+	  {
+	    output << sep;
+	    MixfixModule::latexPrintDagNode(output, d);
+	    sep = "\\maudeDisjunction";
+	  }
+      }	
       output << searchTypeLatex[searchType];
       MixfixModule::latexPrettyPrint(output, target);
 

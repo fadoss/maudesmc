@@ -1,3 +1,423 @@
+2024-05-30  Steven Eker  <eker@pup>
+
+	* narrowingFolder.cc (NarrowingFolder::getMostGeneralStates): fixed
+	bug where we weren't considering vfold flag
+	(NarrowingFolder::insertState): fixed symmteric bug
+	(NarrowingFolder::cleanGraph): fixed symmetric bug
+	(NarrowingFolder::getUnreturnedStates): turn cerr into DebugInfo()
+	(NarrowingFolder::insertState): turn cerr into DebugEnter()
+	(NarrowingFolder::insertState): turn cerr into DebugInfo() (2 places)
+	(NarrowingFolder::insertState): added DebugAdvisoryCheck()
+	(NarrowingFolder::getNextSurvivingState): turn cerr into DebugInfo()
+	(NarrowingFolder::lockPathToState): turn cerr into DebugInfo() (3 places)
+	(NarrowingFolder::RetainedState::RetainedState): turn cerr into
+	DebugInfo()
+	(NarrowingFolder::RetainedState::subsumes): turn cerr into DebugEnter()
+	(NarrowingFolder::RetainedState::subsumes): turn cerr into DebugInfo() (3
+	places)
+	(NarrowingFolder::RetainedState::subsumes): added DebugInfo()
+
+2024-05-21  Steven Eker  <eker@pup>
+
+	* narrowingFolder.cc (NarrowingFolder::NarrowingFolder): take and
+	store context, freshVariableGenerator
+
+	* narrowingSequenceSearch3.cc
+	(NarrowingSequenceSearch3::NarrowingSequenceSearch3): pass initial
+	and freshVariableGenerator to stateCollection
+
+	* narrowingFolder.hh (class NarrowingFolder): updated decl for
+	RetainedState ctor
+	(class NarrowingFolder): added date members context,
+	freshVariableGenerator
+	(class NarrowingFolder): updated decl for ctor
+
+	* narrowingFolder.cc (NarrowingFolder::RetainedState::subsumes): use
+	subsumptionChecker if it exists
+	(NarrowingFolder::RetainedState::RetainedState): take owner argument
+	rather than fold argument
+	(NarrowingFolder::insertState): pass this pointer to RetainedState()
+
+	* narrowingSequenceSearch3.cc
+	(NarrowingSequenceSearch3::findNextInterestingState): don't pass
+	variableFamily to addAccumulatedSubstitution()
+	(NarrowingSequenceSearch3::handleInitialState): pass variableFamily = 0
+	to insertState()
+	(NarrowingSequenceSearch3::handleInitialState): don't pass variableFamily
+	to addAccumulatedSubstitution()
+
+	* narrowingFolder.hh (NarrowingFolder::addAccumulatedSubstitution): don't
+	take or set variableFamily
+
+	* narrowingSequenceSearch3.cc
+	(NarrowingSequenceSearch3::findNextInterestingState): pass variableFamily
+	to insertState()
+
+	* narrowingFolder.hh (class NarrowingFolder): updated decl for
+	insertState(); don't do default init of variableFamily
+
+	* narrowingFolder.cc (NarrowingFolder::RetainedState::RetainedState):
+	take and set variableFamily
+	(NarrowingFolder::insertState): take and pass variableFamily
+
+2024-05-20  Steven Eker  <eker@pup>
+
+	* narrowingFolder.cc (NarrowingFolder::RetainedState::~RetainedState):
+	delete subsumptionChecker
+
+	* narrowingFolder.hh (class NarrowingFolder): added data member
+	subsumptionChecker
+
+	* narrowingFolder.cc
+	(NarrowingFolder::RetainedState::RetainedState): don't clear stateTerm,
+	matchingAutomaton and nrMatchingVariables here
+
+	* narrowingFolder.hh (class NarrowingFolder): initialize stateTerm,
+	matchingAutomaton and nrMatchingVariables of struct RetainedState
+	here
+
+	* narrowingSequenceSearch3.cc
+	(NarrowingSequenceSearch3::NarrowingSequenceSearch3): pass vfold flag
+	to stateCollection
+
+	* narrowingFolder.cc (NarrowingFolder::NarrowingFolder): handle
+	vfold argument
+
+	* narrowingFolder.hh (class NarrowingFolder): updated decl for
+	ctor; added data member vfold
+
+2024-05-17  Steven Eker  <eker@pup>
+
+	* narrowingSequenceSearch3.hh (class NarrowingSequenceSearch3):
+	getUnexpandedState() becomes getUnexpandedStates()
+	(NarrowingSequenceSearch3::getUnexpandedState): becomes
+	getUnexpandedStates(); rewritten
+
+	* narrowingFolder.hh (class NarrowingFolder): added decl for
+	getReturnedButUnexploredStates()
+
+	* narrowingFolder.cc (NarrowingFolder::getReturnedButUnexploredStates):
+	added
+
+	* narrowingFolder.hh (NarrowingFolder::setUnexplored): added
+
+2024-05-16  Steven Eker  <eker@pup>
+
+	* narrowingSequenceSearch3.cc
+	(NarrowingSequenceSearch3::markReachableNodes): protect goal
+	(NarrowingSequenceSearch3::findNextUnifier): use goal directly
+
+	* narrowingSequenceSearch3.hh (class NarrowingSequenceSearch3): goal
+	becomes a DagNode* rather than a DagRoot now that we have our own
+	markReachableNodes() to protect it
+
+2024-05-15  Steven Eker  <eker@pup>
+
+	* narrowingFolder.hh (class NarrowingFolder): added decl for
+	doSubsumption()
+
+	* narrowingFolder.cc (NarrowingFolder::doSubsumption): added
+
+2024-05-09  Steven Eker  <eker@pup>
+
+	* narrowingFolder.hh (class NarrowingFolder): added decl for dump
+
+	* narrowingFolder.cc (NarrowingFolder::dump): added
+
+	* narrowingSequenceSearch3.hh (NarrowingSequenceSearch3::unexpandedState):
+	added
+
+	* narrowingFolder.hh (class NarrowingFolder): added data member
+	returnedButUnexplored to struct RetainedState
+
+2024-05-08  Steven Eker  <eker@pup>
+
+	* narrowingSequenceSearch3.hh
+	(NarrowingSequenceSearch3::getUnvisitedStates): added
+
+	* narrowingFolder.hh (class NarrowingFolder): added decl for
+	getUnreturnedStates()
+
+	* narrowingFolder.cc (NarrowingFolder::getUnreturnedStates): added
+
+	* narrowingSequenceSearch3.hh
+	(NarrowingSequenceSearch3::getMostGeneralStates): added
+
+	* narrowingFolder.hh (class NarrowingFolder): added decl for
+	getMostGeneralStates()
+
+	* narrowingFolder.cc (NarrowingFolder::getMostGeneralStates): added
+
+	* narrowingSequenceSearch3.hh (class NarrowingSequenceSearch3): deleted
+	INVARIANT from enum Flags
+
+2024-05-07  Steven Eker  <eker@pup>
+
+	* narrowingFolder.hh (NarrowingFolder::RetainedState::markedSubsumed): don't
+	assume stateTerm is non-null because we might support variant folding at
+	some point
+
+2024-05-06  Steven Eker  <eker@pup>
+
+	* narrowingFolder.cc (NarrowingFolder::insertState): use markedSubsumed()
+	for states that got subsumed but can't be deleted because they are locked
+	for show path
+
+	* narrowingFolder.hh (NarrowingFolder::RetainedState::markedSubsumed): added
+
+	* narrowingFolder.cc (NarrowingFolder::getNextSurvivingState): handled
+	subsumed states; this can arise if a state produces, a solution and has
+	its path locked by the caller, and is subsequently subsumed but can't be
+	deleted because it is locked as it may be needed for a show path
+
+2024-05-03  Steven Eker  <eker@pup>
+
+	* narrowingSequenceSearch3.cc (NarrowingSequenceSearch3::findNextUnifier):
+	use lockPathToState()
+
+	* narrowingFolder.hh (class NarrowingFolder): lockPathToCurrentState()->
+	lockPathToState()
+
+	* narrowingFolder.cc (NarrowingFolder::lockPathToCurrentState): becomes
+	lockPathToState()
+
+	* narrowingSequenceSearch3.hh (NarrowingSequenceSearch3::getStateParent):
+	added
+
+	* narrowingFolder.hh (NarrowingFolder::exists): made const
+	(NarrowingFolder::getParent): added
+
+	* narrowingSequenceSearch3.hh (NarrowingSequenceSearch3::locked): added
+
+	* narrowingFolder.hh (NarrowingFolder::locked): added
+
+2024-05-02  Steven Eker  <eker@pup>
+
+	* narrowingSequenceSearch3.cc:
+	(NarrowingSequenceSearch3::NarrowingSequenceSearch3): use new
+	handleInitialState() convention
+
+	* narrowingSequenceSearch3.hh (class NarrowingSequenceSearch3): updated
+	decl for handleInitialState()
+
+	* narrowingSequenceSearch3.cc
+	(NarrowingSequenceSearch3::NarrowingSequenceSearch3): fix bug where
+	empty startStates caused nrInitialStatesToTry to be wrong
+	(NarrowingSequenceSearch3::handleInitialState): check for unsafe
+	variable names here
+
+	* narrowingSequenceSearch3.hh (NarrowingSequenceSearch3::problemOK):
+	added
+
+	* narrowingSequenceSearch3.cc
+	(NarrowingSequenceSearch3::NarrowingSequenceSearch3): check for unsafe
+	variable names
+
+	* narrowingSequenceSearch3.hh (class NarrowingSequenceSearch3): added data
+	member problemOkay
+
+	* narrowingSequenceSearch3.cc
+	(NarrowingSequenceSearch3::NarrowingSequenceSearch3): check for
+	variables shared between initial states
+	(NarrowingSequenceSearch3::NarrowingSequenceSearch3): check for
+	variables shared between initial state and goal in term disjunction case
+
+2024-05-01  Steven Eker  <eker@pup>
+
+	* narrowingSequenceSearch3.cc (NarrowingSequenceSearch3::findNextUnifier):
+	lockPath() -> lockPathToCurrentState()
+
+	* narrowingFolder.hh (class NarrowingFolder): lockPath() ->
+	lockPathToCurrentState()
+
+	* narrowingFolder.cc (NarrowingFolder::lockPath): becomes
+	lockPathToCurrentState()
+
+	* narrowingSequenceSearch3.cc
+	(NarrowingSequenceSearch3::NarrowingSequenceSearch3): pass keepHistory
+	= true to stateCollection if KEEP_HISTORY | KEEP_PATHS
+
+	* narrowingFolder.cc (NarrowingFolder::getNextSurvivingState): added
+	Assert()s that an unexplore state is neither locked nor subsumed
+
+	* narrowingSequenceSearch3.cc
+	(NarrowingSequenceSearch3::findNextUnifier): if KEEP_PATHS then lock
+	the path of any state that unifies with goal
+
+	* narrowingSequenceSearch3.hh (class NarrowingSequenceSearch3):
+	KEEP_FULL_HISTORY -> KEEP_PATH; added INVARIANT to enum Flags
+	(NarrowingSequenceSearch3::getVariantFlags): added
+
+2024-04-30  Steven Eker  <eker@pup>
+
+	* narrowingSequenceSearch3.hh (class NarrowingSequenceSearch3): deleted
+	data member needToTryInitialState; added data member nrInitialStatesToTry
+
+	* narrowingSequenceSearch3.cc
+	(NarrowingSequenceSearch3::findNextInterestingState): handle trying
+	multiple initial states
+	(NarrowingSequenceSearch3::NarrowingSequenceSearch3): initialize
+	nrInitialStatesToTry; don't initialize needToTryInitialState
+
+	* narrowingFolder.hh (NarrowingFolder::exists): added
+
+	* narrowingSequenceSearch3.hh (class NarrowingSequenceSearch3): added
+	comment that NONE is used to represent unbounded
+
+2024-04-29  Steven Eker  <eker@pup>
+
+	* narrowingFolder.cc (NarrowingFolder::RetainedState::RetainedState):
+	don't initialized stuff that is initialized in the struct decl
+	(NarrowingFolder::insertState): mark locked states as subsumed rather
+	than deleting them
+	(NarrowingFolder::insertState): don't try to subsume the new state by
+	a state that itself is marked subsumed
+	(NarrowingFolder::insertState): don't try to subsume states that are
+	already marked as subsumed
+	(NarrowingFolder::cleanGraph): don't delete locked states even if
+	they have no descendents
+	(NarrowingFolder::cleanGraph): Assert() that we don't have a locked state
+	if we're not keeping history
+	(NarrowingFolder::lockPath): added
+
+	* narrowingFolder.hh (class NarrowingFolder): added data member locked
+	to struct RetainedState
+	(class NarrowingFolder): reorganized struct RetainedState
+
+	* narrowingSequenceSearch3.hh (class NarrowingSequenceSearch3): added
+	VFOLD and KEEP_FULL_HISTORY to enum Flags and renumbered
+
+2024-04-26  Steven Eker  <eker@pup>
+
+	* narrowingSequenceSearch3.hh (class NarrowingSequenceSearch3): added
+	data member protectedSubstitution
+
+	* narrowingSequenceSearch3.cc
+	(NarrowingSequenceSearch3::markReachableNodes): mark
+	protectedSubstitution
+	(NarrowingSequenceSearch3::NarrowingSequenceSearch3): clear
+	protectedSubstitution pointer; don't init startStates
+	(NarrowingSequenceSearch3::handleInitialState): use protectedSubsitution
+	to stop fresh variables from being garbage collected if they disappear
+	from initial state during rewriting
+
+	* narrowingSequenceSearch3.hh
+	(NarrowingSequenceSearch3::getNrInitialStates): use initalStates
+	rather than startStates
+	(class NarrowingSequenceSearch3): added data member termDisjunction
+	(NarrowingSequenceSearch3::getStateInfo): check if we have a
+	termDisjunction
+	(NarrowingSequenceSearch3::getInitialVariableInfo): check if we have
+	a termDisjunction
+
+	* narrowingSequenceSearch3.cc
+	(NarrowingSequenceSearch3::NarrowingSequenceSearch3): use
+	handleInitialState()
+
+	* narrowingSequenceSearch3.hh (class NarrowingSequenceSearch3): added
+	decl for handleInitialState()
+
+	* narrowingSequenceSearch3.cc
+	(NarrowingSequenceSearch3::handleInitialState): added
+
+	* narrowingSequenceSearch3.hh (class NarrowingSequenceSearch3): added
+	struct InitialState and data member initialStates; deleted data member
+	startStates
+
+2024-04-25  Steven Eker  <eker@pup>
+
+	* narrowingSequenceSearch3.cc
+	(NarrowingSequenceSearch3::NarrowingSequenceSearch3): only add
+	accumulated substitutions to initial states which survive
+
+2024-04-24  Steven Eker  <eker@pup>
+
+	* narrowingSequenceSearch3.hh
+	(NarrowingSequenceSearch3::getNrInitialStates): added
+
+	* narrowingFolder.hh (NarrowingFolder::getRootIndex): added
+
+	* narrowingSequenceSearch3.hh (class NarrowingSequenceSearch3): updated
+	decl for getStateInfo()
+	(NarrowingSequenceSearch3::getStateInfo): fill out initialStateDag
+
+	* narrowingSequenceSearch3.cc
+	(NarrowingSequenceSearch3::markReachableNodes): protect startStates
+	rather than original variables
+
+	* narrowingSequenceSearch3.hh (class NarrowingSequenceSearch3): added
+	startStates data member
+
+	* narrowingSequenceSearch3.cc
+	(NarrowingSequenceSearch3::NarrowingSequenceSearch3): save startStates
+
+	* narrowingFolder.hh (class NarrowingFolder): made RetainedState::depth
+	const
+	(class NarrowingFolder): updated decl for RetainedState()
+
+	* narrowingFolder.cc (NarrowingFolder::RetainedState::RetainedState):
+	take and fill out rootIndex and depth
+	(NarrowingFolder::insertState): pass rootIndex and depth to
+	RetainedState()
+
+	* narrowingFolder.hh (class NarrowingFolder): added data member
+	rootIndex
+
+2024-04-23  Steven Eker  <eker@pup>
+
+	* narrowingSequenceSearch3.cc
+	(NarrowingSequenceSearch3::markReachableNodes): added
+
+	* narrowingSequenceSearch3.hh (class NarrowingSequenceSearch3): derive
+	from SimpleRootContainer
+
+	* narrowingSequenceSearch3.cc
+	(NarrowingSequenceSearch3::NarrowingSequenceSearch3): put multiple
+	states in the stateCollection
+
+2024-04-22  Steven Eker  <eker@pup>
+
+	* narrowingSequenceSearch3.hh (class NarrowingSequenceSearch3):
+	updated decl for ctor
+
+	* narrowingSequenceSearch3.cc: take startStates argument
+
+2024-04-19  Steven Eker  <eker@pup>
+
+	* narrowingFolder.hh: fix comment
+	(class NarrowingFolder): rearrange data members
+
+2024-03-21  Steven Eker  <eker@pup>
+
+	* unificationProblem.cc (UnificationProblem::UnificationProblem):
+	use safeCastNonNull<>
+	(UnificationProblem::bindFreeVariables): use safeCastNonNull<>
+	(UnificationProblem::findOrderSortedUnifiers): use
+	safeCastNonNull<> (3 places)
+
+	* temporalSymbol.cc (TemporalSymbol::copyAttachments): use
+	safeCastNonNull<>
+
+	* satSolverSymbol.cc (SatSolverSymbol::copyAttachments): use
+	safeCastNonNull<>
+	(SatSolverSymbol::eqRewrite): use safeCastNonNull<>
+
+	* rewriteConditionFragment.cc (RewriteConditionFragment::solve):
+	use safeCastNonNull<>
+
+	* narrowingUnificationProblem.cc
+	(NarrowingUnificationProblem::variableIndexToSort): use
+	safeCastNonNull<> (2 places)
+
+	* modelCheckerSymbol.cc (ModelCheckerSymbol::copyAttachments):
+	use safeCastNonNull<>
+	(ModelCheckerSymbol::eqRewrite): use safeCastNonNull<>
+
+	* assignmentConditionFragment.cc (AssignmentConditionFragment::solve):
+	use safeCastNonNull<>
+
+===================================Maude160===========================================
+
 2024-01-24  Steven Eker  <eker@pup>
 
 	* narrowingSearchState.cc: OR in RESPECT_FROZEN to flags before

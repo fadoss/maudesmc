@@ -69,6 +69,7 @@
   MACRO(owise, "owise")
   MACRO(variant, "variant")
   MACRO(narrowing, "narrowing")
+  MACRO(extension, "extension")
   MACRO(dnt, "dnt")
   MACRO(print, "print")
   MACRO(lessThan, "<")
@@ -128,7 +129,8 @@
   MACRO(amatchrew, "amatchrew")
   MACRO(by, "by")
   MACRO(irreducible, "irreducible")
-  MACRO(ellipsis, "...");
+  MACRO(ellipsis, "...")
+  MACRO(vee, "\\/")
     //
     //	Special hook identifier tokens.
     //

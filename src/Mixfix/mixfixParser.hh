@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2024 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -44,6 +44,7 @@ public:
     //
     MAKE_TERM,
     ASSOC_LIST,
+    MAKE_TERM_DISJUNCTION,
     //
     //	Special kinds of terms.
     //
@@ -90,6 +91,7 @@ public:
     MAKE_OWISE_ATTRIBUTE,
     MAKE_VARIANT_ATTRIBUTE,
     MAKE_NARROWING_ATTRIBUTE,
+    MAKE_EXTENSION_ATTRIBUTE,
     MAKE_DNT_ATTRIBUTE,
     MAKE_PRINT_ATTRIBUTE,
     MAKE_ATTRIBUTE_LIST,
@@ -133,6 +135,7 @@ public:
   MixfixParser(MixfixModule& client,
 	       bool complexFlag,
 	       int componentNonTerminalBase,
+	       int numberOfTypes,
 	       int nextNonTerminalCode,
 	       int nrTokensGuess);
   ~MixfixParser();
@@ -174,7 +177,7 @@ public:
 			Term*& subject,
 			Vector<ConditionFragment*>& condition);
   void makeUnifyCommand(Vector<Term*>& lhs, Vector<Term*>& rhs);
-  void makeSearchCommand(Term*& initial,
+  void makeSearchCommand(Vector<Term*>& initial,
 			 int& searchType,
 			 Term*& target,
 			 Vector<ConditionFragment*>& condition);
@@ -194,6 +197,7 @@ public:
   
   bool isComplex() const;
   int getComponentNonTerminalBase() const;
+  int getNumberOfTypes() const;
   int getNrProductions() const;
   int getNrNonTerminals() const;
   int getNrTerminals() const;
@@ -208,6 +212,7 @@ private:
     PRINT = 4,
     VARIANT = 8,
     NARROWING = 16,
+    EXTENSION = 32,
     DNT = 128
   };
 
@@ -244,11 +249,13 @@ private:
   void makeStrategyList(int node, Vector<StrategyExpression*>& strategies);
   void appendUsingPair(int node, Vector<Term*>& terms, Vector<StrategyExpression*>& strategies);
   void makeUsingList(int node, Vector<Term*>& terms, Vector<StrategyExpression*>& strategies);
+  void makeTermDisjunction(int node, Vector<Term*>& terms);
   int translateSpecialToken(int code);
 
   MixfixModule& client;
   const bool complexParser;
   const int componentNonTerminalBase;
+  const int numberOfTypes;
   int nextNonTerminal;
   Parser parser;			// CFG parser
   Vector<int> productionRhs;		// to avoid creating a new Vector for each production insertion
@@ -284,6 +291,12 @@ inline int
 MixfixParser::getComponentNonTerminalBase() const
 {
   return componentNonTerminalBase;
+}
+
+inline int
+MixfixParser::getNumberOfTypes() const
+{
+  return numberOfTypes;
 }
 
 inline int

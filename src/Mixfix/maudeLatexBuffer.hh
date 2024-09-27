@@ -41,7 +41,7 @@ public:
   void generateBanner(const char* date, const char* time, time_t seconds);
   void generateHeading(const char* message);
   void generateModuleName(NamedEntity* module);
-  void generateState(DagNode* stateDag);
+  void generateState(DagNode* stateDag, const char* message = nullptr);
   //
   //	Functions to start latex for commands.
   //
@@ -86,7 +86,7 @@ public:
 
   void generateSearch(bool showCommand,
 		      Interpreter::SearchKind searchKind,
-		      DagNode* subject,
+		      const Vector<DagNode*>& subjects,
 		      int searchType,
 		      Term* target,
 		      const Vector<ConditionFragment*>& condition,
@@ -99,11 +99,10 @@ public:
   void generateShow(bool showCommand, const string& command, View* module);
   void generateShow(bool showCommand, const string& command);
   void generateLoopTokens(bool showCommand, const Vector<Token>& tokens);
-
   //
   //	Functions to print results.
   //
-  void generateSolutionNr(int64_t solutionNr);
+  void generateSolutionNr(int64_t solutionNr, int stateNr = NONE);
   void generateStats(RewritingContext& context,
 		     int64_t cpuTime,
 		     int64_t realTime,
@@ -160,11 +159,22 @@ public:
 			  int stateNr,
 			  bool showCommand,
 			  bool showRule);
+  void generateNarrowingSearchPath(const NarrowingSequenceSearch3* state,
+				   const Vector<int>& steps,
+				   int stateNr,
+				   bool showCommand,
+				   bool showRule);
   void generateSearchPathLabels(const RewriteSequenceSearch* graph,
 				const Vector<int>& steps,
 				int stateNr,
 				bool showCommand);
   void generateSearchGraph(const RewriteSequenceSearch* graph, bool showCommand);
+  void generateStateSet(bool showCommand,
+			const char* command,
+			const Vector<DagNode*>& firstPart,
+			bool highlight,
+			const Vector<DagNode*>& secondPart,
+			const char* emptyMessage);
   //
   //	Three different representations of substitutions.
   //
@@ -177,6 +187,11 @@ public:
 			    const NarrowingVariableInfo& variableInfo);
 
   void generateVariant(const Vector<DagNode*>& variant, const NarrowingVariableInfo& variableInfo);
+
+  void generateCompoundSubstitution(const Substitution& substitution,
+				    const VariableInfo& variableInfo,
+				    const NarrowingVariableInfo& narrowingVariableInfo,
+				    Module* m);
   
   void generateWarning(const char* message);
   void generateAdvisory(const char* message);

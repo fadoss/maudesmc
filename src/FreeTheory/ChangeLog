@@ -1,3 +1,48 @@
+2024-06-05  Steven M. Eker  <eker@eker10>
+
+	* freeFast3RhsAutomaton.cc: fix comment
+	(FreeFast3RhsAutomaton::remapIndices): code cleaning
+	(FreeFast3RhsAutomaton::replace): code cleaning
+	(FreeFast3RhsAutomaton::fillOutArgs): use inline rather than
+	local_inline
+
+	* freeUnaryRhsAutomaton.cc: fix comment
+
+	* freeUnaryRhsAutomaton.hh: fix comment
+
+	* freeBinaryRhsAutomaton.cc: fix comment
+
+	* freeBinaryRhsAutomaton.hh: fix comment
+
+	* freeTernarySymbol.cc: fix comment
+
+	* freeBinarySymbol.cc: fix comment
+
+===================================Maude163===========================================
+
+2024-03-20  Steven Eker  <eker@pup>
+
+	* freeSymbol.cc (FreeSymbol::eqRewrite)
+	(FreeSymbol::computeBaseSort)
+	(FreeSymbol::normalizeAndComputeTrueSort)
+	(FreeSymbol::stackArguments, FreeSymbol::termify)
+	(FreeSymbol::computeGeneralizedSort)
+	(FreeSymbol::determineGround)
+	(FreeSymbol::computeGeneralizedSort2, FreeSymbol::makeCanonical)
+	(FreeSymbol::makeCanonicalCopy): use DagNode* const*
+
+	* freeTerm.cc (FreeTerm::compareArguments)
+	(FreeTerm::partialCompareArguments): use DagNode* const*
+
+	* freeDagNode.hh (FreeDagNode::argArray): split into const and
+	non-const versions
+
+	* freeDagArgumentIterator.hh (class FreeDagArgumentIterator): use
+	pointer to constant point to DagNode
+	(FreeDagArgumentIterator::FreeDagArgumentIterator): updated
+
+===================================Maude160===========================================
+
 2024-03-14  Steven Eker  <eker@pup>
 
 	* freeTerm.cc (FreeTerm::compareArguments): (Term* version)

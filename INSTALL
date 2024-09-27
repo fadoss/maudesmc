@@ -13,7 +13,10 @@ GNU bison	https://www.gnu.org/software/bison/
   
 flex		https://github.com/westes/flex
   Lexical analyzer generator
-  
+
+GNU automake https://www.gnu.org/software/automake/
+  Needed for aclocal
+
 GNU autoconf	https://www.gnu.org/software/autoconf/
   Package configuration macros - needed for Yices2 builds
 
@@ -87,8 +90,8 @@ make install
 GMP
 ---
 curl -LJO https://gmplib.org/download/gmp/gmp-6.3.0.tar.xz
-tar xvf gmp-6.2.1.tar.xz
-cd gmp-6.2.1
+tar xvf gmp-6.3.0.tar.xz
+cd gmp-6.3.0
 mkdir Opt
 cd Opt
 
@@ -240,9 +243,12 @@ make install
 
 GMP
 ---
-curl -LJO https://gmplib.org/download/gmp/gmp-6.2.1.tar.xz
-tar xvf gmp-6.2.1.tar.xz
-cd gmp-6.2.1
+Note that 6.3.0 or later is needed for Apple silicon because of the
+register x18 issue.
+
+curl -LJO https://gmplib.org/download/gmp/gmp-6.3.0.tar.xz
+tar xvf gmp-6.3.0.tar.xz
+cd gmp-6.3.0
 mkdir HighSierra
 cd HighSierra
 

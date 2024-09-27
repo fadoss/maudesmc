@@ -1,7 +1,35 @@
+Overview of Changes in Maude 3.5 beta (alpha163) (2023-06-07)
+=============================================================
+* rat() conversion operator is more tolerant of leading zeros
+
+Overview of Changes in alpha162 (2023-05-30)
+============================================
+* fixed typo where sets of states were show as conjunctons rather
+than disjunctions
+* vfold option for vu-narrow
+
+Overview of Changes in alpha161 (2023-05-17)
+============================================
+* reading from the stdin steam now supports continuation lines
+* path option for vu-narrow
+* show most general states .
+* show frontier states .
+* a state may now subsume its ancestors in vu-narrow
+
+Overview of Changes in alpha160 (2023-05-02)
+============================================
+* initial equality operator handles more cases
+* fixed bug in rat() string to rational conversion operator
+* extra built-in operators on characters and strings
+* fixed build issue on 32-bit platforms
+* fixed potential memory corruption in vu-narrow
+* check for unsafe variable names in vu-narrow
+* allow term disjunctions in vu-narrow at the object level
+
 Overview of Changes in Maude 3.4 (alpha159) (2023-03-19)
 ========================================================
 * set print latex on/off command
-* fixed loop mode latex bug
+* fixed loop mode LaTeX bug
 
 Overview of Changes in Maude 3.4 beta (alpha158) (2023-03-12)
 =============================================================

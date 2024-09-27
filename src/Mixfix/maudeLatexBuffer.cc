@@ -157,11 +157,16 @@ MaudeLatexBuffer::generateModuleName(NamedEntity* module)
 }
 
 void
-MaudeLatexBuffer::generateSolutionNr(int64_t solutionNr)
+MaudeLatexBuffer::generateSolutionNr(int64_t solutionNr, int stateNr)
 {
   if (needNewline)
     output << "\\newline";
-  output << "\\par\\maudeResponse{Solution }\\maudeNumber{" << solutionNr << "}\n";
+  output << "\\par\\maudeResponse{Solution}\\maudeSpace\\maudeNumber{" << solutionNr << "}\n";
+  if (stateNr != NONE)
+    {
+      output << "\\maudeSpace\\maudePunctuation{(}\\maudeResponse{state}\\maudeSpace\\maudeNumber{" <<
+	stateNr << "}\\maudePunctuation{)}\n";
+    }
   needNewline = true;
 }
 
@@ -276,9 +281,54 @@ MaudeLatexBuffer::generateAdvisory(const char* message)
 }
 
 void
-MaudeLatexBuffer::generateState(DagNode* stateDag)
+MaudeLatexBuffer::generateState(DagNode* stateDag, const char* message)
 {
-  output << "\\par$\\maudeResponse{state:}\\maudeSpace";
+  if (message == nullptr)
+    message = "state:";
+  output << "\\par$\\maudeResponse{" << message << "}\\maudeSpace";
   MixfixModule::latexPrintDagNode(output, stateDag);
   output << "$\n";
+}
+
+void
+MaudeLatexBuffer::generateCompoundSubstitution(const Substitution& substitution,
+					       const VariableInfo& variableInfo,
+					       const NarrowingVariableInfo& narrowingVariableInfo,
+					       Module* m)
+{
+  //	We deal with a substitution that is broken into two parts.
+  //	The first part is bindings to variables from a PreEquation and
+  //	the variable names are given by Terms in variableInfo.
+  //	The second part is bindings to variables from a term being narrowed
+  //	and the variable names are given by DagNodes in narrowingVariableInfo.
+  //
+  int nrVariables1 = variableInfo.getNrRealVariables();
+  int nrVariables2 = narrowingVariableInfo.getNrVariables();
+  for (int i = 0; i < nrVariables1; ++i)
+    {
+      Term* v = variableInfo.index2Variable(i);
+      DagNode* b = substitution.value(i);
+      output << "\\par$";
+      MixfixModule::latexPrettyPrint(output, v);
+      output << "\\maudeIsAssigned";
+      if (b == 0)
+	output << "\\maudeMisc{(unbound)}\n";
+      else
+	MixfixModule::latexPrintDagNode(output, b);
+      output << "$\n";
+    }
+  //
+  //	Variables from the dag being narrowed start after the regular substitution.
+  //
+  int firstTargetSlot = m->getMinimumSubstitutionSize();
+  for (int i = 0; i < nrVariables2; ++i)
+    {
+      DagNode* v = narrowingVariableInfo.index2Variable(i);
+      DagNode* b = substitution.value(firstTargetSlot + i);
+      output << "\\par$";
+      MixfixModule::latexPrintDagNode(output, v);
+      output << "\\maudeIsAssigned";
+      MixfixModule::latexPrintDagNode(output, b);
+      output << "$\n";
+    }
 }
