@@ -30,16 +30,17 @@
 #include "interface.hh"
 #include "core.hh"
 #include "strategyLanguage.hh"
-#include "NA_Theory.hh"
 #include "builtIn.hh"
 
 //	core class definitions
 #include "rewritingContext.hh"
 #include "variableInfo.hh"
 
-//	builtin class definitions
+//	numeric class definitions
 #include "floatSymbol.hh"
 #include "floatDagNode.hh"
+#include "minusSymbol.hh"
+#include "succSymbol.hh"
 
 //	strategy language class definitions
 #include "sampleStrategy.hh"
@@ -52,14 +53,15 @@
 // Share the random generator with the choice operator
 extern mt19937_64 choice_random_generator;
 
-inline size_t
+size_t
 SampleStrategy::getArgCount(Distribution dist)
 {
   switch (dist) {
-    case BERNOULLI: return 1;
-    case UNIFORM: return 2;
-    case NORM: return 2;
+    case UNIFORM:
+    case UNIFORM_DISCRETE:
+    case NORM:
     case GAMMA: return 2;
+    case BERNOULLI:
     case EXP: return 1;
     default: return 0;
   }
@@ -88,17 +90,6 @@ SampleStrategy::~SampleStrategy()
 bool
 SampleStrategy::check(VariableInfo& indices, const TermSet& boundVars)
 {
-  // Check number of arguments for distribution
-  size_t expectedArgs = getArgCount(distribution);
-
-  if (argDags.size() != expectedArgs)
-    {
-      IssueWarning(*variable << ": wrong number of arguments for "
-		   << QUOTE(getName(distribution))  << " distribution (expected "
-		   << expectedArgs << ", got " << argDags.size() << ").");
-      return false;
-    }
-
   // Index and check the variables in the weights
   for (CachedDag& dag : argDags)
     {
@@ -182,8 +173,14 @@ SampleStrategy::decompose(StrategicSearch& searchObject, DecompositionProcess* r
   size_t nrArgs = argDags.size();
 
   // Evaluate the arguments of the distribution
-  FloatDagNode* floatArgDag;
   Vector<double> doubleArgs(nrArgs);
+  Vector<long int> integerArgs(nrArgs);
+
+  // Symbols to build the result term
+  FloatDagNode* floatArgDag = nullptr;
+  SuccSymbol* succSymbol = nullptr;
+  MinusSymbol* minusSymbol = nullptr;
+  DagRoot zeroTerm;
 
   for (size_t i = 0; i < nrArgs; i++)
     {
@@ -197,32 +194,82 @@ SampleStrategy::decompose(StrategicSearch& searchObject, DecompositionProcess* r
       redContext->reduce();
       context->transferCountFrom(*redContext);
 
-      // ...and converted to a floating-point number if possible
-      floatArgDag = dynamic_cast<FloatDagNode*>(redContext->root());
+      // ...and converted to a number if possible
+      bool isNumber = false;
 
-      if (floatArgDag == nullptr)
+      if (distribution == UNIFORM_DISCRETE)
 	{
-	  IssueWarning("the argument " << QUOTE(floatArgDag)
-		       << " passed to the sample operator is not a floating-point number.");
+	  DagNode* topNode = redContext->root();
+	  Symbol* topSymbol = topNode->symbol();
+
+	  // Any constant is a zero for us
+	  if (topSymbol->arity() == 0)
+	    {
+	      zeroTerm.setNode(redContext->root());
+	      integerArgs[i] = 0;
+	      isNumber = true;
+	    }
+	  // Negative integer
+	  else if (auto minus = dynamic_cast<MinusSymbol*>(topSymbol))
+	    {
+	      if (minus->isNeg(topNode))
+		{
+		  mpz_class result;
+		  minusSymbol = minus;
+		  integerArgs[i] = minus->getNeg(topNode, result).get_si();
+		  isNumber = true;
+		}
+	    }
+	  // Natural number
+	  else if (auto succ = dynamic_cast<SuccSymbol*>(topSymbol))
+	    {
+	      if (succ->isNat(topNode))
+		{
+		  succSymbol = succ;
+		  integerArgs[i] = succ->getNat(topNode).get_si();
+		  isNumber = true;
+		}
+	    }
+	}
+      else if ((floatArgDag = dynamic_cast<FloatDagNode*>(redContext->root())) != nullptr)
+	{
+	  doubleArgs[i] = floatArgDag->getValue();
+	  isNumber = true;
+	}
+
+      if (!isNumber)
+	{
+	  IssueWarning("the argument " << QUOTE(redContext->root())
+		       << " passed to the sample operator does not reduce to a numeric constant.");
 	  delete redContext;
 	  return StrategicExecution::DIE;
 	}
-      else
-	doubleArgs[i] = floatArgDag->getValue();
 
       delete redContext;
     }
 
+
   // Sample the requested value
+  // (with some precondition check to avoid C++ undefined behavior)
   double sampled = 0.0;
+  int sampledInteger = 0;
 
   switch (distribution)
     {
       case BERNOULLI:
+	if (doubleArgs[0] < 0.0 || doubleArgs[0] > 1.0)
+	  return StrategicExecution::DIE;
 	sampled = bernoulli_distribution(doubleArgs[0])(choice_random_generator);
 	break;
       case UNIFORM:
+	if (doubleArgs[0] > doubleArgs[1])
+	  return StrategicExecution::DIE;
 	sampled = uniform_real_distribution<double>(doubleArgs[0], doubleArgs[1])(choice_random_generator);
+	break;
+      case UNIFORM_DISCRETE:
+	if (integerArgs[0] > integerArgs[1])
+	  return StrategicExecution::DIE;
+        sampledInteger = uniform_int_distribution<long int>(integerArgs[0], integerArgs[1])(choice_random_generator);
 	break;
       case NORM:
 	sampled = normal_distribution<double>(doubleArgs[0], doubleArgs[1])(choice_random_generator);
@@ -231,6 +278,8 @@ SampleStrategy::decompose(StrategicSearch& searchObject, DecompositionProcess* r
 	sampled = gamma_distribution<double>(doubleArgs[0], doubleArgs[1])(choice_random_generator);
 	break;
       case EXP:
+	if (doubleArgs[0] <= 0.0)
+	  return StrategicExecution::DIE;
 	sampled = exponential_distribution<double>(doubleArgs[0])(choice_random_generator);
 	break;
       case NUM_DISTRIBUTIONS:
@@ -240,7 +289,15 @@ SampleStrategy::decompose(StrategicSearch& searchObject, DecompositionProcess* r
   // Open a variable context where the sample variable is defined
   int index = static_cast<VariableTerm*>(variable)->getIndex();
   Substitution sb(index + 1);
-  sb.bind(index, new FloatDagNode(safeCast(FloatSymbol*, floatArgDag->symbol()), sampled));
+
+  if (distribution != UNIFORM_DISCRETE)
+    sb.bind(index, new FloatDagNode(safeCast(FloatSymbol*, floatArgDag->symbol()), sampled));
+  else if (sampledInteger < 0)
+    sb.bind(index, minusSymbol->makeNegDag(sampledInteger));
+  else if (sampledInteger >= 0 && succSymbol)
+    sb.bind(index, succSymbol->makeNatDag64(sampledInteger));
+  else
+    sb.bind(index, zeroTerm.getNode());
 
   VariableBindingsManager::ContextId innerBinds = contextSpec.empty()
 	      ? VariableBindingsManager::EMPTY_CONTEXT
