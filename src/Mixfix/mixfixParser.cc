@@ -653,13 +653,18 @@ MixfixParser::makeStrategy(int node)
     case MAKE_SAMPLE:
       {
 	Vector<Term*> args;
+	int pair = parser.getChild(node, 0);
 
-	Term* variable = makeTerm(parser.getChild(node, 0));
-	int label = actions[parser.getProductionNumber(parser.getChild(node, 1))].data;
-	makeTermList(parser.getChild(node, 2), args);
-	StrategyExpression* strategy = makeStrategy(parser.getChild(node, 3));
+	Term* variable = makeTerm(parser.getChild(pair, 0));
+	auto label = SampleStrategy::Distribution(actions[parser.getProductionNumber(pair)].data);
+	// Parse distribution arguments
+	const size_t argCount = SampleStrategy::getArgCount(label);
+	args.resize(argCount);
+	for (size_t i = 0; i < argCount; ++i)
+	    args[i] = makeTerm(parser.getChild(pair, 1 + i));
 
-	s = new SampleStrategy(variable, (SampleStrategy::Distribution) label, args, strategy);
+	StrategyExpression* strategy = makeStrategy(parser.getChild(node, 1));
+	s = new SampleStrategy(variable, label, args, strategy);
 	break;
       }
     default:

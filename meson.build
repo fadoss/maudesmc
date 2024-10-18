@@ -227,6 +227,7 @@ strategylanguage_includes = include_directories(
 	'src/BuiltIn',
 	'src/Higher',
 	'src/FullCompiler',
+	'src/FreeTheory',
 )
 
 strategylanguage_source = [

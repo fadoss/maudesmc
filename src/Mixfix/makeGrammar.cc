@@ -694,37 +694,79 @@ MixfixModule::makeStrategyLanguageProductions()
   }
   {
     //
-    //	<distribution name> = some constants defined in sampleStrategy.hh
+    //	<distribution call> = <variable> := <distribution id>(<term list>)
     //
+    Vector<int> rhs(5);
+    Vector<int> gather(2);
 
+    // We first look for the Nat and Float kinds to restrict parsing of
+    // the sample variable and the arguments to these connected components
+    int intComponent = -1, floatComponent = -1;
+
+    for (Symbol* symbol : getSymbols())
+      {
+        Vector<const char*> purposes;
+        Vector<Vector<const char*>> data;
+        symbol->getDataAttachments(symbol->getOpDeclarations()[0].getDomainAndRange(), purposes, data);
+
+        if (!purposes.empty())
+          {
+            if (strcmp(purposes[0], "FloatOpSymbol") == 0)
+                  floatComponent = symbol->domainComponent(0)->getIndexWithinModule();
+            else if (strcmp(purposes[0], "SuccSymbol") == 0)
+                  intComponent = symbol->getRangeSort()->component()->getIndexWithinModule();
+          }
+      }
+
+    gather[0] = ANY;
+    rhs[1] = assign;
+    rhs[3] = leftParen;
+
+    // Each distribution gets a production tagged with its name
     for (int i = 0; i < SampleStrategy::NUM_DISTRIBUTIONS; i++)
     {
-      rhs[0] = Token::encode(SampleStrategy::getName((SampleStrategy::Distribution) i));
-      parser->insertProduction(DISTRIBUTION_NAME, rhs, 0, emptyGather,
-			       MixfixParser::MAKE_DISTRIBUTION_NAME, i);
+      SampleStrategy::Distribution dist = SampleStrategy::Distribution(i);
+      // The discrete uniform distribution is the only one that takes integer arguments
+      int argComponent = dist == SampleStrategy::UNIFORM_DISCRETE ? intComponent : floatComponent;
+
+      // If Float or Nat are not in the module, sample is not usable
+      if (argComponent == -1)
+        continue;
+
+      int termNt = nonTerminal(argComponent, TERM_TYPE);
+
+      size_t argCount = SampleStrategy::getArgCount(dist);
+      rhs.resize(4 + 2 * argCount);  // fixed + arguments + commas
+      gather.resize(1 + argCount);  // variable + arguments
+
+      rhs[0] = termNt;  // variable (sample destination)
+      rhs[2] = Token::encode(SampleStrategy::getName(dist));  // distribution name
+
+      // Comma-separated list of arguments
+      for (int j = 0; j < argCount; ++j)
+        {
+          rhs[4 + 2 * j] = termNt;
+          gather[1 + j] = ANY;
+          rhs[4 + 2 * j + 1] = comma;
+        }
+
+      rhs[4 + 2 * argCount - 1] = rightParen; // closing parethensis
+
+      parser->insertProduction(DISTRIBUTION_CALL, rhs, 0, gather,
+			       MixfixParser::MAKE_DISTRIBUTION_CALL, i);
     }
   }
   {
     //
-    //	<strategy expression> = sample <variable> := <identifier>(<term list>) in <strategy expression>
+    //	<strategy expression> = sample <distribution call> in <strategy expression>
     //
-    Vector<int> rhs(9);
-    Vector<int> gather(4);
+    Vector<int> rhs(4);
 
     rhs[0] = sample;
-    rhs[1] = TERM;
-    gather[0] = ANY;
-    rhs[2] = assign;
-    rhs[3] = DISTRIBUTION_NAME;
-    gather[1] = ANY;
-    rhs[4] = leftParen;
-    rhs[5] = TERM_LIST;
-    gather[2] = ANY;
-    rhs[6] = rightParen;
-    rhs[7] = in;
-    rhs[8] = STRATEGY_EXPRESSION;
-    gather[3] = ANY;
-    parser->insertProduction(STRATEGY_EXPRESSION, rhs, STRAT_REW_PREC, gather, MixfixParser::MAKE_SAMPLE);
+    rhs[1] = DISTRIBUTION_CALL;
+    rhs[2] = in;
+    rhs[3] = STRATEGY_EXPRESSION;
+    parser->insertProduction(STRATEGY_EXPRESSION, rhs, STRAT_REW_PREC, gatherAnyAny, MixfixParser::MAKE_SAMPLE);
   }
   {
     //

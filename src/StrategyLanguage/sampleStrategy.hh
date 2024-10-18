@@ -34,6 +34,7 @@ public:
     BERNOULLI,
     // uniform(<lower bound>, <upper bound>)
     UNIFORM,
+    UNIFORM_DISCRETE,
     // norm(<mean>, <standard deviation>)
     NORM,
     // gamma(<shape parameter>, <scale parameter>)
@@ -44,6 +45,7 @@ public:
   };
 
   static const char* getName(Distribution distrib);
+  static size_t getArgCount(Distribution dist);
 
   SampleStrategy(Term* variable, Distribution distribution, const Vector<Term*>& args, StrategyExpression* e);
   ~SampleStrategy();
@@ -64,15 +66,14 @@ private:
   Vector<CachedDag> argDags;
   StrategyExpression* strategy;
   Vector<int> contextSpec;
-
-  static size_t getArgCount(Distribution dist);
 };
 
 inline const char*
 SampleStrategy::getName(Distribution distrib) {
   switch (distrib) {
     case BERNOULLI: return "bernoulli";
-    case UNIFORM: return "uniform";
+    case UNIFORM:
+    case UNIFORM_DISCRETE: return "uniform";
     case NORM: return "norm";
     case GAMMA: return "gamma";
     case EXP: return "exp";
