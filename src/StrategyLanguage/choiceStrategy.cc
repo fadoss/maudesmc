@@ -235,16 +235,23 @@ ChoiceStrategy::evaluateWeight(DagNode* weight,
       else if (succSymbol->isNat(weightContext->root()))
 	fvalue = succSymbol->getNat(weightContext->root()).get_ui();
       else
-	return false;
+        {
+	  delete weightContext;
+	  return false;
+	}
     }
   else
     {
       if (succSymbol->isNat(weightContext->root()))
 	ivalue = succSymbol->getNat(weightContext->root()).get_ui();
       else
-	return false;
+        {
+	  delete weightContext;
+	  return false;
+	}
     }
 
+  delete weightContext;
   return true;
 }
 
