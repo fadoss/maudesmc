@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2024 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2025 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -172,10 +172,11 @@ public:
   static void peelParen(Vector<Token>& tokens);
   static int flaggedCode(int code);
   static bool isFlagged(int code);
+  static bool isValidViewName(int code);
+  static bool isValidSortName(int code);
   static int unflaggedCode(int code);
   static int fixUp(const char* tokenString);
   static pair<string, bool> makePrettyOpName(int prefixNameCode, int situations);
-
 
   static string latexName(const char* name);
   static string latexName(int code);
@@ -243,6 +244,13 @@ inline int
 Token::auxProperty(int code)
 {
   return auxProperties[code];
+}
+
+inline bool
+Token::isValidSortName(int code)
+{
+  int ap = auxProperty(code);
+  return ap == AUX_SORT || ap == AUX_STRUCTURED_SORT;
 }
 
 inline bool

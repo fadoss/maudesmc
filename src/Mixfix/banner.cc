@@ -26,11 +26,7 @@
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif
-#if HAVE_OSTREAM
 #include <ostream>
-#elif HAVE_OSTREAM_H
-#include <ostream.h>
-#endif
 
 using namespace std;
 
@@ -49,7 +45,7 @@ printBanner(std::ostream& s, const char* date, const char* time, time_t seconds)
     Tty(Tty::GREEN) << 'e' <<
     Tty(Tty::RESET) << " ---\n";
   s << "\t\t     /||||||||||||||||||\\\n";
-  s << "\t     " << PACKAGE_STRING << " built: " << date << ' ' << time << '\n';
-  s << "\t     Copyright 1997-2024 SRI International\n";
+  s << "\t    " << PACKAGE_STRING << " built: " << date << ' ' << time << '\n';
+  s << "\t     Copyright 1997-2025 SRI International\n";
   s << "\t\t   " << ctime(&seconds);
 }

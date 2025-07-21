@@ -1,3 +1,140 @@
+2025-07-11  Rubén Rubio <rubenrub@ucm.es>
+
+	* makeGrammar.cc (MixfixModule::makeSpecialProductions):
+	initialize variable to avoid reading garbage
+
+2025-06-26  Rubén Rubio <rubenrub@ucm.es>
+
+	* view.cc (handleStratAwkwardCase): removed call to
+	addStratMappingVarIndices
+
+2025-06-18  Saruman the White  <eker@eker10>
+
+	* ooProcess.cc (SyntacticPreModule::processClassSorts): use
+	Token::isValidSortName(); use markAsBad() so module can't be
+	imported at the metalevel
+
+	* process.cc (SyntacticPreModule::processSorts): use
+	Token::isValidSortName(); use markAsBad() so module can't be
+	imported at the metalevel
+	(SyntacticPreModule::getSort): symmetric changes
+
+	* token.hh (isValidSortName): added
+
+	* process.cc (SyntacticPreModule::getSort): check for bad sort
+	names for sorts that get added as a fix up
+	(SyntacticPreModule::process): update comments now that multiple
+	calls can markAsBad
+
+	* ooProcess.cc (SyntacticPreModule::processClassSorts): check that
+	class name is also a valid sort name
+
+	* process.cc (SyntacticPreModule::processSorts): check that new
+	sort if a valid sort name
+
+2025-06-17  Saruman the White  <eker@eker10>
+
+	* token.cc (Token::split): don't consider : . inside correctly
+	nested {}s as split point
+
+	* makeGrammar.cc (MixfixModule::makeParameterizedSortProductions):
+	added explanation of why nonterminals for lead tokens of
+	structured sorts are needed
+	(MixfixModule::makeComponentProductions): removed commented out
+	code
+
+2025-06-16  Saruman the White  <eker@eker10>
+
+	* makeGrammar.cc (MixfixModule::makeComponentProductions): deleted
+	commented out code for variableTokenCode
+
+	* auxProperty.cc (Token::skipSortName): fix comment; use nullptr
+
+2025-06-16  Rubén Rubio <rubenrub@ucm.es>
+
+	* importModule.cc (donateStatements2): deal with strat->expr
+	mapping on the LHS of a strategy expression
+
+2025-06-15  Saruman the White  <eker@eker10>
+
+	* view.cc (View::evaluate): check for valid view name
+
+	* token.cc (Token::isValidViewName): added
+
+	* token.hh (class Token): added decl for isValidViewName()
+
+2025-06-06  Saruman the White  <eker@eker10>
+
+	* top.yy: added innerToken
+
+	* modules.yy (sortNameFrag): clear fragment buffer before we start
+	using it rather than after we're done with it. This fixes a bug
+	where a parsing error leaves crap in the fragment buffer
+	(innerToken): added
+	(innerFrag): use innerToken
+
+	* auxProperty.cc (Token::skipSortName): allow . and :: in sort
+	names if they are inside {} so as to permit . and :: in view names
+	used to instantiate parameterized sorts
+	(Token::computeAuxProperty): allow . and :: in sort names if they
+	are inside {} when checking fo AUX_CONSTANT and AUX_VARIABLE
+	properties
+
+2025-05-30  Rubén Rubio  <rubenrub@ucm.es>
+
+	* importTranslation.cc (ImportTranslation::translateStrategy):
+	use Sort::FIRST_USER_SORT
+
+	* instantiateViewWithFreeParameters.cc (View::handleStratAwkwardCase):
+	use Sort::KIND and variable lifting at the kind level
+
+	* view.cc (View::insertStratToExprMapping):
+	removed deletes to avoid double free
+
+2025-04-26  Saruman the White  <eker@eker10>
+
+	* renaming.cc (Renaming::typeMatch): converted commented out cerr
+	<< into a DebugInfo()
+
+	* importTranslation.hh (ImportTranslation::translate): use
+	Sort::FIRST_USER_SORT
+
+	* renameModule.cc (ImportModule::localSort): use
+	Sort::FIRST_USER_SORT
+
+	* view.cc (View::mapComponent): use Sort::FIRST_USER_SORT
+	(View::typeMatch): use Sort::FIRST_USER_SORT
+
+	* importTranslation.cc
+	(ImportTranslation::translateRegularSymbol): use
+	Sort::FIRST_USER_SORT
+	(ImportTranslation::findTargetVersionOfSymbol): use
+	Sort::FIRST_USER_SORT
+
+	* instantiateViewWithFreeParameters.cc
+	(View::handleInstantiationByModuleView): pass toModule rather than
+	parameterCopyOfTheory as the parameterCopyUser
+	addOpMappingsFromView() and addStratMappingsFromView() to avoid
+	missing sorts in the canonicalRenaming op->op and op->term types
+	(View::handleInstantiationByTheoryView): symmetric change, passing
+	toModule rather than parameterCopyOfParameterTheory
+
+2025-04-24  Saruman the White  <eker@eker10>
+
+	* instantiateViewWithFreeParameters.cc (View::handleAwkwardCase):
+	use liftVariablesToKind flag when synthesizing op->term mapping
+
+	* importTranslation.cc (ImportTranslation::ImportTranslation):
+	take liftVariablesToKind argument and set data member
+	(ImportTranslation::translate): handle liftVariablesToKind flag
+
+	* importTranslation.hh (class ImportTranslation): added
+	liftVariablesToKind data member and ctor argument
+
+2025-04-22  Saruman the White  <eker@eker10>
+
+	* view.cc (View::insertOpToTermMapping): formatting
+
 2024-06-07  Steven M. Eker  <eker@eker10>
 
 	* importModule.cc (ImportModule::donateStatements2): copy

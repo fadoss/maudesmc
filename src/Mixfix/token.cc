@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2024 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2025 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -600,19 +600,34 @@ Token::split(int code, int& prefix, int& suffix)
   buffer.clear();
   const char* p = stringTable.name(code);
   Index len = strlen(p);
+  int depth = 0;
   for (Index i = len - 1; i > 0; --i)  // don't consider ':' or '.' in p[0]
     {
       char c = p[i];
-      if (c == ':' || c == '.')
+      if (depth <= 0)
 	{
-	  suffix = (i == len - 1) ? NONE : encode(p + i + 1);
-	  buffer.resize(i + 1);
-	  for (Index j = 0; j != i; ++j)
-	    buffer[j] = p[j];
-	  buffer[i] = '\0';
-	  prefix = encode(buffer.data());
-	  return true;
+	  //
+	  //	We consider : and . as splitting points if they are outside
+	  //	of correctly nested {}s.
+	  //
+	  if (c == ':' || c == '.')
+	    {
+	      suffix = (i == len - 1) ? NONE : encode(p + i + 1);
+	      buffer.resize(i + 1);
+	      for (Index j = 0; j != i; ++j)
+		buffer[j] = p[j];
+	      buffer[i] = '\0';
+	      prefix = encode(buffer.data());
+	      return true;
+	    }
 	}
+      if (depth >= 0)
+	{
+	  if (c == '{')
+	    --depth;
+	  else if (c == '}')
+	    ++depth;  // if we go negative then we're not correctly nested
+	}	
     }
   return false;
 }
@@ -1040,4 +1055,15 @@ Token::peelParens(Vector<Token>& tokens)
   for (int i = 1; i < len - 1; ++i)
     tokens[i - 1] = tokens[i];
   tokens.resize(len - 2);
+}
+
+bool
+Token::isValidViewName(int code)
+{
+  for (const char* p = stringTable.name(code); *p; ++p)
+    {
+      if (specialChar(*p))
+	return false;
+    }
+  return true;
 }

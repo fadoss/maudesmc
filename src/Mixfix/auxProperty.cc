@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2010 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2025 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,10 +34,11 @@ Token::skipSortName(const char* tokenString, bool& parameterized)
   //	a sort name constructed by:
   //	  <ps> ::= <regular name> | <ps> `{ <sl> `}
   //	  <sl> ::= <ps> | <sl> `, <ps>
+  //	An exception is made for . : if they occur within `{ `}
   //
   //	A sort name can be terminated by \0, `, `] `}
   //	If a legal sort name followed by a legal terminator is seen, the
-  //	addess of the first terminator character is returned otherwise 0 is
+  //	addess of the first terminator character is returned otherwise nullptr is
   //	returned.
   //	In the first case, parameterized is true iff the sort name contained `{
   //	In the second case, parameterized is undefined.
@@ -50,16 +51,13 @@ Token::skipSortName(const char* tokenString, bool& parameterized)
       switch (*p)
 	{
 	case '\0':
-	  return (seenName && depth == 0) ? p : 0;
-	case '.':
-	case ':':
-	  return 0;
+	  return (seenName && depth == 0) ? p : nullptr;
 	case '`':
 	  {
 	    switch (*(p + 1))
 	      {
 	      case ']':
-		return (seenName && depth == 0) ? p : 0;
+		return (seenName && depth == 0) ? p : nullptr;
 	      case '{':
 		{
 		  if (seenName)
@@ -70,7 +68,7 @@ Token::skipSortName(const char* tokenString, bool& parameterized)
 		      ++p;
 		    }
 		  else
-		    return 0;
+		    return nullptr;
 		  break;
 		}
 	      case ',':
@@ -86,7 +84,7 @@ Token::skipSortName(const char* tokenString, bool& parameterized)
 			}
 		    }
 		  else
-		    return 0;
+		    return nullptr;
 		  break;
 		}
 	      case '}':
@@ -97,12 +95,12 @@ Token::skipSortName(const char* tokenString, bool& parameterized)
 		      ++p;
 		    }
 		  else
-		    return 0;
+		    return nullptr;
 		  break;
 		}
 	      case '[':
 	      case '\0':
-		return 0;
+		return nullptr;
 	      default:
 		{
 		  seenName = true;
@@ -111,6 +109,13 @@ Token::skipSortName(const char* tokenString, bool& parameterized)
 		}
 	      }
 	    break;
+	  }
+	case '.':
+	case ':':
+	  {
+	    if (depth == 0)
+	      return nullptr;
+	    // fall thru
 	  }
 	default:
 	  {
@@ -164,23 +169,31 @@ Token::computeAuxProperty(const char* tokenString)
     //
     //	Check for constant or variable.
     //
+    int depth = 0;
     int len = strlen(tokenString);
     for (int i = len - 1; i > 0; i--)
       {
 	char c = tokenString[i];
-	if (c == '.')
+	if (c == '}')
+	  ++depth;
+	else if (c == '{')
+	  --depth;
+	else if (depth == 0)
 	  {
-	    int t = computeAuxProperty(tokenString + i + 1);
-	    if (t == AUX_SORT || t == AUX_STRUCTURED_SORT || t == AUX_KIND)
-	      return AUX_CONSTANT;
-	    break;
-	  }
-	else if (c == ':')
-	  {
-	    int t = computeAuxProperty(tokenString + i + 1);
-	    if (t == AUX_SORT || t == AUX_STRUCTURED_SORT || t == AUX_KIND)
-	      return AUX_VARIABLE;
-	    break;
+	    if (c == '.')
+	      {
+		int t = computeAuxProperty(tokenString + i + 1);
+		if (t == AUX_SORT || t == AUX_STRUCTURED_SORT || t == AUX_KIND)
+		  return AUX_CONSTANT;
+		break;
+	      }
+	    else if (c == ':')
+	      {
+		int t = computeAuxProperty(tokenString + i + 1);
+		if (t == AUX_SORT || t == AUX_STRUCTURED_SORT || t == AUX_KIND)
+		  return AUX_VARIABLE;
+		break;
+	      }
 	  }
       }
   }

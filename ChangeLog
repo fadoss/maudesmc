@@ -1,3 +1,56 @@
+==================================Maude164===========================================
+
+2025-07-11  Rubén Rubio  <rubenrub@ucm.es>
+
+	* tests/ResolvedBugs/invalidStrategyExpressionJun2025.maude:
+	set show timing off added
+
+	* tests/ResolvedBugs/viewNameApril2025.maude: set show timing off added
+
+2025-06-26  Rubén Rubio  <rubenrub@ucm.es>
+
+	* tests/ResolvedBugs/viewInstantiationAwkwardCaseStrategyMay2025.maude:
+	added
+
+2025-06-18  Saruman the White  <eker@eker10>
+
+	* tests/ResolvedBugs/viewNameApril2025.maude: added
+
+2025-06-16  Saruman the White  <eker@eker10>
+
+	* tests/ResolvedBugs/fragmentBufferJune2025.maude: added
+
+2025-06-16  Rubén Rubio  <rubenrub@ucm.es>
+
+	* tests/ResolvedBugs/invalidStrategyExpressionJun2025.maude:
+	added
+	* tests/ResolvedBugs/viewInstantiationByModuleViewStrategyMay2025.maude:
+	added
+	* tests/ResolvedBugs/viewInstantiationByTheoryViewStrategyMay2025.maude:
+	added
+
+2025-05-30  Rubén Rubio  <rubenrub@ucm.es>
+
+	* tests/ResolvedBugs/stratToExprNotValidMay2025.maude:
+	added
+
+2025-05-06  Saruman the White  <eker@eker10>
+
+	* tests/ResolvedBugs/viewInstantiationByTheoryViewApril2025.maude:
+	added
+
+2025-05-05  Saruman the White  <eker@eker10>
+
+	* tests/ResolvedBugs/viewInstantiationAwkwardCaseApril2025.maude:
+	added
+
+	* tests/ResolvedBugs/viewInstantiationByModuleViewApril2025.maude:
+	added
+
+2025-02-28  Rubén Rubio  <rubenrub@ucm.es>
+
+	* configure.ac: autoupdate applied
+
 2024-06-05  Steven Eker  <eker@eker10>
 
 	* INSTALL: added GNU automake to prerequisites

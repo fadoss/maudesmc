@@ -36,6 +36,7 @@
 //
 #include <list>
 #include <set>
+#include <memory>
 #include "natSet.hh"
 #include "pigPug.hh"
 
@@ -59,7 +60,7 @@ public:
       INCOMPLETE = 2	// solutions may have been missed
     };
 
-  typedef pair<int, WordLevel*> ResultPair;
+  typedef std::pair<int, std::unique_ptr<WordLevel>> ResultPair;
   //
   //	Local names for PigPug data types.
   //
@@ -71,8 +72,7 @@ public:
 	    int nrVariables,
 	    int nrEquations,
 	    bool identityOptimizations,
-	    WordLevel* parent = 0);
-  ~WordLevel();
+	    WordLevel* parent = nullptr);
 
   void setTheoryConstraint(int variable, int theoryIndex);
   void setUpperBound(int variable, int upperBound);
@@ -153,9 +153,9 @@ private:
   WordLevel::ResultPair trySelection();
   WordLevel::ResultPair exploreSelections();
   
-  WordLevel* makeNewLevel(const Subst& unifier,
-			  const ConstraintMap& newConstraintMap,
-			  int nextFreshVariable);
+  std::unique_ptr<WordLevel> makeNewLevel(const Subst& unifier,
+					  const ConstraintMap& newConstraintMap,
+					  int nextFreshVariable);
   int chooseEquation();
   void checkUnconstrainedVariables(const Word& word, NatSet& occurs, NatSet& nonlinear);
   void makePigPug(int linearity);
@@ -204,7 +204,7 @@ private:
   //	If there are unsolved equations we need to pick one and solve it with PigPug.
   //
   int chosenEquation;
-  PigPug* pigPug;
+  std::unique_ptr<PigPug> pigPug;
   int incompletenessFlag;  // to record the use of a transformation that does not preserve completeness
   //
   //	If we are the INITIAL level and there are variables that can take empty
@@ -217,8 +217,9 @@ private:
   int nrSelections;
   set<int> finalCombinations;
   //
-  //	If we are a SELECTION level we keep a pointer the INTIAL level that
-  //	created us.
+  //	If we are a SELECTION level we keep a pointer the INITIAL level that
+  //	created us. This is ugly because this level really belongs to a unique_ptr<>
+  //	but we rely on not dereferencing this pointer unless the INITIAL level still exists.
   //
   WordLevel* parent;
 };

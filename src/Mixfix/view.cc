@@ -2,7 +2,7 @@
 
     This file is part of the Maude 3 interpreter.
 
-    Copyright 1997-2023 SRI International, Menlo Park, CA 94025, USA.
+    Copyright 1997-2025 SRI International, Menlo Park, CA 94025, USA.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -347,7 +347,7 @@ View::regretToInform(Entity* doomedEntity)
 ConnectedComponent*
 View::mapComponent(const ConnectedComponent* component) const
 {
-  Sort* sort = toModule->findSort(renameSort(component->sort(1)->id()));
+  Sort* sort = toModule->findSort(renameSort(component->sort(Sort::FIRST_USER_SORT)->id()));
   Assert(sort != 0, "translation for sort failed");
   return sort->component();
 }
@@ -469,7 +469,7 @@ View::typeMatch(const ConnectedComponent* c1, const ConnectedComponent* c2)
   //	sort exists in the other.
   //
   int nrSorts = c1->nrSorts();
-  int sortName = c2->sort(1)->id();
+  int sortName = c2->sort(Sort::FIRST_USER_SORT)->id();
   for (int i = 0; i < nrSorts; ++i)
     {
       if (c1->sort(i)->id() == sortName)
@@ -793,6 +793,12 @@ View::evaluate()
     {
     case INITIAL:
       {
+	if (!Token::isValidViewName(id()))
+	  {
+	    IssueWarning(*this << ": " << QUOTE(this) << " is not a valid view name.");
+	    status = BAD;
+	    return false;
+	  }
 	//
 	//	Evaluating a view with OO mapping can add sort and op mappings to the
 	//	base renaming. We need to keep track of what was original in case we
@@ -974,6 +980,7 @@ View::indexRhsVariables(Term* term, const VarMap& varMap)
 bool
 View::insertOpToTermMapping(Term* fromTerm, Term* toTerm)
 {
+  //DebugAlways("from term = " << fromTerm << " toTerm = " << toTerm);
   //
   //	If something goes wrong we return false and caller is responsible
   //	for fromTerm and toTerm.
@@ -1009,13 +1016,14 @@ View::insertOpToTermMapping(Term* fromTerm, Term* toTerm)
       ++argNr;
     }
   //
-  //	It could be that fromTerm parses but has to many arguments because of user flattened syntax.
+  //	It could be that fromTerm parses but has too many arguments because of user flattened syntax.
   //
   Symbol* fromSymbol = fromTerm->symbol();
   if (fromSymbol->arity() != argNr)
     {
       Assert(fromSymbol->arity() < argNr, "too few args");
-      IssueWarning(*fromTerm << ": left-hand side " << QUOTE(fromTerm) << " of operator-to-term mapping has " <<
+      IssueWarning(*fromTerm << ": left-hand side " << QUOTE(fromTerm) <<
+		   " of operator-to-term mapping has " <<
 		   argNr << " arguments whereas 2 were expected.");
       return false;
     }
@@ -1069,8 +1077,6 @@ View::insertStratToExprMapping(CallStrategy* fromCall,
 	  IssueWarning(*(i.argument()) <<
 		       ": lhs of strategy mapping has non-variable argument " <<
 		       QUOTE(i.argument()) << '.');
-	  delete fromCall;
-	  delete toExpr;
 	  for (Term* t : vars)
 	    delete t;
 	  return false;
@@ -1084,8 +1090,6 @@ View::insertStratToExprMapping(CallStrategy* fromCall,
 	  IssueWarning(*(i.argument()) <<
 		       ": using the same variable base name " << QUOTE(Token::name(base)) <<
 		       " for two left hand side variables in an strategy mapping is not allowed.");
-	  delete fromCall;
-	  delete toExpr;
 	  delete toVar;
 	  for (Term* t : vars)
 	    delete t;
@@ -1104,8 +1108,8 @@ View::insertStratToExprMapping(CallStrategy* fromCall,
   VariableInfo vinfo;
   if (!toExpr->check(vinfo, lhsVars))
     {
-      delete fromCall;
-      delete toExpr;
+      for (Term* t : vars)
+        delete t;
       return false;
     }
   int nrVars = vinfo.getNrRealVariables();
@@ -1126,8 +1130,9 @@ View::insertStratToExprMapping(CallStrategy* fromCall,
   //	For strat s(...) to expr e we insert
   //	s |-> (s(...), e) into stratExprMap.
   //
-  stratExprMap.insert(StratExprMap::value_type(fromCall->getStrategy()->id(),
-					       StratExprInfo(fromCall, toExpr, contextSpec)));
+  (void) stratExprMap.insert(StratExprMap::value_type(fromCall->getStrategy()->id(),
+	                     StratExprInfo(fromCall, toExpr, contextSpec)));
+
   return true;
 }
 

@@ -67,7 +67,17 @@ TESTS = \
 	stripperCollectorSwitchMay2023 \
 	filteredVariantUnifyJune2023 \
 	conditionSideEffectInStrategyLanguageDecember2023 \
-	stringToRatConversionMarch2024
+	stringToRatConversionMarch2024 \
+	viewInstantiationAwkwardCaseApril2025 \
+	viewInstantiationByModuleViewApril2025 \
+	viewInstantiationByTheoryViewApril2025 \
+	stratToExprNotValidMay2025 \
+	invalidStrategyDefinitionJune2025 \
+	viewInstantiationAwkwardCaseStrategyMay2025 \
+	viewInstantiationByModuleViewStrategyMay2025 \
+	viewInstantiationByTheoryViewStrategyMay2025 \
+	fragmentBufferJune2025 \
+	viewNameApril2025
 
 MAUDE_FILES = \
 	CUIbug12-22-09.maude \
@@ -138,8 +148,17 @@ MAUDE_FILES = \
 	stripperCollectorSwitchMay2023.maude \
 	filteredVariantUnifyJune2023.maude \
 	conditionSideEffectInStrategyLanguageDecember2023.maude \
-	stringToRatConversionMarch2024.maude
-
+	stringToRatConversionMarch2024.maude \
+	viewInstantiationAwkwardCaseApril2025.maude \
+	viewInstantiationByModuleViewApril2025.maude \
+	viewInstantiationByTheoryViewApril2025.maude \
+	stratToExprNotValidMay2025.maude \
+	invalidStrategyDefinitionJune2025.maude \
+	viewInstantiationAwkwardCaseStrategyMay2025.maude \
+	viewInstantiationByModuleViewStrategyMay2025.maude \
+	viewInstantiationByTheoryViewStrategyMay2025.maude \
+	fragmentBufferJune2025.maude \
+	viewNameApril2025.maude
 
 RESULT_FILES = \
 	CUIbug12-22-09.expected \
@@ -210,7 +229,16 @@ RESULT_FILES = \
 	stripperCollectorSwitchMay2023.expected \
 	filteredVariantUnifyJune2023.expected \
 	conditionSideEffectInStrategyLanguageDecember2023.expected \
-	stringToRatConversionMarch2024.expected
-
+	stringToRatConversionMarch2024.expected \
+	viewInstantiationAwkwardCaseApril2025.expected \
+	viewInstantiationByModuleViewApril2025.expected \
+	viewInstantiationByTheoryViewApril2025.expected \
+	stratToExprNotValidMay2025.expected \
+	invalidStrategyDefinitionJune2025.expected \
+	viewInstantiationAwkwardCaseStrategyMay2025.expected \
+	viewInstantiationByModuleViewStrategyMay2025.expected \
+	viewInstantiationByTheoryViewStrategyMay2025.expected \
+	fragmentBufferJune2025.expected \
+	viewNameApril2025.expected
 
 EXTRA_DIST = $(TESTS) $(MAUDE_FILES) $(RESULT_FILES)
