@@ -47,3 +47,5 @@ findFile(const string& userFileName, string& directory, string& fileName, int li
 bool findExecutableDirectory(string& directory, string& executable);
 
 void setDebugMode(bool polarity);
+
+bool setChoiceSeed(unsigned long seed);

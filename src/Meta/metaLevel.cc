@@ -138,6 +138,9 @@
 #include "subtermStrategy.hh"
 #include "callStrategy.hh"
 #include "oneStrategy.hh"
+#include "choiceStrategy.hh"
+#include "sampleStrategy.hh"
+#include "weightedSubtermStrategy.hh"
 
 //	our stuff
 #include "metaDown.cc"

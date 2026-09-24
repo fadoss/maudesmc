@@ -95,17 +95,19 @@ public:
 
   StrategicExecution::Survival decompose(StrategicSearch& searchObject, DecompositionProcess* remainder);
 
+protected:
+  Pattern mainPattern;				 // P
+  Vector<std::pair<int, int> > indexTranslation; // Variable mapping from the context to the pattern
+
 private:
   bool checkSubterms();
 
-  Pattern mainPattern;				// P
   Vector<Term*> subpatterns;			// P1, ..., Pn
   RhsBuilder rhsBuilder;			// Term builder for the results
   Vector<StrategyExpression*> subtermStrats;    // S1, ..., Sn
   const int depth;				// Search depth
   Vector<int> variableMapping;			// Variable mapping for rebuild
   Vector<int> contextSpec;			// Variable mapping for creating a subcontext
-  Vector<std::pair<int, int> > indexTranslation; // Variable mapping from the context to the pattern
 };
 
 inline Term*

@@ -56,7 +56,7 @@ The recommended way for using this language module is through the unified model-
 
 ### Using the probabilistic extension of the strategy language
 
-The probabilistic extension of the Maude strategy language adds three new combinators, `choice`, `matchrew with weight`, and `sample` to randomly choose among multiple strategies or matches according to some weights, and to sample probabilistic distributions. These operators can be used in any strategy expression at the object level and at the metalevel. The auxiliary program `simaude` allows simulating a given probabilistic strategy many times to calculate the frequencies of its results.
+The probabilistic extension of the Maude strategy language adds three new combinators, `choice`, `matchrew with weight`, and `sample` to randomly choose among multiple strategies or matches according to some weights, and to sample probabilistic distributions. These operators can be used in any strategy expression at the object level and at the metalevel. The auxiliary program `simaude` allows simulating a given probabilistic strategy many times to calculate the frequencies of its results. They can also be used with the `pcheck` and `scheck` commands of the [umaudemc](https://github.com/fadoss/umaudemc) tool.
 
 
 Other resources

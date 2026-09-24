@@ -617,6 +617,156 @@ MixfixModule::makeStrategyLanguageProductions()
     parser->insertProduction(STRATEGY_EXPRESSION, rhs, STRAT_REW_PREC, gatherAnyAny, MixfixParser::MAKE_REW, 0);
     rhs[0] = amatchrew;
     parser->insertProduction(STRATEGY_EXPRESSION, rhs, STRAT_REW_PREC, gatherAnyAny, MixfixParser::MAKE_REW, UNBOUNDED);
+
+    //
+    //	<strategy expression> = (/x/a)matchrew <term> such that <condition> with weight <weight> by <using list>
+    //
+    //	and the same for the case without condition
+    //
+    rhs.resize(9);
+    Vector<int> gatherAny5(5);
+    gatherAny5[0] = ANY;
+    gatherAny5[1] = ANY;
+    gatherAny5[2] = ANY;
+    gatherAny5[3] = ANY;
+    gatherAny5[4] = ANY;
+
+    rhs[0] = matchrew;
+    rhs[1] = TERM;
+    rhs[2] = SUCH_THAT;
+    rhs[3] = CONDITION;
+    rhs[4] = with;
+    rhs[5] = weight;
+    rhs[6] = TERM;
+    rhs[7] = by;
+    rhs[8] = USING_LIST;
+    parser->insertProduction(STRATEGY_EXPRESSION, rhs, STRAT_REW_PREC, gatherAny5, MixfixParser::MAKE_WREW, -1);
+    rhs[0] = xmatchrew;
+    parser->insertProduction(STRATEGY_EXPRESSION, rhs, STRAT_REW_PREC, gatherAny5, MixfixParser::MAKE_WREW, 0);
+    rhs[0] = amatchrew;
+    parser->insertProduction(STRATEGY_EXPRESSION, rhs, STRAT_REW_PREC, gatherAny5, MixfixParser::MAKE_WREW, UNBOUNDED);
+    rhs.resize(7);
+    rhs[0] = matchrew;
+    rhs[2] = with;
+    rhs[3] = weight;
+    rhs[4] = TERM;
+    rhs[5] = by;
+    rhs[6] = USING_LIST;
+    parser->insertProduction(STRATEGY_EXPRESSION, rhs, STRAT_REW_PREC, gatherAnyAnyAny, MixfixParser::MAKE_WREW, -1);
+    rhs[0] = xmatchrew;
+    parser->insertProduction(STRATEGY_EXPRESSION, rhs, STRAT_REW_PREC, gatherAnyAnyAny, MixfixParser::MAKE_WREW, 0);
+    rhs[0] = amatchrew;
+    parser->insertProduction(STRATEGY_EXPRESSION, rhs, STRAT_REW_PREC, gatherAnyAnyAny, MixfixParser::MAKE_WREW, UNBOUNDED);
+  }
+  {
+
+    //
+    //	<choice pair> = <term> : <strategy expression>
+    //	<choice list> = <choice pair> , <choice list>
+    //	<choice list> = <choice pair>
+    //
+    Vector<int> rhs(3);
+    rhs[0] = TERM;
+    rhs[1] = colon;
+    rhs[2] = STRATEGY_EXPRESSION;
+    Vector<int> gather(2);
+    gather[0] = ANY;
+    gather[1] = STRAT_USING_PREC - 1;  // require strategy be tightly bound to avoid certain ambiguities
+    parser->insertProduction(CHOICE_PAIR, rhs, 0, gather, MixfixParser::MAKE_CHOICE_PAIR);
+    rhs[0] = CHOICE_PAIR;
+    rhs[1] = comma;
+    rhs[2] = CHOICE_LIST;
+    parser->insertProduction(CHOICE_LIST, rhs, 0, gatherAnyAny, MixfixParser::MAKE_CHOICE_LIST);
+    rhs.resize(1);
+    parser->insertProduction(CHOICE_LIST, rhs, 0, gatherAny, MixfixParser::PASS_THRU);
+  }
+  {
+    //
+    //	<strategy expression> = choice(<choice list>)
+    //
+    Vector<int> rhs(4);
+
+    rhs[0] = choice;
+    rhs[1] = leftParen;
+    rhs[2] = CHOICE_LIST;
+    rhs[3] = rightParen;
+    parser->insertProduction(STRATEGY_EXPRESSION, rhs, 0, gatherAny, MixfixParser::MAKE_CHOICE);
+  }
+  {
+    //
+    //	<distribution call> = <variable> := <distribution id>(<term list>)
+    //
+    Vector<int> rhs(5);
+    Vector<int> gather(2);
+
+    // We first look for the Nat and Float kinds to restrict parsing of
+    // the sample variable and the arguments to these connected components
+    int intComponent = -1, floatComponent = -1;
+
+    for (Symbol* symbol : getSymbols())
+      {
+        Vector<const char*> purposes;
+        Vector<Vector<const char*>> data;
+        symbol->getDataAttachments(symbol->getOpDeclarations()[0].getDomainAndRange(), purposes, data);
+
+        if (!purposes.empty())
+          {
+            if (strcmp(purposes[0], "FloatOpSymbol") == 0)
+                  floatComponent = symbol->domainComponent(0)->getIndexWithinModule();
+            else if (strcmp(purposes[0], "SuccSymbol") == 0)
+                  intComponent = symbol->getRangeSort()->component()->getIndexWithinModule();
+          }
+      }
+
+    gather[0] = ANY;
+    rhs[1] = assign;
+    rhs[3] = leftParen;
+
+    // Each distribution gets a production tagged with its name
+    for (int i = 0; i < SampleStrategy::NUM_DISTRIBUTIONS; i++)
+    {
+      SampleStrategy::Distribution dist = SampleStrategy::Distribution(i);
+      // The discrete uniform distribution is the only one that takes integer arguments
+      int argComponent = dist == SampleStrategy::UNIFORM_DISCRETE ? intComponent : floatComponent;
+
+      // If Float or Nat are not in the module, sample is not usable
+      if (argComponent == -1)
+        continue;
+
+      int termNt = nonTerminal(argComponent, TERM_TYPE);
+
+      size_t argCount = SampleStrategy::getArgCount(dist);
+      rhs.resize(4 + 2 * argCount);  // fixed + arguments + commas
+      gather.resize(1 + argCount);  // variable + arguments
+
+      rhs[0] = termNt;  // variable (sample destination)
+      rhs[2] = Token::encode(SampleStrategy::getName(dist));  // distribution name
+
+      // Comma-separated list of arguments
+      for (int j = 0; j < argCount; ++j)
+        {
+          rhs[4 + 2 * j] = termNt;
+          gather[1 + j] = ANY;
+          rhs[4 + 2 * j + 1] = comma;
+        }
+
+      rhs[4 + 2 * argCount - 1] = rightParen; // closing parethensis
+
+      parser->insertProduction(DISTRIBUTION_CALL, rhs, 0, gather,
+			       MixfixParser::MAKE_DISTRIBUTION_CALL, i);
+    }
+  }
+  {
+    //
+    //	<strategy expression> = sample <distribution call> in <strategy expression>
+    //
+    Vector<int> rhs(4);
+
+    rhs[0] = sample;
+    rhs[1] = DISTRIBUTION_CALL;
+    rhs[2] = in;
+    rhs[3] = STRATEGY_EXPRESSION;
+    parser->insertProduction(STRATEGY_EXPRESSION, rhs, STRAT_REW_PREC, gatherAnyAny, MixfixParser::MAKE_SAMPLE);
   }
   {
     //

@@ -218,6 +218,8 @@ MixfixModule::prettyPrint(ostream& s, StrategyExpression* strategy, int required
 	  s << " such that ";
 	  printCondition(s, condition, printSettings);
 	}
+      if (WeightedSubtermStrategy* wt = dynamic_cast<WeightedSubtermStrategy*>(t))
+	s << " with weight " << wt->getWeight();
       const Vector<Term*>& subterms = t->getSubterms();
       const Vector<StrategyExpression*>& strategies = t->getStrategies();
       int nrSubterms = subterms.size();
@@ -232,6 +234,43 @@ MixfixModule::prettyPrint(ostream& s, StrategyExpression* strategy, int required
     {
       MixfixModule* m = safeCast(MixfixModule*, t->getStrategy()->getModule());
       m->printStrategyTerm(s, t->getStrategy(), t->getTerm());
+    }
+  else if (ChoiceStrategy* c = dynamic_cast<ChoiceStrategy*>(strategy))
+    {
+      const Vector<StrategyExpression*>& strategies = c->getStrategies();
+      const Vector<CachedDag>& weights = c->getWeights();
+      s << "choice(";
+      int nrStrategies = strategies.size();
+      for (int i = 0;;)
+	{
+	  s << weights[i].getTerm() << ": ";
+	  (void) prettyPrint(s, strategies[i], UNBOUNDED, printSettings);
+	  if (++i == nrStrategies)
+	    break;
+	  s << ", ";
+	}
+       cout << ")";
+    }
+  else if (SampleStrategy* e = dynamic_cast<SampleStrategy*>(strategy))
+    {
+      needParen = requiredPrec < STRAT_REW_PREC;
+      if (needParen)
+	s << '(';
+      const Vector<CachedDag>& args = e->getArguments();
+
+      s << "sample " << e->getVariable() << " := "
+        << SampleStrategy::getName(e->getDistribution()) << "(";
+
+      int nrArgs = args.size();
+      for (int i = 0;;)
+	{
+	  s << args[i].getTerm();
+	  if (++i == nrArgs)
+	    break;
+	  s << ", ";
+	}
+      s << ") in ";
+      (void) prettyPrint(s, e->getStrategy(), UNBOUNDED, printSettings);
     }
   if (needParen)
     {

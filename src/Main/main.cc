@@ -107,7 +107,11 @@ main(int argc, char* argv[])
 	  else if (const char* s = isFlag(arg, "-latex-log="))
 	    interpreter.beginLatexLog(s);
 	  else if (const char* s = isFlag(arg, "-random-seed="))
-	    RandomOpSymbol::setGlobalSeed(strtoul(s, 0, 0));
+	    {
+	      mt19937::result_type seed = strtoul(s, 0, 0);
+	      RandomOpSymbol::setGlobalSeed(seed);
+	      setChoiceSeed(seed);
+	    }
 	  else if (const char* s = isFlag(arg, "-assoc-unif-depth="))
 	    {
 	      char *endptr;
