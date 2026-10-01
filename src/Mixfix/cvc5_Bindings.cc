@@ -60,6 +60,7 @@ VariableGenerator::VariableGenerator(const SMT_Info& smtInfo)
   : smtInfo(smtInfo), smtSolver(termManager)
 {
   smtSolver.setOption("sets-exp", "true");
+  smtSolver.setOption("arrays-exp", "true");
   smtSolver.push();  // make a new context so we have a clean context to pop() back to
   pushCount = 0;
 }
@@ -223,15 +224,17 @@ VariableGenerator::makeVariable(VariableDagNode* v)
 	break;
       }
     case SMT_Info::SET:
+    case SMT_Info::ARRAY:
+    case SMT_Info::SEQUENCE:
       {
 	type = getSmtSort(sort);
 	if (type.isNull())
 	  {
-	    IssueWarning("Unable to determine the element sort of set variable " <<
+            IssueWarning("Unable to determine the SMT sort of variable " <<
 			 QUOTE(static_cast<DagNode*>(v)) << '.');
 	    return cvc5::Term();
 	  }
-	DebugAdvisory("made Set variable " << static_cast<DagNode*>(v));
+        DebugAdvisory("made SMT collection variable " << static_cast<DagNode*>(v));
 	break;
       }
     }
@@ -311,6 +314,28 @@ VariableGenerator::getSmtSort(const Sort* sort)
 	if (e.isNull())
 	  return cvc5::Sort();
 	return termManager.mkSetSort(e);
+      }
+    case SMT_Info::ARRAY:
+      {
+	const Sort* indexSort = smtInfo.getArrayIndexSort(sort);
+	const Sort* valueSort = smtInfo.getArrayValueSort(sort);
+	if (indexSort == 0 || valueSort == 0)
+	  return cvc5::Sort();
+	cvc5::Sort i = getSmtSort(indexSort);
+	cvc5::Sort v = getSmtSort(valueSort);
+	if (i.isNull() || v.isNull())
+	  return cvc5::Sort();
+	return termManager.mkArraySort(i, v);
+      }
+    case SMT_Info::SEQUENCE:
+      {
+	const Sort* elementSort = smtInfo.getSeqElementSort(sort);
+	if (elementSort == 0)
+	  return cvc5::Sort();
+	cvc5::Sort e = getSmtSort(elementSort);
+	if (e.isNull())
+	  return cvc5::Sort();
+	return termManager.mkSequenceSort(e);
       }
     default:
       return cvc5::Sort();
@@ -570,6 +595,103 @@ VariableGenerator::dagToCvc5(DagNode* dag)
 	  {
 	    return termManager.mkTerm(kind::SET_CARD, exprs);
 	  }
+
+	case SMT_Symbol::ARRAY_CONST:
+	  {
+	    cvc5::Sort arraySort = getSmtSort(s->getRangeSort());
+	    if (arraySort.isNull())
+	      {
+		IssueWarning("Unable to determine the array sort of " << QUOTE(dag) << '.');
+		goto fail;
+	      }
+	    // cvc5 accepts a value, rather than an arbitrary symbolic term, here.
+	    return termManager.mkConstArray(arraySort, exprs[0]);
+	  }
+	case SMT_Symbol::ARRAY_STORE:
+	  {
+	    return termManager.mkTerm(kind::STORE, exprs);
+	  }
+	case SMT_Symbol::ARRAY_SELECT:
+	  {
+	    return termManager.mkTerm(kind::SELECT, exprs);
+	  }
+	case SMT_Symbol::EQUAL_RANGE:
+	  {
+	    return termManager.mkTerm(kind::EQ_RANGE, exprs);
+	  }
+	case SMT_Symbol::SEQ_EMPTY:
+	  {
+	    const Sort* elementSort = smtInfo.getSeqElementSort(s->getRangeSort());
+	    if (elementSort == 0)
+	      {
+	        IssueWarning("Unable to determine the sequence sort of " << QUOTE(dag) << '.');
+	        goto fail;
+	      }
+	    cvc5::Sort element = getSmtSort(elementSort);
+	    if (element.isNull())
+	      {
+	        IssueWarning("Unable to determine the sequence element sort of " << QUOTE(dag) << '.');
+	        goto fail;
+	      }
+	    return termManager.mkEmptySequence(element);
+	  }
+	case SMT_Symbol::SEQ_UNIT:
+	  {
+	    return termManager.mkTerm(kind::SEQ_UNIT, exprs);
+	  }
+	case SMT_Symbol::SEQ_LENGTH:
+	  {
+	    return termManager.mkTerm(kind::SEQ_LENGTH, exprs);
+	  }
+	case SMT_Symbol::SEQ_NTH:
+	  {
+	    return termManager.mkTerm(kind::SEQ_NTH, exprs);
+	  }
+	case SMT_Symbol::SEQ_AT:
+	  {
+	    return termManager.mkTerm(kind::SEQ_AT, exprs);
+	  }
+	case SMT_Symbol::SEQ_UPDATE:
+	  {
+	    return termManager.mkTerm(kind::SEQ_UPDATE, exprs);
+	  }
+	case SMT_Symbol::SEQ_EXTRACT:
+	  {
+	    return termManager.mkTerm(kind::SEQ_EXTRACT, exprs);
+	  }
+	case SMT_Symbol::SEQ_CONCAT:
+	  {
+	    return termManager.mkTerm(kind::SEQ_CONCAT, exprs);
+	  }
+	case SMT_Symbol::SEQ_CONTAINS:
+	  {
+	    return termManager.mkTerm(kind::SEQ_CONTAINS, exprs);
+	  }
+	case SMT_Symbol::SEQ_INDEX_OF:
+	  {
+	    return termManager.mkTerm(kind::SEQ_INDEXOF, exprs);
+	  }
+	case SMT_Symbol::SEQ_REPLACE:
+	  {
+	    return termManager.mkTerm(kind::SEQ_REPLACE, exprs);
+	  }
+	case SMT_Symbol::SEQ_REPLACE_ALL:
+	  {
+	    return termManager.mkTerm(kind::SEQ_REPLACE_ALL, exprs);
+	  }
+	case SMT_Symbol::SEQ_REVERSE:
+	  {
+	    return termManager.mkTerm(kind::SEQ_REV, exprs);
+	  }
+	case SMT_Symbol::SEQ_PREFIX:
+	  {
+	    return termManager.mkTerm(kind::SEQ_PREFIX, exprs);
+	  }
+	case SMT_Symbol::SEQ_SUFFIX:
+	  {
+	    return termManager.mkTerm(kind::SEQ_SUFFIX, exprs);
+	  }
+
 	}
     }
   IssueWarning("term " << QUOTE(dag) << " is not a valid SMT term.");

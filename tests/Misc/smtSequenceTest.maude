@@ -1,0 +1,53 @@
+set show timing off .
+
+*** This test requires cvc5 and will not work with yices2 or cvc4
+load smt
+
+fmod TEST-SEQUENCE is
+  protecting SMT-SEQUENCES .
+  protecting META-LEVEL .
+  vars I : Integer .
+  vars X Y Z : Integer .
+  vars S S1 S2 : SmtSequence{Integer} .
+  vars B : Boolean .
+  vars R T : Real .
+  vars SR : SmtSequence{Real} .
+endfm
+
+*** Constructors, length, concatenation, nth, and at
+check in TEST-SEQUENCE : seqLength((seqEmpty).SmtSequence{Integer}) === 0 .
+check in TEST-SEQUENCE : seqLength(seqUnit(X)) === 1 .
+check in TEST-SEQUENCE : seqLength(seqConcat(seqUnit(X), seqUnit(Y))) === 2 .
+check in TEST-SEQUENCE : seqNth(seqUnit(X), 0) === X .
+check in TEST-SEQUENCE : seqAt(seqUnit(X), 0) === seqUnit(X) .
+check in TEST-SEQUENCE : seqAt(seqUnit(X), 1) === (seqEmpty).SmtSequence{Integer} .
+
+*** Update and extract
+check in TEST-SEQUENCE : seqNth(seqUpdate(seqUnit(X), 0, seqUnit(Y)), 0) === Y .
+check in TEST-SEQUENCE : seqNth(seqUpdate(seqUnit(X), 0, seqUnit(Y)), 0) === X and X =/== Y .
+check in TEST-SEQUENCE : seqLength(seqExtract(seqConcat(seqUnit(X), seqUnit(Y)), 1, 1)) === 1 .
+check in TEST-SEQUENCE : seqExtract(seqConcat(seqUnit(X), seqUnit(Y)), 1, 1) === seqUnit(Y) .
+
+*** Search and replacement
+check in TEST-SEQUENCE : seqContains(seqUnit(X), seqUnit(X)) .
+check in TEST-SEQUENCE : seqContains(seqUnit(X), seqUnit(Y)) and X =/== Y .
+check in TEST-SEQUENCE : seqIndexOf(seqConcat(seqUnit(X), seqUnit(Y)), seqUnit(Y), 0) === 1 .
+check in TEST-SEQUENCE : seqIndexOf(seqUnit(X), seqUnit(Y), 0) === -1 and X =/== Y .
+check in TEST-SEQUENCE : seqReplace(seqConcat(seqUnit(X), seqUnit(X)), seqUnit(X), seqUnit(Y))
+                    === seqConcat(seqUnit(Y), seqUnit(X)) .
+check in TEST-SEQUENCE : seqReplaceAll(seqConcat(seqUnit(X), seqUnit(X)), seqUnit(X), seqUnit(Y))
+                    === seqConcat(seqUnit(Y), seqUnit(Y)) .
+
+*** Reverse, prefix, suffix, equality, and conditional seqs
+check in TEST-SEQUENCE : seqReverse(seqConcat(seqUnit(X), seqUnit(Y)))
+                    === seqConcat(seqUnit(Y), seqUnit(X)) .
+check in TEST-SEQUENCE : seqPrefix(seqUnit(X), seqConcat(seqUnit(X), seqUnit(Y))) .
+check in TEST-SEQUENCE : seqSuffix(seqUnit(Y), seqConcat(seqUnit(X), seqUnit(Y))) .
+check in TEST-SEQUENCE : seqPrefix(seqUnit(Y), seqUnit(X)) and X =/== Y .
+check in TEST-SEQUENCE : S === S1 and seqLength(S) === 0 and seqLength(S1) =/== 0 .
+check in TEST-SEQUENCE : S === (B ? S1 : S2) and B and S =/== S1 .
+check in TEST-SEQUENCE : S === (B ? S1 : S2) and not B and S === S2 .
+
+*** A second element sort verifies sequence variables and constructors use their parameter sort
+check in TEST-SEQUENCE : seqNth(seqUnit(R), 0) === R .
+check in TEST-SEQUENCE : seqNth(seqUpdate(SR, 0, seqUnit(R)), 0) === T and R =/== T .

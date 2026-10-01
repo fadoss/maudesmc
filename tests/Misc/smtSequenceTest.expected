@@ -1,0 +1,92 @@
+==========================================
+check in TEST-SEQUENCE : seqLength((seqEmpty).SmtSequence{Integer}) === (
+    0).Integer .
+Result from sat solver is: sat
+==========================================
+check in TEST-SEQUENCE : seqLength(seqUnit(X)) === (1).Integer .
+Result from sat solver is: sat
+==========================================
+check in TEST-SEQUENCE : seqLength(seqConcat(seqUnit(X), seqUnit(Y))) === (
+    2).Integer .
+Result from sat solver is: sat
+==========================================
+check in TEST-SEQUENCE : seqNth(seqUnit(X), (0).Integer) === X .
+Result from sat solver is: sat
+==========================================
+check in TEST-SEQUENCE : seqAt(seqUnit(X), (0).Integer) === seqUnit(X) .
+Result from sat solver is: sat
+==========================================
+check in TEST-SEQUENCE : seqAt(seqUnit(X), (1).Integer) === (
+    seqEmpty).SmtSequence{Integer} .
+Result from sat solver is: sat
+==========================================
+check in TEST-SEQUENCE : seqNth(seqUpdate(seqUnit(X), (0).Integer, seqUnit(Y)),
+    (0).Integer) === Y .
+Result from sat solver is: sat
+==========================================
+check in TEST-SEQUENCE : seqNth(seqUpdate(seqUnit(X), (0).Integer, seqUnit(Y)),
+    (0).Integer) === X and X =/== Y .
+Result from sat solver is: unsat
+==========================================
+check in TEST-SEQUENCE : seqLength(seqExtract(seqConcat(seqUnit(X), seqUnit(
+    Y)), (1).Integer, (1).Integer)) === (1).Integer .
+Result from sat solver is: sat
+==========================================
+check in TEST-SEQUENCE : seqExtract(seqConcat(seqUnit(X), seqUnit(Y)), (
+    1).Integer, (1).Integer) === seqUnit(Y) .
+Result from sat solver is: sat
+==========================================
+check in TEST-SEQUENCE : seqContains(seqUnit(X), seqUnit(X)) .
+Result from sat solver is: sat
+==========================================
+check in TEST-SEQUENCE : seqContains(seqUnit(X), seqUnit(Y)) and X =/== Y .
+Result from sat solver is: unsat
+==========================================
+check in TEST-SEQUENCE : seqIndexOf(seqConcat(seqUnit(X), seqUnit(Y)), seqUnit(
+    Y), (0).Integer) === (1).Integer .
+Result from sat solver is: sat
+==========================================
+check in TEST-SEQUENCE : seqIndexOf(seqUnit(X), seqUnit(Y), (0).Integer) === (
+    -1).Integer and X =/== Y .
+Result from sat solver is: sat
+==========================================
+check in TEST-SEQUENCE : seqReplace(seqConcat(seqUnit(X), seqUnit(X)), seqUnit(
+    X), seqUnit(Y)) === seqConcat(seqUnit(Y), seqUnit(X)) .
+Result from sat solver is: sat
+==========================================
+check in TEST-SEQUENCE : seqReplaceAll(seqConcat(seqUnit(X), seqUnit(X)),
+    seqUnit(X), seqUnit(Y)) === seqConcat(seqUnit(Y), seqUnit(Y)) .
+Result from sat solver is: sat
+==========================================
+check in TEST-SEQUENCE : seqReverse(seqConcat(seqUnit(X), seqUnit(Y))) ===
+    seqConcat(seqUnit(Y), seqUnit(X)) .
+Result from sat solver is: sat
+==========================================
+check in TEST-SEQUENCE : seqPrefix(seqUnit(X), seqConcat(seqUnit(X), seqUnit(
+    Y))) .
+Result from sat solver is: sat
+==========================================
+check in TEST-SEQUENCE : seqSuffix(seqUnit(Y), seqConcat(seqUnit(X), seqUnit(
+    Y))) .
+Result from sat solver is: sat
+==========================================
+check in TEST-SEQUENCE : seqPrefix(seqUnit(Y), seqUnit(X)) and X =/== Y .
+Result from sat solver is: unsat
+==========================================
+check in TEST-SEQUENCE : S === S1 and seqLength(S) === (0).Integer and
+    seqLength(S1) =/== (0).Integer .
+Result from sat solver is: unsat
+==========================================
+check in TEST-SEQUENCE : S === (B ? S1 : S2) and B and S =/== S1 .
+Result from sat solver is: unsat
+==========================================
+check in TEST-SEQUENCE : S === (B ? S1 : S2) and not B and S === S2 .
+Result from sat solver is: sat
+==========================================
+check in TEST-SEQUENCE : seqNth(seqUnit(R), (0).Integer) === R .
+Result from sat solver is: sat
+==========================================
+check in TEST-SEQUENCE : seqNth(seqUpdate(SR, (0).Integer, seqUnit(R)), (
+    0).Integer) === T and R =/== T .
+Result from sat solver is: sat
+Bye.

@@ -87,7 +87,32 @@ public:
       SET_INSERT,
       SET_REMOVE,
       SET_COMPLEMENT,
-      SET_UNIVERSE
+      SET_UNIVERSE,
+      //
+      //	Array stuff
+      //
+      ARRAY_CONST,
+      ARRAY_STORE,
+      ARRAY_SELECT,
+      EQUAL_RANGE,
+      //
+      //	Sequence stuff
+      //
+      SEQ_EMPTY,
+      SEQ_UNIT,
+      SEQ_LENGTH,
+      SEQ_NTH,
+      SEQ_UPDATE,
+      SEQ_EXTRACT,
+      SEQ_CONCAT,
+      SEQ_AT,
+      SEQ_CONTAINS,
+      SEQ_INDEX_OF,
+      SEQ_REPLACE,
+      SEQ_REPLACE_ALL,
+      SEQ_REVERSE,
+      SEQ_PREFIX,
+      SEQ_SUFFIX,
     };
 
   SMT_Symbol(int id, int arity);

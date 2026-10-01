@@ -30,6 +30,8 @@ TESTS = \
 	sreduce \
 	smtTest \
 	smtSetTest \
+	smtArrayTest \
+	smtSequenceTest \
 	narrow \
 	narrow2 \
 	continue \
@@ -79,6 +81,8 @@ MAUDE_FILES = \
 	AU_and_A_UnificationEdgeCases.maude \
 	sreduce.maude \
 	smtTest.maude \
+	smtArrayTest.maude \
+	smtSequenceTest.maude \
 	smtSetTest.maude \
 	narrow.maude \
 	narrow2.maude \
@@ -128,6 +132,8 @@ RESULT_FILES = \
 	AU_IrredUnification.expected \
 	AU_and_A_UnificationEdgeCases.expected \
 	sreduce.expected \
+	smtArrayTest.expected \
+	smtSequenceTest.expected \
 	smtTest.expected \
 	smtSetTest.expected \
 	narrow.expected \

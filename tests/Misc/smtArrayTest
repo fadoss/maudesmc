@@ -1,0 +1,18 @@
+#!/bin/sh
+
+#	The array theory is only implemented for the cvc5 bindings, so
+#	skip rather than fail for the other solvers or for no SMT at all
+if grep "#define USE_CVC5" ../../config.h ; # are we using cvc5?
+then
+  echo "testing cvc5"
+else
+  echo "array theory needs cvc5"
+  exit 77 # tell the harness to skip this test
+fi
+
+MAUDE_LIB=$srcdir/../../src/Main
+export MAUDE_LIB
+
+../../src/Main/maude < $srcdir/smtArrayTest.maude -no-banner -no-advise > smtArrayTest.out 2>&1
+
+diff $srcdir/smtArrayTest.expected smtArrayTest.out > /dev/null 2>&1

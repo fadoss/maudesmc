@@ -1,0 +1,51 @@
+==========================================
+check in TEST-ARRAY : arraySelect(arrayConst((0).Integer), I) === (0).Integer .
+Result from sat solver is: sat
+==========================================
+check in TEST-ARRAY : arraySelect(arrayConst((0).Integer), I) =/== (0).Integer
+    .
+Result from sat solver is: unsat
+==========================================
+check in TEST-ARRAY : arraySelect(arrayStore(A, I, X), I) === X .
+Result from sat solver is: sat
+==========================================
+check in TEST-ARRAY : arraySelect(arrayStore(A, I, X), J) === arraySelect(A, J)
+    and I =/== J .
+Result from sat solver is: sat
+==========================================
+check in TEST-ARRAY : arraySelect(arrayStore(arrayStore(A, I, X), I, Y), I) ===
+    Y .
+Result from sat solver is: sat
+==========================================
+check in TEST-ARRAY : arraySelect(arrayStore(A, I, X), I) === Y and X =/== Y .
+Result from sat solver is: unsat
+==========================================
+check in TEST-ARRAY : equalRange(A, A, I, J) .
+Result from sat solver is: sat
+==========================================
+check in TEST-ARRAY : equalRange(arrayStore(A, I, X), A, I, I) and X =/==
+    arraySelect(A, I) .
+Result from sat solver is: unsat
+==========================================
+check in TEST-ARRAY : equalRange(arrayStore(A, I, X), A, I, I) and X ===
+    arraySelect(A, I) .
+Result from sat solver is: sat
+==========================================
+check in TEST-ARRAY : A === A1 .
+Result from sat solver is: sat
+==========================================
+check in TEST-ARRAY : A === A1 and arraySelect(A, I) =/== arraySelect(A1, I) .
+Result from sat solver is: unsat
+==========================================
+check in TEST-ARRAY : A =/== A1 and arraySelect(A, I) === arraySelect(A1, I) .
+Result from sat solver is: sat
+==========================================
+check in TEST-ARRAY : A === (B ? A1 : A2) and B and A =/== A1 .
+Result from sat solver is: unsat
+==========================================
+check in TEST-ARRAY : A === (B ? A1 : A2) and not B and A === A2 .
+Result from sat solver is: sat
+==========================================
+check in TEST-ARRAY : arraySelect(arrayStore(AR, I, R), I) === S and R =/== S .
+Result from sat solver is: unsat
+Bye.

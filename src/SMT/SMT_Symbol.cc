@@ -111,6 +111,31 @@ const char* SMT_Symbol::operatorNames[] =
     "setRemove",
     "setComplement",
     "setUniverse",
+    //
+    // 	Array stuff.
+    //
+    "arrayConst",
+    "arrayStore",
+    "arraySelect",
+    "equalRange",
+    //
+    //	Sequence stuff.
+    //
+    "seqEmpty",
+    "seqUnit",
+    "seqLength",
+    "seqNth",
+    "seqUpdate",
+    "seqExtract",
+    "seqConcat",
+    "seqAt",
+    "seqContains",
+    "seqIndexOf",
+    "seqReplace",
+    "seqReplaceAll",
+    "seqReverse",
+    "seqPrefix",
+    "seqSuffix",
     0
   };
 
@@ -256,6 +281,129 @@ SMT_Symbol::fillOutSMT_Info(SMT_Info& info)
 	  info.setType(getOpDeclarations()[0].getDomainAndRange()[0], SMT_Info::SET);
 	break;
       }
+    case ARRAY_CONST:
+      {
+        Sort* arraySort = getRangeSort();
+        info.setType(arraySort, SMT_Info::ARRAY);
+        if (getOpDeclarations().length() > 0)
+          info.setArrayValueSort(arraySort, getOpDeclarations()[0].getDomainAndRange()[0]);
+        break;
+      }
+    case ARRAY_STORE:
+      {
+        if (getOpDeclarations().length() > 0)
+          {
+            const Vector<Sort*>& domainAndRange = getOpDeclarations()[0].getDomainAndRange();
+            Sort* arraySort = domainAndRange[0];
+            Sort* indexSort = domainAndRange[1];
+            Sort* valueSort = domainAndRange[2];
+            info.setType(arraySort, SMT_Info::ARRAY);
+            info.setArrayIndexSort(arraySort, indexSort);
+            info.setArrayValueSort(arraySort, valueSort);
+          }
+        break;
+      }
+    case ARRAY_SELECT:
+      {
+        if (getOpDeclarations().length() > 0)
+          {
+            const Vector<Sort*>& domainAndRange = getOpDeclarations()[0].getDomainAndRange();
+            Sort* arraySort = domainAndRange[0];
+            Sort* indexSort = domainAndRange[1];
+            Sort* valueSort = domainAndRange[2];
+            info.setType(arraySort, SMT_Info::ARRAY);
+            info.setArrayIndexSort(arraySort, indexSort);
+            info.setArrayValueSort(arraySort, valueSort);
+          }
+        break;
+      }
+    case EQUAL_RANGE:
+      {
+        if (getOpDeclarations().length() > 0)
+          info.setType(getOpDeclarations()[0].getDomainAndRange()[0], SMT_Info::ARRAY);
+        break;
+      }
+    case SEQ_EMPTY:
+      {
+        info.setType(getRangeSort(), SMT_Info::SEQUENCE);
+        break;
+      }
+    case SEQ_UNIT:
+      {
+        if (getOpDeclarations().length() > 0)
+          {
+            const Vector<Sort*>& domainAndRange = getOpDeclarations()[0].getDomainAndRange();
+            Sort* elementSort = domainAndRange[0];
+            Sort* seqSort = getRangeSort();
+            info.setType(seqSort, SMT_Info::SEQUENCE);
+            info.setSeqElementSort(seqSort, elementSort);
+          }
+        break;
+      }
+    case SEQ_LENGTH:
+      {
+        if (getOpDeclarations().length() > 0)
+          info.setType(getOpDeclarations()[0].getDomainAndRange()[0], SMT_Info::SEQUENCE);
+        break;
+      }
+    case SEQ_NTH:
+      {
+        if (getOpDeclarations().length() > 0)
+          {
+            const Vector<Sort*>& domainAndRange = getOpDeclarations()[0].getDomainAndRange();
+            Sort* seqSort = domainAndRange[0];
+            Sort* elementSort = domainAndRange[2];
+            info.setType(seqSort, SMT_Info::SEQUENCE);
+            info.setSeqElementSort(seqSort, elementSort);
+          }
+        break;
+      }
+    case SEQ_AT:
+      {
+        if (getOpDeclarations().length() > 0)
+          info.setType(getOpDeclarations()[0].getDomainAndRange()[0], SMT_Info::SEQUENCE);
+        break;
+      }
+    case SEQ_UPDATE:
+      {
+        if (getOpDeclarations().length() > 0)
+          {
+            const Vector<Sort*>& domainAndRange = getOpDeclarations()[0].getDomainAndRange();
+            info.setType(domainAndRange[0], SMT_Info::SEQUENCE);
+          }
+        break;
+      }
+    case SEQ_EXTRACT:
+    case SEQ_CONCAT:
+    case SEQ_REVERSE:
+    case SEQ_PREFIX:
+    case SEQ_SUFFIX:
+      {
+        if (getOpDeclarations().length() > 0)
+          info.setType(getOpDeclarations()[0].getDomainAndRange()[0], SMT_Info::SEQUENCE);
+        break;
+      }
+    case SEQ_CONTAINS:
+    case SEQ_INDEX_OF:
+      {
+        if (getOpDeclarations().length() > 0)
+          {
+            const Vector<Sort*>& domainAndRange = getOpDeclarations()[0].getDomainAndRange();
+            info.setType(domainAndRange[0], SMT_Info::SEQUENCE);
+          }
+        break;
+      }
+    case SEQ_REPLACE:
+    case SEQ_REPLACE_ALL:
+      {
+        if (getOpDeclarations().length() > 0)
+          {
+            const Vector<Sort*>& domainAndRange = getOpDeclarations()[0].getDomainAndRange();
+            info.setType(domainAndRange[0], SMT_Info::SEQUENCE);
+          }
+        break;
+      }
+
     default:
       break;
     }
