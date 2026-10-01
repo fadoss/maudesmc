@@ -99,4 +99,126 @@ fmod REAL-INTEGER is
   op isInteger : Real -> Boolean [special (id-hook SMT_Symbol (isInteger))] .
 endfm
 
+
+***	This fmod represents the SMT-LIB theory of finite sets and relations
+***	supported in cvc5
+fmod SMT-FINITE-SET{X :: TRIV} is
+  protecting BOOLEAN .
+  protecting INTEGER .
+  sort SmtSet{X} .
+
+  op setEmpty : -> SmtSet{X} [special (id-hook SMT_Symbol (setEmpty))] .
+  op setUniverse : -> SmtSet{X} [special (id-hook SMT_Symbol (setUniverse))] .
+
+  op setSingleton : X$Elt -> SmtSet{X} [special (id-hook SMT_Symbol (setSingleton))] .
+  op setInsert : X$Elt SmtSet{X} -> SmtSet{X} [special (id-hook SMT_Symbol (setInsert))] .
+  op setRemove : X$Elt SmtSet{X} -> SmtSet{X} [special (id-hook SMT_Symbol (setRemove))] .
+
+  op setUnion : SmtSet{X} SmtSet{X} -> SmtSet{X} [special (id-hook SMT_Symbol (setUnion))] .
+  op setIntersection : SmtSet{X} SmtSet{X} -> SmtSet{X} [special (id-hook SMT_Symbol (setIntersection))] .
+  op setDifference : SmtSet{X} SmtSet{X} -> SmtSet{X} [special (id-hook SMT_Symbol (setDifference))] .
+  op setComplement : SmtSet{X} -> SmtSet{X} [special (id-hook SMT_Symbol (setComplement))] .
+
+  op setMembership : X$Elt SmtSet{X} -> Boolean [special (id-hook SMT_Symbol (setMembership))] .
+  op setSubset : SmtSet{X} SmtSet{X} -> Boolean [special (id-hook SMT_Symbol (setSubset))] .
+  op setCardinality : SmtSet{X} -> Integer [special (id-hook SMT_Symbol (setCardinality))] .
+
+  op _===_ : SmtSet{X} SmtSet{X} -> Boolean [gather (e E) prec 51 special (id-hook SMT_Symbol (===))] .
+  op _=/==_ : SmtSet{X} SmtSet{X} -> Boolean [gather (e E) prec 51 special (id-hook SMT_Symbol (=/==))] .
+  op _?_:_ : Boolean SmtSet{X} SmtSet{X} -> SmtSet{X} [gather (e e e) prec 71 special (id-hook SMT_Symbol (ite))] .
+endfm
+
+fmod SMT-ARRAY{X :: TRIV} is
+  protecting BOOLEAN .
+  protecting INTEGER .
+  sort SmtArray{X} .
+
+  op arrayConst : X$Elt -> SmtArray{X} [special (id-hook SMT_Symbol (arrayConst))] .
+  op arrayStore : SmtArray{X} Integer X$Elt -> SmtArray{X} [special (id-hook SMT_Symbol (arrayStore))] .
+  op arraySelect : SmtArray{X} Integer -> X$Elt [special (id-hook SMT_Symbol (arraySelect))] .
+
+  op equalRange : SmtArray{X} SmtArray{X} Integer Integer -> Boolean [special (id-hook SMT_Symbol (equalRange))] .
+
+  op _===_ : SmtArray{X} SmtArray{X} -> Boolean [gather (e E) prec 51 special (id-hook SMT_Symbol (===))] .
+  op _=/==_ : SmtArray{X} SmtArray{X} -> Boolean [gather (e E) prec 51 special (id-hook SMT_Symbol (=/==))] .
+  op _?_:_ : Boolean SmtArray{X} SmtArray{X} -> SmtArray{X} [gather (e e e) prec 71 special (id-hook SMT_Symbol (ite))] .
+endfm
+
+fmod SMT-SEQUENCE{X :: TRIV} is
+  protecting BOOLEAN .
+  protecting INTEGER .
+  sort SmtSequence{X} .
+
+  op seqEmpty : -> SmtSequence{X} [special (id-hook SMT_Symbol (seqEmpty))] .
+
+  op seqUnit : X$Elt -> SmtSequence{X} [special (id-hook SMT_Symbol (seqUnit))] .
+
+  op seqLength : SmtSequence{X} -> Integer [special (id-hook SMT_Symbol (seqLength))] .
+
+  op seqNth : SmtSequence{X} Integer -> X$Elt [special (id-hook SMT_Symbol (seqNth))] .
+
+  op seqUpdate : SmtSequence{X} Integer SmtSequence{X} -> SmtSequence{X} [special (id-hook SMT_Symbol (seqUpdate))] .
+
+  op seqExtract : SmtSequence{X} Integer Integer -> SmtSequence{X} [special (id-hook SMT_Symbol (seqExtract))] .
+
+  op seqConcat : SmtSequence{X} SmtSequence{X} -> SmtSequence{X} [special (id-hook SMT_Symbol (seqConcat))] .
+
+  op seqAt : SmtSequence{X} Integer -> SmtSequence{X} [special (id-hook SMT_Symbol (seqAt))] .
+
+  op seqContains : SmtSequence{X} SmtSequence{X} -> Boolean [special (id-hook SMT_Symbol (seqContains))] .
+
+  op seqIndexOf : SmtSequence{X} SmtSequence{X} Integer -> Integer [special (id-hook SMT_Symbol (seqIndexOf))] .
+
+  op seqReplace : SmtSequence{X} SmtSequence{X} SmtSequence{X} -> SmtSequence{X} [special (id-hook SMT_Symbol (seqReplace))] .
+  op seqReplaceAll : SmtSequence{X} SmtSequence{X} SmtSequence{X} -> SmtSequence{X} [special (id-hook SMT_Symbol (seqReplaceAll))] .
+
+  op seqReverse : SmtSequence{X} -> SmtSequence{X} [special (id-hook SMT_Symbol (seqReverse))] .
+
+  op seqPrefix : SmtSequence{X} SmtSequence{X} -> Boolean [special (id-hook SMT_Symbol (seqPrefix))] .
+  op seqSuffix : SmtSequence{X} SmtSequence{X} -> Boolean [special (id-hook SMT_Symbol (seqSuffix))] .
+
+  op _===_ : SmtSequence{X} SmtSequence{X} -> Boolean [gather (e E) prec 51 special (id-hook SMT_Symbol (===))] .
+  op _=/==_ : SmtSequence{X} SmtSequence{X} -> Boolean [gather (e E) prec 51 special (id-hook SMT_Symbol (=/==))] .
+  op _?_:_ : Boolean SmtSequence{X} SmtSequence{X} -> SmtSequence{X} [gather (e e e) prec 71 special (id-hook SMT_Symbol (ite))] .
+endfm
+
+view Boolean from TRIV to BOOLEAN is sort Elt to Boolean . endv
+view Integer from TRIV to INTEGER is sort Elt to Integer . endv
+view Real    from TRIV to REAL    is sort Elt to Real . endv
+
+fmod BOOLEAN-SET is protecting SMT-FINITE-SET{Boolean} . endfm
+fmod INTEGER-SET is protecting SMT-FINITE-SET{Integer} . endfm
+fmod REAL-SET    is protecting SMT-FINITE-SET{Real} . endfm
+
+fmod BOOLEAN-ARRAY is protecting SMT-ARRAY{Boolean} . endfm
+fmod INTEGER-ARRAY is protecting SMT-ARRAY{Integer} . endfm
+fmod REAL-ARRAY    is protecting SMT-ARRAY{Real} . endfm
+
+fmod BOOLEAN-SEQUENCE is protecting SMT-SEQUENCE{Boolean} . endfm
+fmod INTEGER-SEQUENCE is protecting SMT-SEQUENCE{Integer} . endfm
+fmod REAL-SEQUENCE    is protecting SMT-SEQUENCE{Real} . endfm
+
+***	Everything at once if you want all the SMT sorts and all
+***	three set instantiations in scope
+fmod SMT-SET is
+  protecting REAL-INTEGER .
+  protecting BOOLEAN-SET .
+  protecting INTEGER-SET .
+  protecting REAL-SET .
+endfm
+
+fmod SMT-ARRAYS is
+  protecting REAL-INTEGER .
+  protecting BOOLEAN-ARRAY .
+  protecting INTEGER-ARRAY .
+  protecting REAL-ARRAY .
+endfm
+
+fmod SMT-SEQUENCES is
+  protecting REAL-INTEGER .
+  protecting BOOLEAN-SEQUENCE .
+  protecting INTEGER-SEQUENCE .
+  protecting REAL-SEQUENCE .
+endfm
+
 set include BOOLEAN on .

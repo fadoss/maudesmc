@@ -36,6 +36,9 @@ class UnionStrategy;
 class TestStrategy;
 class SubtermStrategy;
 class CallStrategy;
+class OneStrategy;
+class ChoiceStrategy;
+class SampleStrategy;
 
 class StrategicExecution;
 

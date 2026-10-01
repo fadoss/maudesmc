@@ -35,7 +35,10 @@ public:
       NOT_SMT = -1,
       BOOLEAN = 0,
       INTEGER = 1,
-      REAL = 2
+      REAL = 2,
+      SET = 3,
+      ARRAY = 4,
+      SEQUENCE = 5,
     };
 
   SMT_Info();
@@ -49,22 +52,32 @@ public:
   Symbol* getTrueSymbol() const;
   void setEqualityOperator(Symbol* symbol);
   Symbol* getEqualityOperator(DagNode* lhs, DagNode* rhs) const;
- 
-private:
-  //
-  //	We keep track of which Maude sort corresponds to which SMT type
-  //	by mapping the index of the sort within its module to our enum.
-  //
+  void setSetElementSort(const Sort* setSort, const Sort* elementSort);
+  const Sort* getSetElementSort(const Sort* setSort) const;
+
+  void setArrayIndexSort(const Sort* arraySort, const Sort* indexSort);
+  const Sort* getArrayIndexSort(const Sort* arraySort) const;
+
+  void setArrayValueSort(const Sort* arraySort, const Sort* valueSort);
+  const Sort* getArrayValueSort(const Sort* arraySort) const;
+
+  void setSeqElementSort(const Sort* seqSort, const Sort* elementSort);
+  const Sort* getSeqElementSort(const Sort* seqSort) const;
+  
+ private:
   typedef map<int, SMT_Type> SortIndexToSMT_TypeMap;
-  //
-  //	We keep track of Maude symbols that correspond to equality
-  //	operators on various kinds by mapping the index of the kind
-  //	within  its module to the symbol pointer.
-  //
   typedef map<int, Symbol*> EqualityOperatorMap;
+  typedef map<int, const Sort*> SetElementSortMap;
+  typedef map<int, const Sort*> ArrayIndexSortMap;
+  typedef map<int, const Sort*> ArrayValueSortMap;
+  typedef map<int, const Sort*> SeqElementSortMap;
 
   SortIndexToSMT_TypeMap typeMap;
   EqualityOperatorMap equalityOperatorMap;
+  SetElementSortMap setElementSortMap;
+  ArrayIndexSortMap arrayIndexSortMap;
+  ArrayValueSortMap arrayValueSortMap;
+  SeqElementSortMap seqElementSortMap;
   Symbol* conjunctionOperator;
   Symbol* trueSymbol;
 };
@@ -111,6 +124,58 @@ inline Symbol*
 SMT_Info::getTrueSymbol() const
 {
   return trueSymbol;
+}
+
+inline void
+SMT_Info::setArrayIndexSort(const Sort* arraySort, const Sort* indexSort)
+{
+  arrayIndexSortMap.insert(ArrayIndexSortMap::value_type(arraySort->getIndexWithinModule(), indexSort));
+}
+
+inline const Sort*
+SMT_Info::getArrayIndexSort(const Sort* arraySort) const
+{
+  ArrayIndexSortMap::const_iterator i = arrayIndexSortMap.find(arraySort->getIndexWithinModule());
+  return (i == arrayIndexSortMap.end()) ? 0 : i->second;
+}
+
+inline void
+SMT_Info::setArrayValueSort(const Sort* arraySort, const Sort* valueSort)
+{
+  arrayValueSortMap.insert(ArrayValueSortMap::value_type(arraySort->getIndexWithinModule(), valueSort));
+}
+
+inline const Sort*
+SMT_Info::getArrayValueSort(const Sort* arraySort) const
+{
+  ArrayValueSortMap::const_iterator i = arrayValueSortMap.find(arraySort->getIndexWithinModule());
+  return (i == arrayValueSortMap.end()) ? 0 : i->second;
+}
+
+inline void
+SMT_Info::setSeqElementSort(const Sort* seqSort, const Sort* elementSort)
+{
+  seqElementSortMap.insert(SeqElementSortMap::value_type(seqSort->getIndexWithinModule(), elementSort));
+}
+
+inline const Sort*
+SMT_Info::getSeqElementSort(const Sort* seqSort) const
+{
+  SeqElementSortMap::const_iterator i = seqElementSortMap.find(seqSort->getIndexWithinModule());
+  return (i == seqElementSortMap.end()) ? 0 : i->second;
+}
+
+inline void
+SMT_Info::setSetElementSort(const Sort* setSort, const Sort* elementSort)
+{
+  setElementSortMap.insert(SetElementSortMap::value_type(setSort->getIndexWithinModule(), elementSort));
+}
+
+inline const Sort*
+SMT_Info::getSetElementSort(const Sort* setSort) const
+{
+  SetElementSortMap::const_iterator i = setElementSortMap.find(setSort->getIndexWithinModule());
+  return (i == setElementSortMap.end()) ? 0 : i->second;
 }
 
 #endif

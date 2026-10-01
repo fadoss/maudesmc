@@ -95,6 +95,9 @@
 #include "subtermStrategy.hh"
 #include "callStrategy.hh"
 #include "oneStrategy.hh"
+#include "choiceStrategy.hh"
+#include "sampleStrategy.hh"
+#include "weightedSubtermStrategy.hh"
 
 //	front end class definitions
 #include "mixfixModule.hh"
@@ -851,12 +854,61 @@ MixfixParser::makeStrategy(int node)
 	  }
 	Vector<Term*> subterms;
 	Vector<StrategyExpression*> strategies;
-	makeUsingList(parser.getChild(node, listIndex), subterms, strategies);
+	makeTermStrategyList(parser.getChild(node, listIndex), subterms, strategies,
+			     MAKE_USING_PAIR, MAKE_USING_LIST);
 	s = new SubtermStrategy(makeTerm(parser.getChild(node, 0)),
 				actions[parser.getProductionNumber(node)].data,
 				condition,
 				subterms,
 				strategies);
+	break;
+      }
+    case MAKE_WREW:
+      {
+	Vector<ConditionFragment*> condition;
+	int listIndex = 2;
+	if (parser.getNumberOfChildren(node) > 3)  // such that clause
+	  {
+	    makeCondition(parser.getChild(node, 2), condition);
+	    listIndex = 4;
+	  }
+	Vector<Term*> subterms;
+	Vector<StrategyExpression*> strategies;
+	Term* weight = makeTerm(parser.getChild(node, listIndex - 1));
+	makeTermStrategyList(parser.getChild(node, listIndex), subterms, strategies,
+			     MAKE_USING_PAIR, MAKE_USING_LIST);
+	s = new WeightedSubtermStrategy(makeTerm(parser.getChild(node, 0)),
+					actions[parser.getProductionNumber(node)].data,
+					condition,
+					subterms,
+					strategies,
+					weight);
+	break;
+      }
+    case MAKE_CHOICE:
+      {
+	Vector<Term*> weights;
+	Vector<StrategyExpression*> strategies;
+	makeTermStrategyList(parser.getChild(node, 0), weights, strategies,
+			     MAKE_CHOICE_PAIR, MAKE_CHOICE_LIST);
+	s = new ChoiceStrategy(weights, strategies);
+	break;
+      }
+    case MAKE_SAMPLE:
+      {
+	Vector<Term*> args;
+	int pair = parser.getChild(node, 0);
+
+	Term* variable = makeTerm(parser.getChild(pair, 0));
+	auto label = SampleStrategy::Distribution(actions[parser.getProductionNumber(pair)].data);
+	// Parse distribution arguments
+	const size_t argCount = SampleStrategy::getArgCount(label);
+	args.resize(argCount);
+	for (size_t i = 0; i < argCount; ++i)
+	    args[i] = makeTerm(parser.getChild(pair, 1 + i));
+
+	StrategyExpression* strategy = makeStrategy(parser.getChild(node, 1));
+	s = new SampleStrategy(variable, label, args, strategy);
 	break;
       }
     default:
@@ -891,25 +943,32 @@ MixfixParser::makeStrategyCall(int node)
 }
 
 void
-MixfixParser::appendUsingPair(int node, Vector<Term*>& terms, Vector<StrategyExpression*>& strategies)
+MixfixParser::appendTermStrategyPair(int node,
+				     Vector<Term*>& terms,
+				     Vector<StrategyExpression*>& strategies,
+				     short action)
 {
-  Assert(actions[parser.getProductionNumber(node)].action == MAKE_USING_PAIR,
+  Assert(actions[parser.getProductionNumber(node)].action == action,
 	 "unexpected action: " << actions[parser.getProductionNumber(node)].action);
   terms.append(makeTerm(parser.getChild(node, 0)));
   strategies.append(makeStrategy(parser.getChild(node, 1)));
 }
 
 void
-MixfixParser::makeUsingList(int node, Vector<Term*>& terms, Vector<StrategyExpression*>& strategies)
+MixfixParser::makeTermStrategyList(int node,
+				   Vector<Term*>& terms,
+				   Vector<StrategyExpression*>& strategies,
+				   short pairAction,
+				   short listAction)
 {
-  while (actions[parser.getProductionNumber(node)].action == MAKE_USING_LIST)
+  while (actions[parser.getProductionNumber(node)].action == listAction)
     {
-      appendUsingPair(parser.getChild(node, 0), terms, strategies);
+      appendTermStrategyPair(parser.getChild(node, 0), terms, strategies, pairAction);
       node = parser.getChild(node, 1);
     }
   Assert(actions[parser.getProductionNumber(node)].action == PASS_THRU,
 	 "unexpected action: " << actions[parser.getProductionNumber(node)].action);
-  appendUsingPair(parser.getChild(node, 0), terms, strategies);
+  appendTermStrategyPair(parser.getChild(node, 0), terms, strategies, pairAction);
 }
 
 void

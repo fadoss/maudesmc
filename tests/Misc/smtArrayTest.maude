@@ -1,0 +1,41 @@
+set show timing off .
+
+*** This test requires cvc5 and will not work with yices2 or cvc4
+load smt
+
+fmod TEST-ARRAY is
+  protecting SMT-ARRAYS .
+  protecting META-LEVEL .
+  vars I J : Integer .
+  vars X Y : Integer .
+  vars A A1 A2 : SmtArray{Integer} .
+  vars B : Boolean .
+  vars R S : Real .
+  vars AR : SmtArray{Real} .
+endfm
+
+*** Constant arrays, store, & select
+check in TEST-ARRAY : arraySelect(arrayConst(0), I) === 0 .
+check in TEST-ARRAY : arraySelect(arrayConst(0), I) =/== 0 .
+check in TEST-ARRAY : arraySelect(arrayStore(A, I, X), I) === X .
+check in TEST-ARRAY : arraySelect(arrayStore(A, I, X), J) === arraySelect(A, J) and I =/== J .
+check in TEST-ARRAY : arraySelect(arrayStore(arrayStore(A, I, X), I, Y), I) === Y .
+check in TEST-ARRAY : arraySelect(arrayStore(A, I, X), I) === Y and X =/== Y .
+
+*** Range equality is inclusive and requires cvc5's experimental array support
+*** TODO: we can drop support for this, but it seems somewhat useful
+check in TEST-ARRAY : equalRange(A, A, I, J) .
+check in TEST-ARRAY : equalRange(arrayStore(A, I, X), A, I, I)
+                    and X =/== arraySelect(A, I) .
+check in TEST-ARRAY : equalRange(arrayStore(A, I, X), A, I, I)
+                    and X === arraySelect(A, I) .
+
+*** Array equality, extensionality, and conditional arrays
+check in TEST-ARRAY : A === A1 .
+check in TEST-ARRAY : A === A1 and arraySelect(A, I) =/== arraySelect(A1, I) .
+check in TEST-ARRAY : A =/== A1 and arraySelect(A, I) === arraySelect(A1, I) .
+check in TEST-ARRAY : A === (B ? A1 : A2) and B and A =/== A1 .
+check in TEST-ARRAY : A === (B ? A1 : A2) and not B and A === A2 .
+
+*** A second element sort verifies that array variables are not hard-wired to Int
+check in TEST-ARRAY : arraySelect(arrayStore(AR, I, R), I) === S and R =/== S .

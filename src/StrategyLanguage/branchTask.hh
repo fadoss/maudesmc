@@ -35,7 +35,7 @@ class BranchTask : public StrategicTask
 
 
 public:
-  BranchTask(StrategyStackManager& strategyStackManager,
+  BranchTask(StrategicSearch& strategicSearch,
 	     StrategicExecution* sibling,
 	     int startIndex,
 	     StrategyExpression* initialStrategy,
@@ -53,7 +53,7 @@ public:
   virtual Survival executionsExhausted(StrategicProcess* insertionPoint);
 
 private:
-  StrategyStackManager& strategyStackManager;
+  StrategicSearch& strategicSearch;
   const int startIndex;
   StrategyStackManager::StackId iterationCheckpoint;
   StrategyExpression* const initialStrategy;

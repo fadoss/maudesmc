@@ -51,6 +51,7 @@ public:
   // @param searchObject The global search object.
   // @param strategy Matchrew strategy in execution.
   // @param searchState Main pattern match state.
+  // @param otherSubstitution Substitution to be used instead of the one from the search state or nullptr.
   // @param extensionInfo Extension information, whenever the match is with extension.
   // @param searchPosition This match position in the (reusable) searchState.
   // @param pending Stack of pending strategies.
@@ -61,6 +62,7 @@ public:
   SubtermTask(StrategicSearch& searchObject,
 	      SubtermStrategy* strategy,
 	      shared_ptr<MatchSearchState> searchState,
+	      Substitution* otherSubstitution,
 	      ExtensionInfo* extensionInfo,
 	      MatchSearchState::PositionIndex searchPosition,
 	      StrategyStackManager::StackId pending,

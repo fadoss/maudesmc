@@ -34,6 +34,7 @@ public:
   RandomOpSymbol(int id);
 
   static void setGlobalSeed(mt19937::result_type value);
+  static mt19937::result_type getGlobalSeed();
 
 protected:
   bool attachData(const Vector<Sort*>& opDeclaration,
@@ -59,6 +60,12 @@ inline void
 RandomOpSymbol::setGlobalSeed(mt19937::result_type value)
 {
   globalSeed = value;
+}
+
+inline mt19937::result_type
+RandomOpSymbol::getGlobalSeed()
+{
+  return globalSeed;
 }
 
 #endif
