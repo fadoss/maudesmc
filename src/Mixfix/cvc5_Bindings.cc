@@ -60,9 +60,11 @@ VariableGenerator::VariableGenerator(const SMT_Info& smtInfo)
   : smtInfo(smtInfo), smtSolver(termManager)
 {
   smtSolver.setOption("sets-exp", "true");
-  smtSolver.setOption("arrays-exp", "true");
+  // Standard arrays are supported without the experimental option. Enabling
+  // arrays-exp makes cvc5 report finite-set cardinality queries as incomplete hmmm...
   smtSolver.push();  // make a new context so we have a clean context to pop() back to
   pushCount = 0;
+  hasAssertions = false;
 }
 
 VariableGenerator::~VariableGenerator()
@@ -80,6 +82,7 @@ VariableGenerator::assertDag(DagNode* dag)
   try
     {
       smtSolver.assertFormula(e);
+      hasAssertions = true;
     }
   catch (const cvc5::CVC5ApiException&)
     {
@@ -126,7 +129,18 @@ VariableGenerator::checkDag(DagNode* dag)
   cvc5::Result result;
   try
     {
-      result = smtSolver.checkSatAssuming(e);
+      // A fresh solver can use the non-incremental checkSat path which is
+      // complete for finite-set cardinality. The main solver is incremental
+      // for SMT rewriting where assertions and scopes must be preserved
+      if (!hasAssertions && pushCount == 0)
+        {
+          cvc5::Solver oneShotSolver(termManager);
+          oneShotSolver.setOption("sets-exp", "true");
+          oneShotSolver.assertFormula(e);
+          result = oneShotSolver.checkSat();
+        }
+      else
+        result = smtSolver.checkSatAssuming(e);
       DebugAdvisory("cvc5 checkSat() returned " << result);
     }
   catch (const cvc5::CVC5ApiException& e)
@@ -157,6 +171,7 @@ VariableGenerator::clearAssertions()
     }
   smtSolver.pop();  // get back to original clean context
   smtSolver.push();  // make a new context so we don't pollute the context we want to pop back to
+  hasAssertions = false;
 }
 
 inline void

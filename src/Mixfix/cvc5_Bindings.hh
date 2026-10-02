@@ -68,6 +68,7 @@ private:
 
   VariableMap variableMap;
   int pushCount;
+  bool hasAssertions;
   //
   //	CVC5 objects.
   //
