@@ -154,7 +154,12 @@ sigsegv = cxx.find_library('sigsegv',
 		required: get_option('with-sigsegv'),
 		dirs: extraSearchPaths)
 
-libraries += [buddy, gmpxx, sigsegv]
+# CETA library (https://github.com/fadoss/ceta)
+ceta = cxx.find_library('ceta',
+		static: 'ceta' in staticLibs,
+		dirs: extraSearchPaths)
+
+libraries += [buddy, gmpxx, sigsegv, ceta]
 
 if readline.found()
 	conf.set('USE_READLINE', 1, description: 'use GNU readline command line editing library')
@@ -870,6 +875,7 @@ meta_includes = include_directories(
 	'src/FullCompiler',
 	'src/Higher',
 	'src/AU_Theory',
+	'src/ACU_Theory',
 	'src/CUI_Theory',
 	'src/S_Theory',
 	'src/NA_Theory',
@@ -892,6 +898,7 @@ meta_source = [
 	'src/Meta/metaLevelOpSymbol.cc',
 	'src/Meta/metaPreModule.cc',
 	'src/Meta/metaView.cc',
+	'src/Meta/cetaSymbol.cc',
 ]
 
 meta = static_library('meta', meta_source, include_directories: meta_includes)
@@ -1019,10 +1026,17 @@ builtin_includes = include_directories(
 	'src/FullCompiler',
 	'src/NA_Theory',
 	'src/ACU_Persistent',
+	'src/AU_Theory',
 	'src/ACU_Theory',
 	'src/CUI_Theory',
 	'src/S_Theory',
 	'src/FreeTheory',
+	'src/Higher',
+	'src/Mixfix',
+	'src/IO_Stuff',
+	'src/StrategyLanguage',
+	'src/SMT',
+	'src/Parser',
 )
 
 builtin_source = [
@@ -1048,6 +1062,7 @@ builtin_source = [
 	'src/BuiltIn/matrixOpSymbol.cc',
 	'src/BuiltIn/equalityExtor.cc',
 	'src/BuiltIn/equalityExtorFinal.cc',
+	'src/BuiltIn/terminationCheckerSymbol.cc',
 ]
 
 builtin = static_library('builtin', builtin_source, include_directories: builtin_includes)
@@ -1161,6 +1176,7 @@ install_data(
 	'src/Main/prelude.maude',
 	'src/Main/prng.maude',
 	'src/Main/process.maude',
+	'src/Main/scc.maude',
 	'src/Main/smt.maude',
 	'src/Main/socket.maude',
 	'src/Main/term-order.maude',

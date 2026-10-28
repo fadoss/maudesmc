@@ -179,6 +179,10 @@ MixfixModule::newFancySymbol(Token prefixName,
       return new SocketManagerSymbol(name);
     case SymbolType::INTERPRETER_MANAGER_SYMBOL:
       return new InterpreterManagerSymbol(name);
+    case SymbolType::CETA_SYMBOL:
+      return new CetaSymbol(name, nrArgs);
+    case SymbolType::TERMINATION_CHECKER_SYMBOL:
+      return new TerminationCheckerSymbol(name, nrArgs);
     case SymbolType::SMT_SYMBOL:
       return new SMT_Symbol(name, nrArgs);
     case SymbolType::SMT_NUMBER_SYMBOL:

@@ -59,6 +59,7 @@ maude_LDADD = \
 	../Utility/libutility.a \
 	$(SMT_LIB) \
 	$(GMP_LIBS) \
+	$(CETA_LIBS) \
 	$(BUDDY_LIB) \
 	$(READLINE_LIBS) \
 	$(LIBSIGSEGV_LIB)
@@ -74,6 +75,7 @@ data_DATA = \
 	machine-int.maude \
 	term-order.maude \
 	metaInterpreter.maude \
+	scc.maude \
 	smt.maude \
 	file.maude \
 	time.maude \

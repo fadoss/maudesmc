@@ -8,6 +8,7 @@ libmeta_a_CPPFLAGS = \
 	-I$(top_srcdir)/src/FullCompiler \
 	-I$(top_srcdir)/src/Higher \
 	-I$(top_srcdir)/src/AU_Theory \
+	-I$(top_srcdir)/src/ACU_Theory \
 	-I$(top_srcdir)/src/CUI_Theory \
 	-I$(top_srcdir)/src/S_Theory \
 	-I$(top_srcdir)/src/NA_Theory \
@@ -29,6 +30,7 @@ libmeta_a_SOURCES = \
 	metaModule.cc \
 	metaLevelOpSymbol.cc \
 	metaPreModule.cc \
+	cetaSymbol.cc \
 	metaView.cc
 
 EXTRA_DIST = \
@@ -89,4 +91,5 @@ noinst_HEADERS = \
 	metaModuleCache.hh \
 	metaOpCache.hh \
 	metaPreModule.hh \
+	cetaSymbol.hh \
 	metaView.hh
