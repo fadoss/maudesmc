@@ -266,7 +266,7 @@ VisibleModule::latexPrintStrategy(ostream& s, StrategyExpression* strategy, int 
 	s << "\\maudeLeftParen";
       s << "\\maudeKeyword{sample}\\maudeSpace";
       latexPrettyPrint(s, e->getVariable());
-      cout << "\\maudeSpace\\maudeAssign\\maudeKeyword{" << SampleStrategy::getName(e->getDistribution()) << "}\\maudeLeftParen";
+      cout << "\\maudeSpace\\maudeAssign\\maudeKeyword{" << SampleStrategy::getSignature(e->getDistribution()).name << "}\\maudeLeftParen";
       const Vector<CachedDag>& args = e->getArguments();
       Index nrArguments = args.size();
       for (Index i = 0; i < nrArguments; ++i)

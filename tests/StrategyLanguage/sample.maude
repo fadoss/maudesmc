@@ -1,0 +1,83 @@
+set show timing off .
+set show advisories off .
+
+mod SINGLETON is
+	protecting INT .
+	protecting FLOAT .
+
+	sort Singleton .
+	op <_> : Bool -> Singleton [ctor] .
+	op <_> : Int -> Singleton [ctor] .
+	op <_> : Float -> Singleton [ctor] .
+
+	vars B B0 : Bool .
+	vars M M0 : Int .
+	var  N    : Nat .
+	vars F F0 : Float .
+
+	rl [put] : < B0 > => < B > [nonexec] .
+	rl [put] : < M0 > => < M > [nonexec] .
+	rl [put] : < F0 > => < F > [nonexec] .
+endm
+
+*** Tests with constant arguments
+
+srew < false > using sample B := bernoulli(0.9) in put[B <- B] .
+srew < 0.0 > using sample F := uniform(1.0, 2.0) in put[F <- F] .
+srew < 0 > using sample M := uniform(1, 10) in put[M <- M] .
+srew < 0 > using sample N := uniform(1, 10) in put[M <- N] .
+srew < 0 > using sample M := uniform(-4, -2) in put[M <- M] .
+srew < 0 > using sample N := uniform(-4, -2) in put[M <- N] .
+srew < 0.0 > using sample F := norm(2.0, 1.0) in put[F <- F] .
+srew < 0.0 > using sample F := gamma(2.0, 1.5) in put[F <- F] .
+srew < 0.0 > using sample F := exp(3.5) in put[F <- F] .
+srew < 0 > using sample M := binomial(5, 0.6) in put[M <- M] .
+srew < 0 > using sample N := negbinomial(5, 0.6) in put[M <- N] .
+srew < 0 > using sample N := geometric(0.25) in put[M <- N] .
+srew < 0 > using sample N := poisson(4.23) in put[M <- N] .
+srew < 0.0 > using sample F := cauchy(-2.0, 1.0) in put[F <- F] .
+srew < 0.0 > using sample F := weibull(3.1, 2.4) in put[F <- F] .
+srew < 0.0 > using sample F := lognormal(-3.3, 1.2) in put[F <- F] .
+srew < 0.0 > using sample F := chi2(3) in put[F <- F] .
+srew < 0.0 > using sample F := studentt(5) in put[F <- F] .
+
+*** Tests with unreduced parameters
+
+srew < 0.0 > using sample F := uniform(1.0 - 2.0, 3.2 * 2.1) in put[F <- F] .
+srew < 0.0 > using sample F := chi2(1 + 4) in put[F <- F] .
+
+*** Tests with invalid parameters
+
+srew < false > using sample B := bernoulli(2.0) in put[B <- B] .
+srew < 0.0 > using sample F := uniform(2.0, 1.0) in put[F <- F] .
+srew < 0 > using sample N := geometric(-2.0) in put[M <- N] .
+srew < 0.0 > using sample F := chi2(-4) in put[F <- F] .
+
+*** Tests with non-ground parameters
+
+smod SINGLETON-STRAT is
+	protecting SINGLETON .
+
+	strat bern : Float @ Singleton .
+	strat unif : Nat @ Singleton .
+	strat unif2 : Float Float @ Singleton .
+
+	var  B       : Bool .
+	vars F1 F2 F : Float .
+	var  N M     : Nat .
+
+	sd bern(F) := sample B := bernoulli(F) in put[B <- B] .
+	sd unif(N) := sample M := uniform(N, 2 * N) in put[M:Int <- M] .
+	sd unif2(F1, F2) := sample F := uniform(F1 - 0.1, F2 + 0.1) in put[F <- F] .
+endsm
+
+srew < false > using bern(0.1) .
+srew < 0 > using unif(5) .
+srew < 0.0 > using unif2(0.0, 1.0) .
+
+*** Tests at the metalevel
+
+red in META-LEVEL : metaSrewrite(['SINGLETON], '<_>['0.0.Float], sample 'F:Float := 'exp['3.2.Float] in 'put['F:Float <- 'F:Float]{empty}, breadthFirst, 0) .
+red metaSrewrite(['SINGLETON], '<_>['0.Nat], sample 'N:Nat := 'uniform['s_^3['0.Zero], 's_^10['0.Zero]] in 'put['M:Int <- 'N:Nat]{empty}, breadthFirst, 0) .
+red metaSrewrite(['SINGLETON], '<_>['0.0.Float], sample 'F:Float := 'exp['3.2.Float, '4.3.Float] in 'put['F:Float <- 'F:Float]{empty}, breadthFirst, 0) .
+red metaSrewrite(['SINGLETON-STRAT], '<_>['0.0.Float], 'unif2[['0.0.Float, '1.0.Float]], breadthFirst, 0) .

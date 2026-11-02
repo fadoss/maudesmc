@@ -26,6 +26,8 @@
 #include "strategyExpression.hh"
 #include "cachedDag.hh"
 
+#include <vector>
+
 class SampleStrategy : public StrategyExpression
 {
 public:
@@ -41,11 +43,36 @@ public:
     GAMMA,
     // exp(<factor>)
     EXP,
+    // binomial(<number of trials>, <probability>)
+    BINOMIAL,
+    // negbinomial(<number of trial successes>, <probability>)
+    NEGBINOMIAL,
+    // geometric(<probability>)
+    GEOMETRIC,
+    // poisson(<mean>)
+    POISSON,
+    // cauchy(<location>, <scale>)
+    CAUCHY,
+    // weibull(<shape>, <scale>)
+    WEIBULL,
+    // lognormal(<log-scale>, <shape>)
+    LOGNORMAL,
+    // chi2(<degrees of freedom>)
+    CHI2,
+    // studentt(<degrees of freedom>)
+    STUDENTT,
     NUM_DISTRIBUTIONS
   };
 
-  static const char* getName(Distribution distrib);
-  static size_t getArgCount(Distribution dist);
+  // Signature of a distribution
+  struct DistributionSignature {
+    enum Type { FLOAT, INTEGER, BOOL };
+    const char* name;
+    std::vector<Type> args;
+    Type result;
+  };
+
+  static const DistributionSignature& getSignature(Distribution distrib);
 
   SampleStrategy(Term* variable, Distribution distribution, const Vector<Term*>& args, StrategyExpression* e);
   ~SampleStrategy();
@@ -66,20 +93,12 @@ private:
   Vector<CachedDag> argDags;
   StrategyExpression* strategy;
   Vector<int> contextSpec;
-};
 
-inline const char*
-SampleStrategy::getName(Distribution distrib) {
-  switch (distrib) {
-    case BERNOULLI: return "bernoulli";
-    case UNIFORM:
-    case UNIFORM_DISCRETE: return "uniform";
-    case NORM: return "norm";
-    case GAMMA: return "gamma";
-    case EXP: return "exp";
-    default: return nullptr;
-  }
-}
+  // For building the result
+  Symbol* resultSymbol;
+  CachedDag trueTerm;
+  CachedDag falseTerm;
+};
 
 inline Term*
 SampleStrategy::getVariable() const

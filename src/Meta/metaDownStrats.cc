@@ -310,13 +310,20 @@ MetaLevel::downStratExpr(DagNode* metaStrategy,
 		{
 		  SampleStrategy::Distribution cd = (SampleStrategy::Distribution) i;
 
-		  if (strcmp(name, SampleStrategy::getName(cd)) == 0)
+		  if (strcmp(name, SampleStrategy::getSignature(cd).name) == 0)
 		    distrib = cd;
 		}
 
 	      if (distrib != SampleStrategy::NUM_DISTRIBUTIONS)
 		{
-		  if (Term* variable = downTerm(f->getArgument(0), m))
+		  // Check the number of arguments (checking their kinds would also make sense)
+		  size_t expectedArgs = SampleStrategy::getSignature(distrib).args.size();
+		  if (expectedArgs != args.size())
+		    {
+		      IssueWarning("wrong number of arguments for the probabilistic distribution in "
+				   << QUOTE(f->getArgument(1)) << " (" << expectedArgs << " expected)." );
+		    }
+		  else if (Term* variable = downTerm(f->getArgument(0), m))
 		    {
 		      if (StrategyExpression* strategy = downStratExpr(f->getArgument(2), m))
 			  return new SampleStrategy(variable, distrib, args, strategy);

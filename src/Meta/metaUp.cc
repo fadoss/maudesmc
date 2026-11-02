@@ -1525,7 +1525,7 @@ MetaLevel::upStratExpr(const StrategyExpression* expr,
       for (size_t i = 0; i < nrArgs; i++)
 	args3[i] = upTerm(dargs[i].getTerm(), m, qidMap);
 
-      args2[0] = upQid(Token::encode(SampleStrategy::getName(e->getDistribution())), qidMap);
+      args2[0] = upQid(Token::encode(SampleStrategy::getSignature(e->getDistribution()).name), qidMap);
       args2[1] = nrArgs == 1 ? args3[0] : metaArgSymbol->makeDagNode(args3);
 
       args[0] = upTerm(e->getVariable(), m, qidMap);

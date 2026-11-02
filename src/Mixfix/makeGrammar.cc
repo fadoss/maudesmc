@@ -699,23 +699,26 @@ MixfixModule::makeStrategyLanguageProductions()
     Vector<int> rhs(5);
     Vector<int> gather(2);
 
-    // We first look for the Nat and Float kinds to restrict parsing of
+    // We first look for Bool, Nat, and Float kinds to restrict parsing of
     // the sample variable and the arguments to these connected components
-    int intComponent = -1, floatComponent = -1;
+    int boolComponent = -1, intComponent = -1, floatComponent = -1;
+
+    // MixfixModule keeps a pointer to true and false
+    if (trueSymbol)
+      boolComponent = trueSymbol->domainComponent(0)->getIndexWithinModule();
 
     for (Symbol* symbol : getSymbols())
       {
-        Vector<const char*> purposes;
-        Vector<Vector<const char*>> data;
-        symbol->getDataAttachments(symbol->getOpDeclarations()[0].getDomainAndRange(), purposes, data);
-
-        if (!purposes.empty())
-          {
-            if (strcmp(purposes[0], "FloatOpSymbol") == 0)
-                  floatComponent = symbol->domainComponent(0)->getIndexWithinModule();
-            else if (strcmp(purposes[0], "SuccSymbol") == 0)
-                  intComponent = symbol->getRangeSort()->component()->getIndexWithinModule();
-          }
+	if (dynamic_cast<FloatSymbol*>(symbol))
+	  {
+	    floatComponent = symbol->domainComponent(0)->getIndexWithinModule();
+	    if (intComponent != -1) break;
+	  }
+	else if (dynamic_cast<SuccSymbol*>(symbol))
+	  {
+	    intComponent = symbol->domainComponent(0)->getIndexWithinModule();
+	    if (floatComponent != -1) break;
+	  }
       }
 
     gather[0] = ANY;
@@ -726,29 +729,52 @@ MixfixModule::makeStrategyLanguageProductions()
     for (int i = 0; i < SampleStrategy::NUM_DISTRIBUTIONS; i++)
     {
       SampleStrategy::Distribution dist = SampleStrategy::Distribution(i);
-      // The discrete uniform distribution is the only one that takes integer arguments
-      int argComponent = dist == SampleStrategy::UNIFORM_DISCRETE ? intComponent : floatComponent;
+      // Get the signature of the distribution
+      const SampleStrategy::DistributionSignature& signature = SampleStrategy::getSignature(dist);
+      constexpr auto INTEGER = SampleStrategy::DistributionSignature::INTEGER;
+      constexpr auto BOOL = SampleStrategy::DistributionSignature::BOOL;
 
-      // If Float or Nat are not in the module, sample is not usable
+      // Distributions can produce an integer or floating-point result
+      int argComponent;
+
+      switch (signature.result)
+	{
+	  case BOOL: argComponent = boolComponent; break;
+	  case INTEGER: argComponent = intComponent; break;
+	  default: argComponent = floatComponent; break;
+	}
+
+      // If the target sort is not in the module, this distribution is not usable
       if (argComponent == -1)
-        continue;
+	continue;
 
       int termNt = nonTerminal(argComponent, TERM_TYPE);
 
-      size_t argCount = SampleStrategy::getArgCount(dist);
+      size_t argCount = signature.args.size();
       rhs.resize(4 + 2 * argCount);  // fixed + arguments + commas
       gather.resize(1 + argCount);  // variable + arguments
 
       rhs[0] = termNt;  // variable (sample destination)
-      rhs[2] = Token::encode(SampleStrategy::getName(dist));  // distribution name
+      rhs[2] = Token::encode(signature.name);  // distribution name
 
       // Comma-separated list of arguments
-      for (int j = 0; j < argCount; ++j)
-        {
-          rhs[4 + 2 * j] = termNt;
-          gather[1 + j] = ANY;
-          rhs[4 + 2 * j + 1] = comma;
-        }
+      int j;
+      for (j = 0; j < argCount; ++j)
+	{
+	  // Arguments can only be in Float or Int
+	  int argComponent = signature.args[j] != INTEGER ? floatComponent : intComponent;
+
+	  // The argument type is not in the module, so this distribution is not usable
+	  if (argComponent == -1)
+	    break;
+	  int termNt = nonTerminal(argComponent, TERM_TYPE);
+
+	  rhs[4 + 2 * j] = termNt;
+	  gather[1 + j] = ANY;
+	  rhs[4 + 2 * j + 1] = comma;
+	}
+
+      if (j < argCount) continue;
 
       rhs[4 + 2 * argCount - 1] = rightParen; // closing parethensis
 

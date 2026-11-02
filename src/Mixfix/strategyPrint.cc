@@ -259,7 +259,7 @@ MixfixModule::prettyPrint(ostream& s, StrategyExpression* strategy, int required
       const Vector<CachedDag>& args = e->getArguments();
 
       s << "sample " << e->getVariable() << " := "
-        << SampleStrategy::getName(e->getDistribution()) << "(";
+        << SampleStrategy::getSignature(e->getDistribution()).name << "(";
 
       int nrArgs = args.size();
       for (int i = 0;;)

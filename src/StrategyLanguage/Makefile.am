@@ -9,7 +9,8 @@ libstrategyLanguage_a_CPPFLAGS = \
 	-I$(top_srcdir)/src/S_Theory \
 	-I$(top_srcdir)/src/NA_Theory \
 	-I$(top_srcdir)/src/BuiltIn \
-	-I$(top_srcdir)/src/FullCompiler
+	-I$(top_srcdir)/src/FullCompiler \
+	-I$(top_srcdir)/src/FreeTheory
 
 libstrategyLanguage_a_SOURCES = \
 	strategyExpression.cc \

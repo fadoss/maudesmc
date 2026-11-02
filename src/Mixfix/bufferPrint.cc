@@ -901,7 +901,7 @@ MixfixModule::prettyPrint(Vector<int>& buffer,
 
       const Vector<CachedDag>& arguments = s->getArguments();
       size_t numArgs = arguments.size();
-      buffer.append(Token::encode(SampleStrategy::getName(s->getDistribution())));
+      buffer.append(Token::encode(SampleStrategy::getSignature(s->getDistribution()).name));
       buffer.append(leftParen);
       for (int i = 0;;)
 	{

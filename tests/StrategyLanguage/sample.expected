@@ -1,0 +1,274 @@
+==========================================
+srewrite in SINGLETON : < false > using sample B := bernoulli(
+    9.0000000000000002e-1) in put[B <- B] .
+
+Solution 1
+rewrites: 1
+result Singleton: < true >
+
+No more solutions.
+rewrites: 1
+==========================================
+srewrite in SINGLETON : < 0.0 > using sample F := uniform(1.0, 2.0) in put[F <-
+    F] .
+
+Solution 1
+rewrites: 1
+result Singleton: < 1.2504803406880287 >
+
+No more solutions.
+rewrites: 1
+==========================================
+srewrite in SINGLETON : < 0 > using sample M := uniform(1, 10) in put[M <- M] .
+
+Solution 1
+rewrites: 1
+result Singleton: < 8 >
+
+No more solutions.
+rewrites: 1
+==========================================
+srewrite in SINGLETON : < 0 > using sample N := uniform(1, 10) in put[M <- N] .
+
+Solution 1
+rewrites: 1
+result Singleton: < 10 >
+
+No more solutions.
+rewrites: 1
+==========================================
+srewrite in SINGLETON : < 0 > using sample M := uniform(-4, -2) in put[M <- M]
+    .
+
+Solution 1
+rewrites: 1
+result Singleton: < -4 >
+
+No more solutions.
+rewrites: 1
+==========================================
+srewrite in SINGLETON : < 0 > using sample N := uniform(-4, -2) in put[M <- N]
+    .
+
+No solution.
+rewrites: 0
+==========================================
+srewrite in SINGLETON : < 0.0 > using sample F := norm(2.0, 1.0) in put[F <- F]
+    .
+
+Solution 1
+rewrites: 1
+result Singleton: < -1.3557152251433813e-1 >
+
+No more solutions.
+rewrites: 1
+==========================================
+srewrite in SINGLETON : < 0.0 > using sample F := gamma(2.0, 1.5) in put[F <-
+    F] .
+
+Solution 1
+rewrites: 1
+result Singleton: < 3.4882896916693578 >
+
+No more solutions.
+rewrites: 1
+==========================================
+srewrite in SINGLETON : < 0.0 > using sample F := exp(3.5) in put[F <- F] .
+
+Solution 1
+rewrites: 1
+result Singleton: < 2.2427053652447557e-1 >
+
+No more solutions.
+rewrites: 1
+==========================================
+srewrite in SINGLETON : < 0 > using sample M := binomial(5,
+    5.9999999999999998e-1) in put[M <- M] .
+
+Solution 1
+rewrites: 1
+result Singleton: < 0 >
+
+No more solutions.
+rewrites: 1
+==========================================
+srewrite in SINGLETON : < 0 > using sample N := negbinomial(5,
+    5.9999999999999998e-1) in put[M <- N] .
+
+No solution.
+rewrites: 0
+==========================================
+srewrite in SINGLETON : < 0 > using sample N := geometric(2.5e-1) in put[M <-
+    N] .
+
+Solution 1
+rewrites: 1
+result Singleton: < 6 >
+
+No more solutions.
+rewrites: 1
+==========================================
+srewrite in SINGLETON : < 0 > using sample N := poisson(4.2300000000000004) in
+    put[M <- N] .
+
+Solution 1
+rewrites: 1
+result Singleton: < 4 >
+
+No more solutions.
+rewrites: 1
+==========================================
+srewrite in SINGLETON : < 0.0 > using sample F := cauchy(-2.0, 1.0) in put[F <-
+    F] .
+
+Solution 1
+rewrites: 1
+result Singleton: < -4.2354186024246476e-1 >
+
+No more solutions.
+rewrites: 1
+==========================================
+srewrite in SINGLETON : < 0.0 > using sample F := weibull(3.1000000000000001,
+    2.3999999999999999) in put[F <- F] .
+
+Solution 1
+rewrites: 1
+result Singleton: < 3.1889475397797566 >
+
+No more solutions.
+rewrites: 1
+==========================================
+srewrite in SINGLETON : < 0.0 > using sample F := lognormal(
+    -3.2999999999999998, 1.2) in put[F <- F] .
+
+Solution 1
+rewrites: 1
+result Singleton: < 2.0189771884874811e-2 >
+
+No more solutions.
+rewrites: 1
+==========================================
+srewrite in SINGLETON : < 0.0 > using sample F := chi2(3) in put[F <- F] .
+
+Solution 1
+rewrites: 1
+result Singleton: < 3.9942245330825905 >
+
+No more solutions.
+rewrites: 1
+==========================================
+srewrite in SINGLETON : < 0.0 > using sample F := studentt(5) in put[F <- F] .
+
+Solution 1
+rewrites: 1
+result Singleton: < -2.0792383730878242e-1 >
+
+No more solutions.
+rewrites: 1
+==========================================
+srewrite in SINGLETON : < 0.0 > using sample F := uniform(1.0 - 2.0,
+    3.2000000000000002 * 2.1000000000000001) in put[F <- F] .
+
+Solution 1
+rewrites: 3
+result Singleton: < 3.5075740844902921 >
+
+No more solutions.
+rewrites: 3
+==========================================
+srewrite in SINGLETON : < 0.0 > using sample F := chi2(1 + 4) in put[F <- F] .
+
+Solution 1
+rewrites: 2
+result Singleton: < 4.0904451290511359 >
+
+No more solutions.
+rewrites: 2
+==========================================
+srewrite in SINGLETON : < false > using sample B := bernoulli(2.0) in put[B <-
+    B] .
+
+No solution.
+rewrites: 0
+==========================================
+srewrite in SINGLETON : < 0.0 > using sample F := uniform(2.0, 1.0) in put[F <-
+    F] .
+
+No solution.
+rewrites: 0
+==========================================
+srewrite in SINGLETON : < 0 > using sample N := geometric(-2.0) in put[M <- N]
+    .
+
+No solution.
+rewrites: 0
+==========================================
+srewrite in SINGLETON : < 0.0 > using sample F := chi2(-4) in put[F <- F] .
+
+No solution.
+rewrites: 0
+==========================================
+srewrite in SINGLETON-STRAT : < false > using bern(1.0000000000000001e-1) .
+
+Solution 1
+rewrites: 1
+result Singleton: < false >
+
+No more solutions.
+rewrites: 1
+==========================================
+srewrite in SINGLETON-STRAT : < 0 > using unif(5) .
+
+Solution 1
+rewrites: 2
+result Singleton: < 6 >
+
+No more solutions.
+rewrites: 2
+==========================================
+srewrite in SINGLETON-STRAT : < 0.0 > using unif2(0.0, 1.0) .
+
+Solution 1
+rewrites: 3
+result Singleton: < -4.5352167878013147e-2 >
+
+No more solutions.
+rewrites: 3
+==========================================
+reduce in META-LEVEL : metaSrewrite(['SINGLETON], '<_>['0.0.Float], sample
+    'F:Float := 'exp['3.2.Float] in 'put[
+  'F:Float <- 'F:Float]{empty}, breadthFirst, 0) .
+rewrites: 3
+result ResultPair: {'<_>['2.1973431029938867e-1.FiniteFloat], 'Singleton}
+==========================================
+reduce in META-LEVEL : metaSrewrite(['SINGLETON], '<_>['0.Nat], sample 'N:Nat
+    := 'uniform['s_^3['0.Zero], 's_^10['0.Zero]] in 'put[
+  'M:Int <- 'N:Nat]{empty}, breadthFirst, 0) .
+rewrites: 3
+result ResultPair: {'<_>['s_^8['0.Zero]], 'Singleton}
+==========================================
+reduce in META-LEVEL : metaSrewrite(['SINGLETON], '<_>['0.0.Float], sample
+    'F:Float := 'exp['3.2.Float, '4.3.Float] in 'put[
+  'F:Float <- 'F:Float]{empty}, breadthFirst, 0) .
+Warning: wrong number of arguments for the probabilistic distribution in 'exp[
+    '3.2.Float, '4.3.Float] (1 expected).
+rewrites: 1
+result [ResultPair?]: metaSrewrite(sth 'SINGLETON is
+  including 'SINGLETON .
+  sorts none .
+  none
+  none
+  none
+  none
+  none
+  none
+  none
+endsth, '<_>['0.0.Float], sample 'F:Float := 'exp['3.2.Float, '4.3.Float] in
+    'put[
+  'F:Float <- 'F:Float]{empty}, breadthFirst, 0)
+==========================================
+reduce in META-LEVEL : metaSrewrite(['SINGLETON-STRAT], '<_>['0.0.Float],
+    'unif2[['0.0.Float, '1.0.Float]], breadthFirst, 0) .
+rewrites: 5
+result ResultPair: {'<_>['9.4627328985452813e-3.FiniteFloat], 'Singleton}
+Bye.

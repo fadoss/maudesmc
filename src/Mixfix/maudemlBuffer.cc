@@ -578,7 +578,7 @@ MaudemlBuffer::generate(StrategyExpression* strat)
   else if (SampleStrategy* se = dynamic_cast<SampleStrategy*>(strat))
     {
       attributePair("type", "sample");
-      attributePair("distribution", SampleStrategy::getName(se->getDistribution()));
+      attributePair("distribution", SampleStrategy::getSignature(se->getDistribution()).name);
       generate(se->getVariable());
       for (const CachedDag &term : se->getArguments())
 	generate(term.getTerm());

@@ -33,7 +33,7 @@
 #include "core.hh"
 #include "strategyLanguage.hh"
 
-//	higuer class definitions
+//	higher class definitions
 #include "strategyTransitionGraph.hh"
 
 //	strategy language class definitions

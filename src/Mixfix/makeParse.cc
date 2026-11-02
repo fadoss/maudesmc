@@ -449,8 +449,9 @@ MixfixParser::makeStrategy(int node)
 
 	Term* variable = makeTerm(parser.getChild(pair, 0));
 	auto label = SampleStrategy::Distribution(actions[parser.getProductionNumber(pair)].data);
+	const auto& distrib = SampleStrategy::getSignature(label);
 	// Parse distribution arguments
-	const size_t argCount = SampleStrategy::getArgCount(label);
+	const size_t argCount = distrib.args.size();
 	args.resize(argCount);
 	for (size_t i = 0; i < argCount; ++i)
 	  args[i] = makeTerm(parser.getChild(pair, 1 + i));

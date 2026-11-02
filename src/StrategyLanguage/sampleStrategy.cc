@@ -38,6 +38,7 @@
 
 //	numeric class definitions
 #include "floatSymbol.hh"
+#include "floatOpSymbol.hh"
 #include "floatDagNode.hh"
 #include "minusSymbol.hh"
 #include "succSymbol.hh"
@@ -53,22 +54,37 @@
 // Share the random generator with the choice operator
 extern mt19937_64 choice_random_generator;
 
-size_t
-SampleStrategy::getArgCount(Distribution dist)
+// Signature of probability distributions
+constexpr auto FLOAT = SampleStrategy::DistributionSignature::FLOAT;
+constexpr auto INTEGER = SampleStrategy::DistributionSignature::INTEGER;
+constexpr auto BOOL = SampleStrategy::DistributionSignature::BOOL;
+
+const SampleStrategy::DistributionSignature signatures[SampleStrategy::NUM_DISTRIBUTIONS] = {
+	{"bernoulli", {FLOAT}, BOOL},
+	{"uniform", {FLOAT, FLOAT}, FLOAT},
+	{"uniform", {INTEGER, INTEGER}, INTEGER},
+	{"norm", {FLOAT, FLOAT}, FLOAT},
+	{"gamma", {FLOAT, FLOAT}, FLOAT},
+	{"exp", {FLOAT}, FLOAT},
+	{"binomial", {INTEGER, FLOAT}, INTEGER},
+	{"negbinomial", {INTEGER, FLOAT}, INTEGER},
+	{"geometric", {FLOAT}, INTEGER},
+	{"poisson", {FLOAT}, INTEGER},
+	{"cauchy", {FLOAT, FLOAT}, FLOAT},
+	{"weibull", {FLOAT, FLOAT}, FLOAT},
+	{"lognormal", {FLOAT, FLOAT}, FLOAT},
+	{"chi2", {INTEGER}, FLOAT},
+	{"studentt", {INTEGER}, FLOAT},
+};
+
+const SampleStrategy::DistributionSignature&
+SampleStrategy::getSignature(Distribution distribution)
 {
-  switch (dist) {
-    case UNIFORM:
-    case UNIFORM_DISCRETE:
-    case NORM:
-    case GAMMA: return 2;
-    case BERNOULLI:
-    case EXP: return 1;
-    default: return 0;
-  }
+	return signatures[distribution];
 }
 
 SampleStrategy::SampleStrategy(Term* variable, Distribution distribution, const Vector<Term*>& args, StrategyExpression* e)
-  : variable(variable), distribution(distribution), argDags(args.size()), strategy(e)
+  : variable(variable), distribution(distribution), argDags(args.size()), strategy(e), resultSymbol(nullptr)
 {
   Assert(variable != nullptr, "no variable");
   Assert(e != nullptr, "no strategy");
@@ -90,7 +106,7 @@ SampleStrategy::~SampleStrategy()
 bool
 SampleStrategy::check(VariableInfo& indices, const TermSet& boundVars)
 {
-  // Index and check the variables in the weights
+  // Index and check the variables in the distribution parameters
   for (CachedDag& dag : argDags)
     {
       dag.getTerm()->indexVariables(indices);
@@ -117,6 +133,62 @@ SampleStrategy::check(VariableInfo& indices, const TermSet& boundVars)
   if (sampleVariable == nullptr)
     {
       IssueWarning(*variable << ": the sample destination " << QUOTE(variable) << " is not a variable.");
+      return false;
+    }
+
+  // Check whether the output variable has the appropriate sort
+  // (at the object level, we already known it is in the appropriate kind)
+  DistributionSignature::Type rtype = getSignature(distribution).result;
+
+  for (Symbol* symbol : variable->symbol()->getModule()->getSymbols())
+    {
+      bool found = false;
+      switch (rtype)
+	{
+	  case FLOAT: found = dynamic_cast<FloatSymbol*>(symbol) != nullptr; break;
+	  case INTEGER: found = dynamic_cast<SuccSymbol*>(symbol) != nullptr; break;
+	  case BOOL: found = dynamic_cast<FloatOpSymbol*>(symbol) != nullptr; break;
+	}
+
+      if (found)
+	{
+	  // Find the Bool constants through the order FloatOpSymbols (this is very hacky)
+	  if (rtype == BOOL)
+	    {
+	      Vector<const char*> purposes;
+	      Vector<Term*> terms;
+	      symbol->getTermAttachments(purposes, terms);
+
+	      if (purposes.size() < 2)
+		continue;
+
+	      trueTerm.setTerm((purposes[0][0] == 't' ? terms[0] : terms[1])->deepCopy());
+	      falseTerm.setTerm((purposes[0][0] == 't' ? terms[1] : terms[0])->deepCopy());
+	      trueTerm.normalize();
+	      falseTerm.normalize();
+
+	      symbol = terms[0]->symbol();
+	    }
+
+	  resultSymbol = symbol;
+
+	  if (!leq(symbol->getRangeSort(), variable->symbol()->getRangeSort()))
+	    {
+	      IssueWarning(*variable << ": the sample destination " << QUOTE(variable)
+		 << " does not have the appropiate sort for the "
+		 << getSignature(distribution).name << " distribution.");
+	      return false;
+	    }
+
+	  break;
+	}
+    }
+
+  // Fail if we cannot find the appropriate symbol
+  if (resultSymbol == nullptr)
+    {
+      IssueWarning(*variable << ": the module does not contain the appropiate sorts for the "
+		   << getSignature(distribution).name << " distribution.");
       return false;
     }
 
@@ -177,10 +249,9 @@ SampleStrategy::decompose(StrategicSearch& searchObject, DecompositionProcess* r
   Vector<long int> integerArgs(nrArgs);
 
   // Symbols to build the result term
-  FloatDagNode* floatArgDag = nullptr;
-  SuccSymbol* succSymbol = nullptr;
   MinusSymbol* minusSymbol = nullptr;
-  DagRoot zeroTerm;
+
+  const DistributionSignature& signature = getSignature(distribution);
 
   for (size_t i = 0; i < nrArgs; i++)
     {
@@ -197,7 +268,7 @@ SampleStrategy::decompose(StrategicSearch& searchObject, DecompositionProcess* r
       // ...and converted to a number if possible
       bool isNumber = false;
 
-      if (distribution == UNIFORM_DISCRETE)
+      if (signature.args[i] == INTEGER)
 	{
 	  DagNode* topNode = redContext->root();
 	  Symbol* topSymbol = topNode->symbol();
@@ -205,12 +276,11 @@ SampleStrategy::decompose(StrategicSearch& searchObject, DecompositionProcess* r
 	  // Any constant is a zero for us
 	  if (topSymbol->arity() == 0)
 	    {
-	      zeroTerm.setNode(redContext->root());
 	      integerArgs[i] = 0;
 	      isNumber = true;
 	    }
 	  // Negative integer
-	  else if (auto minus = dynamic_cast<MinusSymbol*>(topSymbol))
+	  else if (MinusSymbol* minus = dynamic_cast<MinusSymbol*>(topSymbol))
 	    {
 	      if (minus->isNeg(topNode))
 		{
@@ -221,17 +291,16 @@ SampleStrategy::decompose(StrategicSearch& searchObject, DecompositionProcess* r
 		}
 	    }
 	  // Natural number
-	  else if (auto succ = dynamic_cast<SuccSymbol*>(topSymbol))
+	  else if (SuccSymbol* succ = dynamic_cast<SuccSymbol*>(topSymbol))
 	    {
 	      if (succ->isNat(topNode))
 		{
-		  succSymbol = succ;
 		  integerArgs[i] = succ->getNat(topNode).get_si();
 		  isNumber = true;
 		}
 	    }
 	}
-      else if ((floatArgDag = dynamic_cast<FloatDagNode*>(redContext->root())) != nullptr)
+      else if (FloatDagNode* floatArgDag = dynamic_cast<FloatDagNode*>(redContext->root()))
 	{
 	  doubleArgs[i] = floatArgDag->getValue();
 	  isNumber = true;
@@ -240,7 +309,7 @@ SampleStrategy::decompose(StrategicSearch& searchObject, DecompositionProcess* r
       if (!isNumber)
 	{
 	  IssueWarning("the argument " << QUOTE(redContext->root())
-		       << " passed to the sample operator does not reduce to a numeric constant.");
+		       << " passed to the sample operator does not reduce to a numeric constant of the right type.");
 	  delete redContext;
 	  return StrategicExecution::DIE;
 	}
@@ -252,14 +321,14 @@ SampleStrategy::decompose(StrategicSearch& searchObject, DecompositionProcess* r
   // Sample the requested value
   // (with some precondition check to avoid C++ undefined behavior)
   double sampled = 0.0;
-  int sampledInteger = 0;
+  long int sampledInteger = 0;
 
   switch (distribution)
     {
       case BERNOULLI:
 	if (doubleArgs[0] < 0.0 || doubleArgs[0] > 1.0)
 	  return StrategicExecution::DIE;
-	sampled = bernoulli_distribution(doubleArgs[0])(choice_random_generator);
+	sampledInteger = bernoulli_distribution(doubleArgs[0])(choice_random_generator);
 	break;
       case UNIFORM:
 	if (doubleArgs[0] > doubleArgs[1])
@@ -282,6 +351,51 @@ SampleStrategy::decompose(StrategicSearch& searchObject, DecompositionProcess* r
 	  return StrategicExecution::DIE;
 	sampled = exponential_distribution<double>(doubleArgs[0])(choice_random_generator);
 	break;
+      case BINOMIAL:
+	if (integerArgs[0] < 0 || doubleArgs[0] < 0.0 || doubleArgs[0] > 1.0)
+	  return StrategicExecution::DIE;
+	sampledInteger = binomial_distribution<long int>(integerArgs[0], doubleArgs[0])(choice_random_generator);
+	break;
+      case NEGBINOMIAL:
+	if (integerArgs[0] <= 0 || doubleArgs[0] <= 0.0 || doubleArgs[0] > 1.0)
+	  return StrategicExecution::DIE;
+	sampledInteger = negative_binomial_distribution<long int>(integerArgs[0], doubleArgs[0])(choice_random_generator);
+	break;
+      case GEOMETRIC:
+	if (doubleArgs[0] <= 0.0 || doubleArgs[0] >= 1.0)
+	  return StrategicExecution::DIE;
+	sampledInteger = geometric_distribution<long int>(doubleArgs[0])(choice_random_generator);
+	break;
+      case POISSON:
+	if (doubleArgs[0] <= 0.0)
+	  return StrategicExecution::DIE;
+	sampledInteger = poisson_distribution<long int>(doubleArgs[0])(choice_random_generator);
+	break;
+      case CAUCHY:
+        if (doubleArgs[1] <= 0.0)
+	  return StrategicExecution::DIE;
+	sampled = cauchy_distribution<double>(doubleArgs[0], doubleArgs[1])(choice_random_generator);
+	break;
+      case WEIBULL:
+        if (doubleArgs[0] <= 0.0 || doubleArgs[1] <= 0.0)
+	  return StrategicExecution::DIE;
+	sampled = weibull_distribution<double>(doubleArgs[0], doubleArgs[1])(choice_random_generator);
+	break;
+      case LOGNORMAL:
+        if (doubleArgs[1] <= 0.0)
+	  return StrategicExecution::DIE;
+	sampled = lognormal_distribution<double>(doubleArgs[0], doubleArgs[1])(choice_random_generator);
+	break;
+      case CHI2:
+	if (integerArgs[0] <= 0)
+	  return StrategicExecution::DIE;
+	sampled = chi_squared_distribution<double>(integerArgs[0])(choice_random_generator);
+	break;
+      case STUDENTT:
+	if (integerArgs[0] <= 0)
+	  return StrategicExecution::DIE;
+	sampled = student_t_distribution<double>(integerArgs[0])(choice_random_generator);
+	break;
       case NUM_DISTRIBUTIONS:
 	CantHappen("bad distribution");
     }
@@ -290,14 +404,30 @@ SampleStrategy::decompose(StrategicSearch& searchObject, DecompositionProcess* r
   int index = static_cast<VariableTerm*>(variable)->getIndex();
   Substitution sb(index + 1);
 
-  if (distribution != UNIFORM_DISCRETE)
-    sb.bind(index, new FloatDagNode(safeCast(FloatSymbol*, floatArgDag->symbol()), sampled));
-  else if (sampledInteger < 0)
-    sb.bind(index, minusSymbol->makeNegDag(sampledInteger));
-  else if (sampledInteger >= 0 && succSymbol)
-    sb.bind(index, succSymbol->makeNatDag64(sampledInteger));
-  else
-    sb.bind(index, zeroTerm.getNode());
+  switch (signature.result)
+    {
+      case DistributionSignature::Type::BOOL:
+        sb.bind(index, sampledInteger ? trueTerm.getDag() : falseTerm.getDag());
+	break;
+      case DistributionSignature::Type::FLOAT:
+        sb.bind(index, new FloatDagNode(safeCast(FloatSymbol*, resultSymbol), sampled));
+	break;
+      default:
+        // minusSymbol is not stored in the strategy object because the uniform
+	// distribution with a negative index is the only distribution that may
+	// generate negative integer, so we catch the symbol above
+	if (sampledInteger < 0)
+	  {
+	    DagNode* result = minusSymbol->makeNegDag(sampledInteger);
+	    result->computeBaseSortForGroundSubterms(false);
+	    sb.bind(index, result);
+	    // The sample variable could be a Nat variable, in which case we should fail
+	    if (!leq(result->getSort(), variable->getSort()))
+	      return StrategicExecution::DIE;
+	  }
+	else if (sampledInteger >= 0)
+	  sb.bind(index, safeCast(SuccSymbol*, resultSymbol)->makeNatDag64(sampledInteger));
+    }
 
   VariableBindingsManager::ContextId innerBinds = contextSpec.empty()
 	      ? VariableBindingsManager::EMPTY_CONTEXT
