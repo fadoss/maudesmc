@@ -61,6 +61,8 @@ public:
     CHI2,
     // studentt(<degrees of freedom>)
     STUDENTT,
+    // beta(<α shape>, <β shape>)
+    BETA,
     NUM_DISTRIBUTIONS
   };
 

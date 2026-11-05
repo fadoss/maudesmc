@@ -75,6 +75,7 @@ const SampleStrategy::DistributionSignature signatures[SampleStrategy::NUM_DISTR
 	{"lognormal", {FLOAT, FLOAT}, FLOAT},
 	{"chi2", {INTEGER}, FLOAT},
 	{"studentt", {INTEGER}, FLOAT},
+	{"beta", {FLOAT, FLOAT}, FLOAT},
 };
 
 const SampleStrategy::DistributionSignature&
@@ -396,6 +397,12 @@ SampleStrategy::decompose(StrategicSearch& searchObject, DecompositionProcess* r
 	  return StrategicExecution::DIE;
 	sampled = student_t_distribution<double>(integerArgs[0])(choice_random_generator);
 	break;
+      case BETA:
+        {
+	  gamma_distribution<double> gamma;
+	  int x = gamma(choice_random_generator, decltype(gamma)::param_type{doubleArgs[0], 1.0});
+	  sampled = x / (x + gamma(choice_random_generator, decltype(gamma)::param_type{doubleArgs[1], 1.0}));
+	}
       case NUM_DISTRIBUTIONS:
 	CantHappen("bad distribution");
     }

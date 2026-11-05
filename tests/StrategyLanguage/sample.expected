@@ -73,11 +73,21 @@ result Singleton: < 3.4882896916693578 >
 No more solutions.
 rewrites: 1
 ==========================================
+srewrite in SINGLETON : < 0.0 > using sample F := beta(1.7, 1.3999999999999999)
+    in put[F <- F] .
+
+Solution 1
+rewrites: 1
+result Singleton: < 2.9742128105705434e-1 >
+
+No more solutions.
+rewrites: 1
+==========================================
 srewrite in SINGLETON : < 0.0 > using sample F := exp(3.5) in put[F <- F] .
 
 Solution 1
 rewrites: 1
-result Singleton: < 2.2427053652447557e-1 >
+result Singleton: < 1.5532617127690901e-1 >
 
 No more solutions.
 rewrites: 1
@@ -103,7 +113,7 @@ srewrite in SINGLETON : < 0 > using sample N := geometric(2.5e-1) in put[M <-
 
 Solution 1
 rewrites: 1
-result Singleton: < 6 >
+result Singleton: < 0 >
 
 No more solutions.
 rewrites: 1
@@ -113,7 +123,7 @@ srewrite in SINGLETON : < 0 > using sample N := poisson(4.2300000000000004) in
 
 Solution 1
 rewrites: 1
-result Singleton: < 4 >
+result Singleton: < 3 >
 
 No more solutions.
 rewrites: 1
@@ -123,7 +133,7 @@ srewrite in SINGLETON : < 0.0 > using sample F := cauchy(-2.0, 1.0) in put[F <-
 
 Solution 1
 rewrites: 1
-result Singleton: < -4.2354186024246476e-1 >
+result Singleton: < -1.0276818776946284 >
 
 No more solutions.
 rewrites: 1
@@ -133,7 +143,7 @@ srewrite in SINGLETON : < 0.0 > using sample F := weibull(3.1000000000000001,
 
 Solution 1
 rewrites: 1
-result Singleton: < 3.1889475397797566 >
+result Singleton: < 1.4748696235605276 >
 
 No more solutions.
 rewrites: 1
@@ -143,7 +153,7 @@ srewrite in SINGLETON : < 0.0 > using sample F := lognormal(
 
 Solution 1
 rewrites: 1
-result Singleton: < 2.0189771884874811e-2 >
+result Singleton: < 3.2895844484724442e-2 >
 
 No more solutions.
 rewrites: 1
@@ -152,7 +162,7 @@ srewrite in SINGLETON : < 0.0 > using sample F := chi2(3) in put[F <- F] .
 
 Solution 1
 rewrites: 1
-result Singleton: < 3.9942245330825905 >
+result Singleton: < 2.6978479706724101e-1 >
 
 No more solutions.
 rewrites: 1
@@ -161,7 +171,7 @@ srewrite in SINGLETON : < 0.0 > using sample F := studentt(5) in put[F <- F] .
 
 Solution 1
 rewrites: 1
-result Singleton: < -2.0792383730878242e-1 >
+result Singleton: < 1.4257868645480705 >
 
 No more solutions.
 rewrites: 1
@@ -171,7 +181,7 @@ srewrite in SINGLETON : < 0.0 > using sample F := uniform(1.0 - 2.0,
 
 Solution 1
 rewrites: 3
-result Singleton: < 3.5075740844902921 >
+result Singleton: < 9.7909061147044341e-1 >
 
 No more solutions.
 rewrites: 3
@@ -180,7 +190,7 @@ srewrite in SINGLETON : < 0.0 > using sample F := chi2(1 + 4) in put[F <- F] .
 
 Solution 1
 rewrites: 2
-result Singleton: < 4.0904451290511359 >
+result Singleton: < 4.3532801287535321 >
 
 No more solutions.
 rewrites: 2
@@ -212,7 +222,7 @@ srewrite in SINGLETON-STRAT : < false > using bern(1.0000000000000001e-1) .
 
 Solution 1
 rewrites: 1
-result Singleton: < false >
+result Singleton: < true >
 
 No more solutions.
 rewrites: 1
@@ -221,7 +231,7 @@ srewrite in SINGLETON-STRAT : < 0 > using unif(5) .
 
 Solution 1
 rewrites: 2
-result Singleton: < 6 >
+result Singleton: < 10 >
 
 No more solutions.
 rewrites: 2
@@ -230,7 +240,7 @@ srewrite in SINGLETON-STRAT : < 0.0 > using unif2(0.0, 1.0) .
 
 Solution 1
 rewrites: 3
-result Singleton: < -4.5352167878013147e-2 >
+result Singleton: < -6.2902352429456215e-2 >
 
 No more solutions.
 rewrites: 3
@@ -239,13 +249,13 @@ reduce in META-LEVEL : metaSrewrite(['SINGLETON], '<_>['0.0.Float], sample
     'F:Float := 'exp['3.2.Float] in 'put[
   'F:Float <- 'F:Float]{empty}, breadthFirst, 0) .
 rewrites: 3
-result ResultPair: {'<_>['2.1973431029938867e-1.FiniteFloat], 'Singleton}
+result ResultPair: {'<_>['5.1536771323093616e-2.FiniteFloat], 'Singleton}
 ==========================================
 reduce in META-LEVEL : metaSrewrite(['SINGLETON], '<_>['0.Nat], sample 'N:Nat
     := 'uniform['s_^3['0.Zero], 's_^10['0.Zero]] in 'put[
   'M:Int <- 'N:Nat]{empty}, breadthFirst, 0) .
 rewrites: 3
-result ResultPair: {'<_>['s_^8['0.Zero]], 'Singleton}
+result ResultPair: {'<_>['s_^10['0.Zero]], 'Singleton}
 ==========================================
 reduce in META-LEVEL : metaSrewrite(['SINGLETON], '<_>['0.0.Float], sample
     'F:Float := 'exp['3.2.Float, '4.3.Float] in 'put[
@@ -270,5 +280,5 @@ endsth, '<_>['0.0.Float], sample 'F:Float := 'exp['3.2.Float, '4.3.Float] in
 reduce in META-LEVEL : metaSrewrite(['SINGLETON-STRAT], '<_>['0.0.Float],
     'unif2[['0.0.Float, '1.0.Float]], breadthFirst, 0) .
 rewrites: 5
-result ResultPair: {'<_>['9.4627328985452813e-3.FiniteFloat], 'Singleton}
+result ResultPair: {'<_>['6.4449406076411875e-1.FiniteFloat], 'Singleton}
 Bye.

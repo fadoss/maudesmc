@@ -30,6 +30,7 @@ srew < 0 > using sample M := uniform(-4, -2) in put[M <- M] .
 srew < 0 > using sample N := uniform(-4, -2) in put[M <- N] .
 srew < 0.0 > using sample F := norm(2.0, 1.0) in put[F <- F] .
 srew < 0.0 > using sample F := gamma(2.0, 1.5) in put[F <- F] .
+srew < 0.0 > using sample F := beta(1.7, 1.4) in put[F <- F] .
 srew < 0.0 > using sample F := exp(3.5) in put[F <- F] .
 srew < 0 > using sample M := binomial(5, 0.6) in put[M <- M] .
 srew < 0 > using sample N := negbinomial(5, 0.6) in put[M <- N] .
